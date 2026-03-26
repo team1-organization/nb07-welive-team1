@@ -1,0 +1,23 @@
+name: "♻️ Refactor"
+description: "리팩토링"
+labels: ["Type: Refactor :recycle:"]
+body:
+  - type: textarea
+    attributes:
+      label: ❓ 설명
+      description: 어떤 종류의 개선인지 설명해주세요.
+      placeholder: DX, 코드 가독성, 성능 개선 등
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: ✅ 작업할 내용
+      description: 할 일을 체크박스 형태로 작성해주세요.
+      value: |
+        - [ ] 작업 1
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 📄 참고 자료
+      description: 참고 자료가 있다면 작성해 주세요.

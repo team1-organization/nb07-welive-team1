@@ -1,0 +1,30 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Vercel
+        run: |
+          curl -X POST https://api.vercel.com/v13/deployments?teamId=${{ secrets.VERCEL_TEAM_ID }} \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "${{ secrets.VERCEL_PROJECT_NAME }}",
+              "project": "${{ secrets.VERCEL_PROJECT_NAME }}",
+              "target": "production",
+              "gitSource": {
+                "type": "github",
+                "ref": "develop",
+                "repoId": 987453541
+              }
+            }'

@@ -1,0 +1,18 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  // 🚨 [중요] 모든 파일에서 ESLint를 기본 포매터로 강제
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": true
+  },
+  
+  // ESLint가 포매팅 권한을 갖도록 허용
+  "eslint.format.enable": true,
+  "eslint.run": "onSave"
+}

@@ -1,0 +1,9 @@
+backend/node_modules/
+
+backend/.env
+backend/postgres_data/
+backend/public/
+backend/generated/prisma
+backend/dist/
+backend/build/
+.idea/

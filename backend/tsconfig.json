@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    /* 파일 레이아웃 */
+    "rootDirs": ["./src", "./"],
+    "outDir": "./dist",
+
+    /* 모듈 및 환경 설정 */
+    "target": "ESNext",
+    "module": "ESNext",             // NodeNext 대신 ESNext 사용
+    "moduleResolution": "Bundler",  // 확장자 없이 import 가능하게 만드는 핵심 설정
+    "allowImportingTsExtensions": false, // 빌드 시 확장자 관련 에러 방지
+
+    /* 편의성 옵션 */
+    "esModuleInterop": true,        // CommonJS 모듈을 import default로 가져오기 허용
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    /* 엄격한 타입 체크 */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "isolatedModules": true,
+
+    /* 기타 출력 */
+    "sourceMap": true,
+    "declaration": true
+  },
+  "include": ["src/**/*.ts", "eslint.config.mjs"],
+  "exclude": ["node_modules", "dist", "build", "postgres_data"]
+}
