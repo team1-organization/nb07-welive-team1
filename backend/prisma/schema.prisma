@@ -1,8 +1,280 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+    provider = "prisma-client-js"
+    output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
+}
+
+// 유저 권한
+enum UserRole {
+    SUPER_ADMIN // 슈퍼관리자
+    ADMIN // 관리자
+    USER // 유저
+}
+
+// 회원가입 상태
+enum JoinStatus {
+    PENDING // 승인대기
+    APPROVED // 승인
+    REJECTED // 거절
+}
+
+// 투표 진행상태
+enum PollStatus {
+    PENDING // 대기
+    IN_PROGRESS // 진행중
+    CLOSED // 종료
+}
+
+// 아파트 상태
+enum ApartmentStatus {
+    PENDING // 승인대기
+    APPROVED // 승인
+    REJECTED // 거절
+}
+
+// 민원 진행상태
+enum ComplaintStatus {
+    PENDING // 대기
+    PROCESSING // 진행중
+    COMPLETED // 완료
+}
+
+// 공지사항 카테고리
+enum NoticeCategory {
+    MAINTENANCE // 정기점검
+    EMERGENCY // 긴급공지
+    COMMUNITY // 커뮤니티
+    VOTE // 주민투표
+    ETC // 기타
+}
+
+// 거주 상태
+enum ResidenceStatus {
+    RESIDENCE // 거주중
+    NO_RESIDENCE // 거주안함
+}
+
+// 입주민 승인여부
+enum ApprovalStatus {
+    PENDING // 대기
+    APPROVED // 승인
+    REJECTED // 거절
+}
+
+// 세대 구분
+enum HouseholdType {
+    HOUSEHOLDER // 세대주
+    HOUSEMEMBER // 세대원
+}
+
+// 유저
+model User {
+    id           BigInt     @id @default(autoincrement())
+    userId       String     @unique
+    name         String
+    password     String
+    profileImage String?
+    contact      String
+    email        String     @unique
+    role         UserRole   @default(USER)
+    isActive     Boolean    @default(true)
+    joinStatus   JoinStatus @default(PENDING)
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+
+    apartmentId BigInt
+    apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: NoAction)
+    resident    Resident?
+
+    comments      Comment[]
+    votes         Vote[]
+    notifications Notification[]
+    complaints    Complaint[]
+
+    @@index([apartmentId])
+    @@index([role])
+}
+
+// 아파트
+model Apartment {
+    id                        BigInt   @id @default(autoincrement())
+    apartmentName             String // 아파트명
+    apartmentDong             String // 아파트 동
+    apartmentHo               String // 아파트 호수
+    description               String? // 아파트 설명
+    apartmentManagementNumber String // 관리소 번호
+    apartmentAddress          String // 아파트 주소
+    // startComplexNumber        String?
+    // endComplexNumber          String?
+    // startDongNumber           String?
+    // endDongNumber             String?
+    // startFloorNumber          String?
+    // endFloorNumber            String?
+    // startHoNumber             String?
+    // endHoNumber               String?
+    complexNumber             String?
+    dongNumber                String?
+    floorNumber               String?
+    hoNumber                  String?
+    createdAt                 DateTime @default(now())
+    updatedAt                 DateTime @updatedAt
+
+    users      User[]
+    notices    Notice[]
+    polls      Poll[]
+    complaints Complaint[]
+    residents  Resident[]
+
+    @@index([apartmentName])
+}
+
+// 입주민
+model Resident {
+    id              BigInt          @id @default(autoincrement())
+    name            String // 이름
+    contact         String // 연락처
+    building        String // 동
+    unitNumber      String // 호
+    residenceStatus ResidenceStatus @default(RESIDENCE) // 거주 여부
+    isHouseholder   HouseholdType   @default(HOUSEMEMBER) // 세대주 여부
+    isRegistered    Boolean         @default(false) // 입주민 회원여부
+    approvalStatus  ApprovalStatus  @default(PENDING) //관리자 승인여부
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @updatedAt
+
+    userId      BigInt?
+    user        User?     @relation(fields: [userId], references: [id])
+    apartmentId BigInt
+    apartment   Apartment @relation(fields: [apartmentId], references: [id])
+
+    @@unique([apartmentId, building, unitNumber, contact])
+    @@index([apartmentId, approvalStatus])
+}
+
+// 공지사항
+model Notice {
+    id        BigInt         @id @default(autoincrement())
+    category  NoticeCategory // 카테고리
+    title     String // 제목
+    content   String // 내용
+    isPinned  Boolean        @default(false) // 중요표시
+    viewCount Int            @default(0)
+    startDate DateTime // 일정 시작일
+    endDate   DateTime // 일정 종료일
+    createdAt DateTime       @default(now())
+    updatedAt DateTime       @updatedAt
+
+    apartmentId BigInt
+    apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+
+    comments Comment[]
+
+    @@index([apartmentId, isPinned, createdAt(sort: Desc)])
+}
+
+// 투표
+model Poll {
+    id                 BigInt     @id @default(autoincrement())
+    title              String
+    content            String
+    buildingPermission Int        @default(0) // 0이면 전체 개별인 경우 동입력 ex) 108
+    status             PollStatus @default(PENDING)
+    startDate          DateTime
+    endDate            DateTime
+    createdAt          DateTime   @default(now())
+    updatedAt          DateTime   @updatedAt
+
+    apartmentId BigInt
+    apartment   Apartment @relation(fields: [apartmentId], references: [id])
+
+    pollOptions PollOption[]
+
+    @@index([apartmentId, status])
+}
+
+// 투표 선택지
+model PollOption {
+    id        BigInt   @id @default(autoincrement())
+    title     String
+    order     Int      @default(0) // 투표 옵션 순서
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    pollId BigInt
+    poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+    votes Vote[]
+
+    @@index([pollId])
+    @@index([pollId, order])
+}
+
+// 투표 답변
+model Vote {
+    id        BigInt   @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    userId   BigInt
+    user     User       @relation(fields: [userId], references: [id])
+    optionId BigInt
+    option   PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, optionId]) // 중복으로 선택이 불가능하도록 지정
+}
+
+// 민원
+model Complaint {
+    id        BigInt          @id @default(autoincrement())
+    title     String // 제목
+    content   String // 내용
+    isPrivate Boolean         @default(false) // 공개 여부
+    status    ComplaintStatus @default(PENDING) // 진행 상태
+    createdAt DateTime        @default(now())
+    updatedAt DateTime        @updatedAt
+
+    userId      BigInt
+    user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    apartmentId BigInt
+    apartment   Apartment @relation(fields: [apartmentId], references: [id])
+
+    comments Comment[]
+
+    @@index([apartmentId, status])
+    @@index([userId])
+}
+
+// 답글
+model Comment {
+    id        BigInt   @id @default(autoincrement())
+    content   String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    userId      BigInt
+    User        User       @relation(fields: [userId], references: [id])
+    noticeId    BigInt?
+    notice      Notice?    @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+    complaintId BigInt?
+    complaint   Complaint? @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+
+    @@index([noticeId])
+    @@index([complaintId])
+}
+
+// 알림
+model Notification {
+    id        BigInt   @id @default(autoincrement())
+    content   String // 알림 내용
+    isRead    Boolean  @default(false) // 알림 읽음 여부
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    userId BigInt
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId, isRead])
 }

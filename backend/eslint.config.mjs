@@ -11,7 +11,7 @@ export default tseslint.config(
      ...tseslint.configs.recommended,
     {
         //files: ["src/**/*.ts", "tests/**/*.ts"],
-        files: ["src/**/*.ts"],
+        files: ["src/**/*.ts", "prisma/**/*.prisma"],
         languageOptions: {
             parser: tsParser,
             parserOptions: {
