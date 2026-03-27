@@ -1,9 +1,8 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
-import morgan from 'morgan';
-
-import cookieParser from 'cookie-parser';
 import http from 'http';
+import morgan from 'morgan';
 import { errorHandler } from './errors/errorHandler';
 
 BigInt.prototype.toJSON = function (): string {
@@ -12,7 +11,6 @@ BigInt.prototype.toJSON = function (): string {
 
 const app = express();
 app.use(morgan('dev'));
-
 app.use(morgan(':method :url '));
 const allowedOrigins = [
   'http://localhost:3001', // 로컬 개발용
@@ -28,16 +26,9 @@ app.use(
 );
 
 app.use(cookieParser());
-
 app.use(express.json());
-
 app.use(express.urlencoded({ extended: true }));
-
 app.use(errorHandler);
 
-const a = 'x';
-console.log(a);
-
 const server = http.createServer(app);
-
 export default server;
