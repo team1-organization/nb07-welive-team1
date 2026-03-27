@@ -145,7 +145,7 @@ model Resident {
     createdAt       DateTime        @default(now())
     updatedAt       DateTime        @updatedAt
 
-    userId      BigInt?
+    userId      BigInt?   @unique
     user        User?     @relation(fields: [userId], references: [id])
     apartmentId BigInt
     apartment   Apartment @relation(fields: [apartmentId], references: [id])
