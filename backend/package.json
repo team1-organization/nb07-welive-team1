@@ -8,7 +8,9 @@
     "start": "tsx src/server.ts",
     "dev": "nodemon --watch src --ext ts --exec tsx src/app.ts",
     "test": "cross-env NODE_ENV=test jest.config.ts --runInBand",
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
   },
   "keywords": [],
   "author": "",
