@@ -3,14 +3,14 @@
   "name": "welive",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "nodemon --watch src --ext ts --exec tsx src/app.ts",
     "test": "cross-env NODE_ENV=test jest.config.ts --runInBand",
     "build": "tsc",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix"
+    "lint": "eslint src/**/*.ts --quiet",
+    "lint:fix": "eslint src/**/*.ts --fix --quiet"
   },
   "keywords": [],
   "author": "",
