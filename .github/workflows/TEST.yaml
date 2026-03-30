@@ -8,6 +8,10 @@ jobs:
   build-and-check:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
       - name: 1. 코드 가져오기
         uses: actions/checkout@v4
@@ -18,6 +22,7 @@ jobs:
           node-version: '24'
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
+
       - name: 3. 의존성 설치
         run: npm ci
 
