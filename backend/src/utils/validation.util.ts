@@ -4,8 +4,8 @@
  * @example isEmail('user@example.com') // true
  */
 export function isEmail(value: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(value);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(value);
 }
 
 /**
@@ -14,7 +14,7 @@ export function isEmail(value: string): boolean {
  * @example isStrongPassword('pass1234') // true
  */
 export function isStrongPassword(value: string): boolean {
-  return value.length >= 8 && /[A-Za-z]/.test(value) && /[0-9]/.test(value);
+    return value.length >= 8 && /[A-Za-z]/.test(value) && /[0-9]/.test(value);
 }
 
 /**
@@ -24,11 +24,11 @@ export function isStrongPassword(value: string): boolean {
  * @example isValidDateRange('2024-01-01', '2024-01-02') // true
  */
 export function isValidDateRange(start: Date | string, end: Date | string): boolean {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
+    const startDate = new Date(start);
+    const endDate = new Date(end);
 
-  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return false;
-  return startDate <= endDate;
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return false;
+    return startDate <= endDate;
 }
 
 /**
@@ -37,9 +37,9 @@ export function isValidDateRange(start: Date | string, end: Date | string): bool
  * @example isNumeric('123.45') // true
  */
 export function isNumeric(value: unknown): boolean {
-  if (typeof value === 'number') return !isNaN(value);
-  if (typeof value === 'string') return !isNaN(parseFloat(value)) && isFinite(Number(value));
-  return false;
+    if (typeof value === 'number') return !isNaN(value);
+    if (typeof value === 'string') return !isNaN(parseFloat(value)) && isFinite(Number(value));
+    return false;
 }
 
 /**
@@ -48,12 +48,12 @@ export function isNumeric(value: unknown): boolean {
  * @example isValidUrl('https://google.com') // true
  */
 export function isValidUrl(url: string): boolean {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -64,8 +64,8 @@ export function isValidUrl(url: string): boolean {
  * @example isLengthBetween('안녕하세요', 2, 10) // true
  */
 export function isLengthBetween(value: string, min: number, max: number): boolean {
-  const length = value.trim().length;
-  return length >= min && length <= max;
+    const length = value.trim().length;
+    return length >= min && length <= max;
 }
 
 /**
@@ -75,9 +75,7 @@ export function isLengthBetween(value: string, min: number, max: number): boolea
  * @example hasRequiredFields({ title: '숙제' }, ['title']) // true
  */
 export function hasRequiredFields<T extends object>(obj: T, fields: (keyof T)[]): boolean {
-  return fields.every(
-    (field) => obj[field] !== undefined && obj[field] !== null && obj[field] !== '',
-  );
+    return fields.every((field) => obj[field] !== undefined && obj[field] !== null && obj[field] !== '');
 }
 
 /**
@@ -86,9 +84,9 @@ export function hasRequiredFields<T extends object>(obj: T, fields: (keyof T)[])
  * @example isFutureDate('2099-12-31') // true
  */
 export function isFutureDate(date: Date | string): boolean {
-  const target = new Date(date);
-  const now = new Date();
-  return target > now;
+    const target = new Date(date);
+    const now = new Date();
+    return target > now;
 }
 
 /**
@@ -98,11 +96,11 @@ export function isFutureDate(date: Date | string): boolean {
  * @example isAllowedExtension('image.png', ['png', 'jpg']) // true
  */
 export function isAllowedExtension(fileName: string, extensions: string[]): boolean {
-  const part = fileName.split('.');
-  if (part.length < 2) return false;
+    const part = fileName.split('.');
+    if (part.length < 2) return false;
 
-  const ext = part[part.length - 1]?.toLowerCase() || '';
-  return extensions.map((e) => e.toLowerCase()).includes(ext);
+    const ext = part[part.length - 1]?.toLowerCase() || '';
+    return extensions.map((e) => e.toLowerCase()).includes(ext);
 }
 
 /**
@@ -111,13 +109,13 @@ export function isAllowedExtension(fileName: string, extensions: string[]): bool
  * @example isBigIntString('9007199254740991') // true
  */
 export function isBigIntString(value: string): boolean {
-  if (!value) return false;
-  try {
-    BigInt(value);
-    return true;
-  } catch {
-    return false;
-  }
+    if (!value) return false;
+    try {
+        BigInt(value);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -126,12 +124,12 @@ export function isBigIntString(value: string): boolean {
  * @example isValidJson('{"key": "value"}') // true
  */
 export function isValidJson(value: string): boolean {
-  try {
-    JSON.parse(value);
-    return true;
-  } catch {
-    return false;
-  }
+    try {
+        JSON.parse(value);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -141,5 +139,5 @@ export function isValidJson(value: string): boolean {
  * @example isInList('TODO', ['TODO', 'DONE'] as const) // true
  */
 export function isInList<T>(value: any, list: readonly T[]): value is T {
-  return list.includes(value);
+    return list.includes(value);
 }
