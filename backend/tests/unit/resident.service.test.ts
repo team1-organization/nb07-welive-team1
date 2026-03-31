@@ -16,6 +16,44 @@ const mockedFindResidentById = findResidentById as jest.MockedFunction<typeof fi
 const mockedExistsResident = existsResident as jest.MockedFunction<typeof existsResident>;
 const mockedCreateResident = createResident as jest.MockedFunction<typeof createResident>;
 
+// repository가 반환하는 resident 모델 형태를 맞추기 위한 공통 mock 생성기
+const makeResident = (
+    overrides: Partial<{
+        id: bigint;
+        apartmentId: bigint;
+        userId: bigint | null;
+        building: string;
+        unitNumber: string;
+        contact: string;
+        name: string;
+        residenceStatus: ResidenceStatus;
+        isHouseholder: HouseholdType;
+        isRegistered: boolean;
+        approvalStatus: ApprovalStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        user: { email: string } | null;
+    }> = {},
+) => ({
+    id: 1n,
+    apartmentId: 1n,
+    userId: 10n,
+    building: '101',
+    unitNumber: '1001',
+    contact: '01012345678',
+    name: '홍길동',
+    residenceStatus: ResidenceStatus.RESIDENCE,
+    isHouseholder: HouseholdType.HOUSEHOLDER,
+    isRegistered: true,
+    approvalStatus: ApprovalStatus.APPROVED,
+    createdAt: new Date('2026-03-31T00:00:00.000Z'),
+    updatedAt: new Date('2026-03-31T00:00:00.000Z'),
+    user: {
+        email: 'hong@example.com',
+    },
+    ...overrides,
+});
+
 describe('resident.service', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -24,37 +62,21 @@ describe('resident.service', () => {
     describe('getResidents', () => {
         it('입주민 목록을 DTO 형태로 반환한다', async () => {
             mockedFindResidents.mockResolvedValue({
-                residents: [
-                    {
-                        id: BigInt(1),
-                        userId: BigInt(10),
-                        building: '101',
-                        unitNumber: '1001',
-                        contact: '01012345678',
-                        name: '홍길동',
-                        residenceStatus: ResidenceStatus.RESIDENCE,
-                        isHouseholder: HouseholdType.HOUSEHOLDER,
-                        isRegistered: true,
-                        approvalStatus: ApprovalStatus.APPROVED,
-                        user: {
-                            email: 'hong@example.com',
-                        },
-                    },
-                ],
+                residents: [makeResident()],
                 totalCount: 1,
             });
 
             const result = await getResidents({
-                apartmentId: BigInt(1),
+                apartmentId: 1n,
                 query: {
-                    page: '1',
-                    limit: '20',
+                    page: 1,
+                    limit: 20,
                     keyword: '홍길동',
                 },
             });
 
             expect(mockedFindResidents).toHaveBeenCalledWith({
-                apartmentId: BigInt(1),
+                apartmentId: 1n,
                 page: 1,
                 limit: 20,
                 building: undefined,
@@ -89,23 +111,24 @@ describe('resident.service', () => {
 
     describe('getResidentById', () => {
         it('입주민 상세 조회에 성공한다', async () => {
-            mockedFindResidentById.mockResolvedValue({
-                id: BigInt(2),
-                userId: null,
-                building: '102',
-                unitNumber: '1201',
-                contact: '01099998888',
-                name: '김철수',
-                residenceStatus: ResidenceStatus.RESIDENCE,
-                isHouseholder: HouseholdType.HOUSEMEMBER,
-                isRegistered: false,
-                approvalStatus: ApprovalStatus.PENDING,
-                user: null,
-            });
+            mockedFindResidentById.mockResolvedValue(
+                makeResident({
+                    id: 2n,
+                    userId: null,
+                    building: '102',
+                    unitNumber: '1201',
+                    contact: '01099998888',
+                    name: '김철수',
+                    isHouseholder: HouseholdType.HOUSEMEMBER,
+                    isRegistered: false,
+                    approvalStatus: ApprovalStatus.PENDING,
+                    user: null,
+                }),
+            );
 
             const result = await getResidentById({
-                apartmentId: BigInt(1),
-                residentId: BigInt(2),
+                apartmentId: 1n,
+                residentId: 2n,
             });
 
             expect(result).toEqual({
@@ -128,8 +151,8 @@ describe('resident.service', () => {
 
             await expect(
                 getResidentById({
-                    apartmentId: BigInt(1),
-                    residentId: BigInt(999),
+                    apartmentId: 1n,
+                    residentId: 999n,
                 }),
             ).rejects.toThrow(NotFoundError);
         });
@@ -138,22 +161,22 @@ describe('resident.service', () => {
     describe('createOneResident', () => {
         it('입주민 개별 등록에 성공한다', async () => {
             mockedExistsResident.mockResolvedValue(false);
-            mockedCreateResident.mockResolvedValue({
-                id: BigInt(3),
-                userId: null,
-                building: '103',
-                unitNumber: '1301',
-                contact: '01011112222',
-                name: '이영희',
-                residenceStatus: ResidenceStatus.RESIDENCE,
-                isHouseholder: HouseholdType.HOUSEHOLDER,
-                isRegistered: false,
-                approvalStatus: ApprovalStatus.PENDING,
-                user: null,
-            });
+            mockedCreateResident.mockResolvedValue(
+                makeResident({
+                    id: 3n,
+                    userId: null,
+                    building: '103',
+                    unitNumber: '1301',
+                    contact: '01011112222',
+                    name: '이영희',
+                    isRegistered: false,
+                    approvalStatus: ApprovalStatus.PENDING,
+                    user: null,
+                }),
+            );
 
             const result = await createOneResident({
-                apartmentId: BigInt(1),
+                apartmentId: 1n,
                 body: {
                     building: '103',
                     unitNumber: '1301',
@@ -164,14 +187,14 @@ describe('resident.service', () => {
             });
 
             expect(mockedExistsResident).toHaveBeenCalledWith({
-                apartmentId: BigInt(1),
+                apartmentId: 1n,
                 building: '103',
                 unitNumber: '1301',
                 contact: '01011112222',
             });
 
             expect(mockedCreateResident).toHaveBeenCalledWith({
-                apartmentId: BigInt(1),
+                apartmentId: 1n,
                 building: '103',
                 unitNumber: '1301',
                 contact: '01011112222',
@@ -199,7 +222,7 @@ describe('resident.service', () => {
 
             await expect(
                 createOneResident({
-                    apartmentId: BigInt(1),
+                    apartmentId: 1n,
                     body: {
                         building: '101',
                         unitNumber: '1001',
