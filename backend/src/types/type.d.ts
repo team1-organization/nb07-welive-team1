@@ -2,6 +2,12 @@
 
 declare global {
   namespace Express {
+    interface User {
+      id: bigint;
+      apartmentId: bigint;
+      role: string;
+    }
+
     interface Request {
       //          user?: User;
       file?: Multer.File;
@@ -13,4 +19,5 @@ declare global {
   }
 }
 
-export {};
+export { };
+

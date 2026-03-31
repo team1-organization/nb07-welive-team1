@@ -4,6 +4,7 @@ import express from 'express';
 import http from 'http';
 import morgan from 'morgan';
 import { errorHandler } from './errors/errorHandler';
+import residentRouter from './routers/resident.router';
 
 BigInt.prototype.toJSON = function (): string {
   return this.toString();
@@ -28,6 +29,9 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/residents', residentRouter);
+
 app.use(errorHandler);
 
 const server = http.createServer(app);
