@@ -7,14 +7,21 @@ const isoDateSchema = z.string().datetime('ISO datetime 형식이어야 합니�
 
 // 공통 일정 검증 함수
 const validateNoticeSchedule = (data: { startDate?: string | null; endDate?: string | null }) => {
-    const hasStart = data.startDate !== undefined;
-    const hasEnd = data.endDate !== undefined;
+    const startDate = data.startDate;
+    const endDate = data.endDate;
+
+    const hasStart = startDate !== undefined;
+    const hasEnd = endDate !== undefined;
 
     if (!hasStart && !hasEnd) return true;
     if (hasStart !== hasEnd) return false;
-    if (data.startDate === null && data.endDate === null) return true;
-    if (data.startDate === null || data.endDate === null) return false;
-    return new Date(data.endDate) >= new Date(data.startDate);
+
+    if (startDate === null && endDate === null) return true;
+    if (startDate === null || endDate === null) return false;
+    if (typeof startDate === 'string' && typeof endDate === 'string') {
+        return new Date(endDate) >= new Date(startDate);
+    }
+    return false;
 };
 
 // POST /api/notices
