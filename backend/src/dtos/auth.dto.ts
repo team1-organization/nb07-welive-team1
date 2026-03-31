@@ -79,6 +79,10 @@ export const loginUserBody = z.object({
     password: z.string().min(4, '비밀번호는 4자 이상이어야 합니다.'),
 });
 
+export const statusSchema = z.object({
+    status: z.enum(['PENDING', 'APPROVED', 'REJECTED']),
+});
+
 export type CreateUserDTO = z.infer<typeof createUserBody>;
 export type UpdateUserDTO = z.infer<typeof updateUserBody>;
 export type LoginUserDTO = z.infer<typeof loginUserBody>;
