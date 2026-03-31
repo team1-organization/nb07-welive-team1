@@ -6,11 +6,7 @@
   "main": "app.js",
   "scripts": {
     "start": "tsx src/server.ts",
-<<<<<<< feature/gy/auth
     "dev": "nodemon --watch src --ext ts --exec tsx src/server.ts",
-=======
-    "dev": "nodemon --watch src --ext ts --exec tsx src/app.ts",
->>>>>>> develop
     "test": "cross-env NODE_ENV=test jest --runInBand",
     "build": "tsc",
     "lint": "eslint src/**/*.ts --quiet",
