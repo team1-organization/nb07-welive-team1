@@ -22,8 +22,12 @@
 
     /* 기타 출력 */
     "sourceMap": true,
-    "declaration": true
+    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@types/pg" : ["./node_modules/@types/pg"]
+    }
   },
-  "include": ["src/**/*.ts", "eslint.config.mjs"],
+  "include": ["src/**/*.ts", "eslint.config.mjs", "tests/**/*.ts"],
   "exclude": ["node_modules", "dist", "build", "postgres_data"]
 }
