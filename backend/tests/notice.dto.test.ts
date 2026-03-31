@@ -6,7 +6,7 @@ describe('Notice DTO - 핵심 검증', () => {
         category: 'MAINTENANCE',
         title: '테스트 공지',
         content: '내용입니다',
-        boardId: '550e8400-e29b-41d4-a716-446655440000',
+        boardId: '1',
     };
 
     // ========================
@@ -52,36 +52,80 @@ describe('Notice DTO - 핵심 검증', () => {
     // ========================
     // UPDATE
     // ========================
-    describe('updateNoticeBodySchema', () => {
-        it('필드 하나만 수정해도 통과한다', () => {
-            const result = updateNoticeBodySchema.safeParse({
-                title: '수정된 제목',
-            });
+     describe('updateNoticeBodySchema', () => {
+    it('필드 하나만 수정해도 통과한다', () => {
+      const result = updateNoticeBodySchema.safeParse({
+        title: '수정된 제목',
+      });
 
-            expect(result.success).toBe(true);
-        });
-
-        it('빈 객체면 실패한다', () => {
-            const result = updateNoticeBodySchema.safeParse({});
-
-            expect(result.success).toBe(false);
-        });
-
-        it('일정을 null로 보내면 제거 가능하다', () => {
-            const result = updateNoticeBodySchema.safeParse({
-                startDate: null,
-                endDate: null,
-            });
-
-            expect(result.success).toBe(true);
-        });
-
-        it('startDate만 있으면 실패한다', () => {
-            const result = updateNoticeBodySchema.safeParse({
-                startDate: '2025-06-01T00:00:00Z',
-            });
-
-            expect(result.success).toBe(false);
-        });
+      expect(result.success).toBe(true);
     });
+
+    it('빈 객체면 실패한다', () => {
+      const result = updateNoticeBodySchema.safeParse({});
+
+      expect(result.success).toBe(false);
+    });
+
+    it('startDate만 수정해도 통과한다', () => {
+      const result = updateNoticeBodySchema.safeParse({
+        startDate: '2025-06-01T00:00:00Z',
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('endDate만 수정해도 통과한다', () => {
+      const result = updateNoticeBodySchema.safeParse({
+        endDate: '2025-06-10T00:00:00Z',
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('startDate와 endDate를 함께 보내고 순서가 올바르면 통과한다', () => {
+      const result = updateNoticeBodySchema.safeParse({
+        startDate: '2025-06-01T00:00:00Z',
+        endDate: '2025-06-10T00:00:00Z',
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('startDate와 endDate를 함께 보냈을 때 endDate가 더 빠르면 실패한다', () => {
+      const result = updateNoticeBodySchema.safeParse({
+        startDate: '2025-06-10T00:00:00Z',
+        endDate: '2025-06-01T00:00:00Z',
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it('startDate와 endDate가 모두 null이면 통과한다', () => {
+      const result = updateNoticeBodySchema.safeParse({
+        startDate: null,
+        endDate: null,
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('startDate만 null이면 실패한다', () => {
+      const result = updateNoticeBodySchema.safeParse({
+        startDate: null,
+        endDate: '2025-06-10T00:00:00Z',
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it('endDate만 null이면 실패한다', () => {
+      const result = updateNoticeBodySchema.safeParse({
+        startDate: '2025-06-01T00:00:00Z',
+        endDate: null,
+      });
+
+      expect(result.success).toBe(false);
+    });
+  });
 });
