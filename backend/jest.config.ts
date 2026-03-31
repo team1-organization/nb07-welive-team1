@@ -7,7 +7,7 @@ const config: Config = {
   // 테스트 대상 폴더를 'tests'로 제한
   roots: ['<rootDir>/tests'],
   // 테스트 파일 탐색 규칙 (*Test.ts 파일 인식)
-  testMatch: ['**/*Test.ts','**/*test.ts'],
+  testMatch: ['**/*Test.ts'],
   // 테스트 실행 전 모든 모의(Mock) 상태를 자동으로 초기화
   clearMocks: true,
   // 타입스크립트 파일을 처리하기 위한 프리셋 설정

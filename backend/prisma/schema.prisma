@@ -47,8 +47,7 @@ enum NoticeCategory {
     MAINTENANCE // 정기점검
     EMERGENCY // 긴급공지
     COMMUNITY // 커뮤니티
-    RESIDENT_VOTE // 주민투표
-    RESIDENT_COUNCIL // 주민회의
+    VOTE // 주민투표
     ETC // 기타
 }
 
@@ -163,8 +162,8 @@ model Notice {
     content   String // 내용
     isPinned  Boolean        @default(false) // 중요표시
     viewCount Int            @default(0)
-    startDate DateTime? // 일정 시작일
-    endDate   DateTime? // 일정 종료일
+    startDate DateTime // 일정 시작일
+    endDate   DateTime // 일정 종료일
     createdAt DateTime       @default(now())
     updatedAt DateTime       @updatedAt
 
