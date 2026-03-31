@@ -5,7 +5,11 @@ import http from 'http';
 import morgan from 'morgan';
 import { errorHandler } from './errors/errorHandler';
 import residentRouter from './routers/resident.router';
+<<<<<<< feature/gy/auth
 import authRouter from './routers/auth.router';
+=======
+
+>>>>>>> develop
 BigInt.prototype.toJSON = function (): string {
     return this.toString();
 };
@@ -30,7 +34,10 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+<<<<<<< feature/gy/auth
 app.use('/api/auth', authRouter);
+=======
+>>>>>>> develop
 app.use('/api/residents', residentRouter);
 
 app.use(errorHandler);
