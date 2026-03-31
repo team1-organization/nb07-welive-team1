@@ -22,7 +22,7 @@ export interface UserData {
 export interface UserParam {
     id: string;
     email: string;
-    userId: string;
+    username: string;
     name: string;
     contact: string;
     profileImage: string | null;
@@ -35,7 +35,7 @@ export interface UserParam {
 export class User {
     readonly id: string;
     readonly email: string;
-    readonly userId: string;
+    readonly username: string;
     readonly name: string;
     readonly contact: string;
     readonly profileImage: string | null;
@@ -48,7 +48,7 @@ export class User {
     constructor(params: UserParam) {
         this.id = params.id;
         this.email = params.email;
-        this.userId = params.userId;
+        this.username = params.username;
         this.name = params.name;
         this.contact = params.contact;
         this.profileImage = params.profileImage;
@@ -62,10 +62,10 @@ export class User {
         if (!data) throw new Error('데이터가 없습니다');
         return new User({
             id: safeString(data.id),
-            email: data.email,
-            userId: data.userId,
-            name: data.name,
-            contact: data.contact,
+            email: safeString(data.email),
+            username: safeString(data.userId),
+            name: safeString(data.name),
+            contact: safeString(data.contact),
             profileImage: data.profileImage || null,
             role: data.role,
             isActive: data.isActive,

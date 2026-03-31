@@ -1,17 +1,53 @@
 import { z } from 'zod';
-import { apartmentSchema } from './apartment.dto';
 
-export const createUserBody = z.object({
-    email: z.email('이메일 형식이 올바르지 않습니다.'),
-    name: z.string().min(2, '이름은 2자 이상이어야 합니다.'),
-    password: z.preprocess((val) => (val === '' ? undefined : val), z.string().min(4, '비밀번호는 4자 이상이어야 합니다.')),
-    profileImage: z.string().optional().nullable(),
-    userId: z.string(),
+const baseUserSchema = z.object({
+    username: z.string().min(4),
+    password: z.string().min(4),
+    name: z.string().min(2),
+    email: z.string().min(4),
     contact: z.string(),
-    apartment: apartmentSchema,
+    profileImage: z.string().optional(),
 });
 
-export const updateUserBody = createUserBody
+export const createUserBody = z.discriminatedUnion('role', [
+    baseUserSchema.extend({
+        role: z.literal('USER'),
+        apartmentName: z.string(),
+        apartmentDong: z.string(),
+        apartmentHo: z.string(),
+        joinStatus: z.literal('PENDING').default('PENDING'),
+    }),
+    baseUserSchema
+        .extend({
+            role: z.literal('ADMIN'),
+            description: z.string().optional(),
+            apartmentName: z.string(),
+            apartmentAddress: z.string(),
+            apartmentManagementNumber: z.string(),
+            startComplexNumber: z.string(),
+            endComplexNumber: z.string(),
+            startDongNumber: z.string(),
+            endDongNumber: z.string(),
+            startFloorNumber: z.string(),
+            endFloorNumber: z.string(),
+            startHoNumber: z.string(),
+            endHoNumber: z.string(),
+            joinStatus: z.literal('PENDING').default('PENDING'),
+        })
+        .transform((data) => ({
+            ...data,
+            complexNumber: `${data.startComplexNumber}~${data.endComplexNumber}`,
+            floorNumber: `${data.startFloorNumber}~${data.endFloorNumber}`,
+            dongNumber: `${data.startDongNumber}~${data.endDongNumber}`,
+            hoNumber: `${data.startHoNumber}~${data.endHoNumber}`,
+        })),
+    baseUserSchema.extend({
+        role: z.literal('SUPER_ADMIN'),
+        joinStatus: z.literal('APPROVED').default('APPROVED'),
+    }),
+]);
+
+export const updateUserBody = baseUserSchema
     .partial()
     .extend({
         currentPassword: z.preprocess(
@@ -39,7 +75,7 @@ export const updateUserBody = createUserBody
     });
 
 export const loginUserBody = z.object({
-    userId: z.string().min(4),
+    username: z.string().min(4),
     password: z.string().min(4, '비밀번호는 4자 이상이어야 합니다.'),
 });
 

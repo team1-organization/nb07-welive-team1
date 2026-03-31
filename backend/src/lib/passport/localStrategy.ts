@@ -7,17 +7,17 @@ import { User } from '../../types/auth.type';
 
 const localStrategy = new LocalStrategy(
     {
-        usernameField: 'userId',
+        usernameField: 'username',
         passwordField: 'password',
     },
-    async (userId: string, password: string, done) => {
-        const data: LoginUserDTO = loginUserBody.parse({ userId, password });
-        if (!userId || !password) {
+    async (username: string, password: string, done) => {
+        const data: LoginUserDTO = loginUserBody.parse({ username, password });
+        if (!username || !password) {
             return done(new NotFoundError('잘못된 요청입니다'), false);
         }
         const user = await prisma.user.findUnique({
             where: {
-                userId: data.userId,
+                userId: data.username,
             },
         });
         if (!user || !user.password) {

@@ -16,6 +16,7 @@ export const commonIdParam = z
         complaintId: idRule,
         commentId: idRule,
         notificationId: idRule,
+        adminId: idRule,
     })
     .partial();
 
