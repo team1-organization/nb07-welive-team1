@@ -18,7 +18,7 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
     res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
         httpOnly: true,
         maxAge: SEVEN_DAYS,
-        path: '/auth/refresh',
+        path: '/api/auth/refresh',
     });
 }
 function clearTokenCookies(res: Response) {
