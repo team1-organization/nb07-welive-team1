@@ -8,7 +8,7 @@ import passport from './lib/passport';
 import authRouter from './routers/auth.router';
 import complaintRouter from './routers/complaint.router';
 import residentRouter from './routers/resident.router';
-
+import authRouter from './routers/auth.router';
 BigInt.prototype.toJSON = function (): string {
     return this.toString();
 };
