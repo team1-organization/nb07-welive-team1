@@ -27,22 +27,15 @@ export function login(req: Request, res: Response) {
     if (!user) throw new UnauthorizedError('인증된 사용자가 아닙니다.');
     const { accessToken, refreshToken } = authService.login(user.id);
     setTokenCookies(res, accessToken, refreshToken);
-    res.status(200).json({
+    return res.status(200).json({
         accessToken,
         refreshToken,
     });
 }
 
 export function logout(req: Request, res: Response) {
-    if (!req.user) {
-        res.status(401).json({
-            message: '로그아웃 중 오류가 발생했습니다',
-        });
-    }
     clearTokenCookies(res);
-    res.status(204).json({
-        message: '로그아웃이 완료되었습니다',
-    });
+    return res.status(204).json();
 }
 
 export function tokenRefresh(req: Request, res: Response) {
