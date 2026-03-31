@@ -85,8 +85,8 @@ model User {
     createdAt    DateTime   @default(now())
     updatedAt    DateTime   @updatedAt
 
-    apartmentId BigInt
-    apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: NoAction)
+    apartmentId BigInt?
+    apartment   Apartment? @relation(fields: [apartmentId], references: [id], onDelete: NoAction)
     resident    Resident?
 
     comments      Comment[]
