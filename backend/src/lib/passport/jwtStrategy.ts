@@ -2,6 +2,7 @@ import { ExtractJwt, Strategy as JwtStrategy, VerifiedCallback } from 'passport-
 import { prisma } from '../prisma';
 import { ACCESS_TOKEN_COOKIE_NAME, JWT_ACCESS_TOKEN_SECRET, JWT_REFRESH_TOKEN_SECRET, REFRESH_TOKEN_COOKIE_NAME } from '../constants';
 import { Request } from 'express';
+import { User } from '../../types/auth.type';
 
 interface JwtPayload {
     id: string;
@@ -38,10 +39,12 @@ const refreshTokenOptions = {
 
 async function jwtVerify(payload: JwtPayload, done: VerifiedCallback) {
     try {
+        if (!payload.id) return done(null, false);
         const user = await prisma.user.findUniqueOrThrow({
             where: { id: BigInt(payload.id) },
         });
-        done(null, user);
+        if (!user) return done(null, false);
+        done(null, User.fromEntity(user));
     } catch (err) {
         done(err, false);
     }
