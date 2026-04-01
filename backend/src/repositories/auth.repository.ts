@@ -16,7 +16,7 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
                 apartment: { connect: { id: apartment.id } },
                 residenceStatus: 'RESIDENCE',
                 isHouseholder: 'HOUSEMEMBER',
-                isRegistered: false,
+                isRegistered: true,
                 approvalStatus: 'PENDING',
             },
         });
@@ -127,6 +127,16 @@ export async function findByUserId(userId: string) {
 export async function findByUserEmail(userEmail: string) {
     return prisma.user.findFirst({
         where: { email: userEmail },
+    });
+}
+
+export async function findAdminByadminId(adminId: string) {
+    return prisma.user.findFirst({
+        where: {
+            id: BigInt(adminId),
+            role: 'ADMIN',
+            isActive: true,
+        },
     });
 }
 
