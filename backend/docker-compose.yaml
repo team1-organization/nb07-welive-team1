@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432" # 로컬의 5432 포트로 접속 허용
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data # 데이터 휘발 방지 (로컬에 저장)
+      - postgres_data:/var/lib/postgresql/data # 데이터 휘발 방지 (로컬에 저장)
 
 volumes:
   postgres_data:
