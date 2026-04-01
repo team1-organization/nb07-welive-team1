@@ -86,8 +86,8 @@ model User {
     createdAt    DateTime   @default(now())
     updatedAt    DateTime   @updatedAt
 
-    apartmentId BigInt
-    apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: NoAction)
+    apartmentId BigInt?
+    apartment   Apartment? @relation(fields: [apartmentId], references: [id], onDelete: NoAction)
     resident    Resident?
 
     comments      Comment[]
@@ -103,23 +103,11 @@ model User {
 model Apartment {
     id                        BigInt   @id @default(autoincrement())
     apartmentName             String // 아파트명
-    apartmentDong             String // 아파트 동
-    apartmentHo               String // 아파트 호수
     description               String? // 아파트 설명
     apartmentManagementNumber String // 관리소 번호
     apartmentAddress          String // 아파트 주소
-    // startComplexNumber        String?
-    // endComplexNumber          String?
-    // startDongNumber           String?
-    // endDongNumber             String?
-    // startFloorNumber          String?
-    // endFloorNumber            String?
-    // startHoNumber             String?
-    // endHoNumber               String?
     complexNumber             String?
-    dongNumber                String?
     floorNumber               String?
-    hoNumber                  String?
     createdAt                 DateTime @default(now())
     updatedAt                 DateTime @updatedAt
 

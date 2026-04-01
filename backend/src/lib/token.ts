@@ -18,12 +18,12 @@ function setTokenCookies(res: Response, accessToken: string, refreshToken: strin
     res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
         httpOnly: true,
         maxAge: SEVEN_DAYS,
-        path: '/auth/refresh',
+        path: '/api/auth/refresh',
     });
 }
 function clearTokenCookies(res: Response) {
     res.clearCookie(ACCESS_TOKEN_COOKIE_NAME);
-    res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { path: '/auth/refresh' });
+    res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { path: '/api/auth/refresh' });
 }
 
 export { generateTokens, setTokenCookies, clearTokenCookies };
