@@ -11,8 +11,8 @@ import { ForbiddenError } from '../errors/ForbiddenError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { prisma } from '../lib/prisma';
 import { ComplaintRepository } from '../repositories/complaint.repository';
-import { compact } from '../utils/object.util';
 import * as notificationService from '../services/notification.service';
+import { compact } from '../utils/object.util';
 import { safeString } from '../utils/string.util';
 
 export class ComplaintService {
@@ -86,7 +86,6 @@ export class ComplaintService {
 
         return complaint;
     }
-
     // 민원 수정
     async updateComplaint(complaintId: string, user: UpdateComplaintReqDto['user'], body: UpdateComplaintReqDto['body']) {
         const complaint = await this.complaintRepo.findById(BigInt(complaintId));
