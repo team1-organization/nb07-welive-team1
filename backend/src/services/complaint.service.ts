@@ -96,7 +96,7 @@ export class ComplaintService {
     //  민원 상태 변경 (관리자 전용)
     async updateComplaintStatus(
         complaintId: string,
-        user: UpdateComplaintStatusReqDto['user'], // 호출자 정보 추가
+        user: UpdateComplaintStatusReqDto['user'],
         status: UpdateComplaintStatusReqDto['body']['status'],
     ) {
         if (!this.isAdmin(user.role)) {
