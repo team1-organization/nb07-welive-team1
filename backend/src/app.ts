@@ -8,18 +8,18 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { errorHandler } from './errors/errorHandler';
 import passport from './lib/passport';
+import socket from './lib/socket';
+import apartmentRouter from './routers/apartment.router';
 import authRouter from './routers/auth.router';
 import commentRouter from './routers/comment.router';
 import complaintRouter from './routers/complaint.router';
+import imageRouter from './routers/image.router';
 import noticeRouter from './routers/notice.router';
+import notificationRouter from './routers/notification.router';
 import optionRouter from './routers/option.router';
 import pollRouter from './routers/poll.router';
 import residentRouter from './routers/resident.router';
-import notificationRouter from './routers/notification.router';
-import imageRouter from './routers/image.router';
 import userRouter from './routers/user.router';
-import apartmentRouter from './routers/apartment.router';
-import socket from './lib/socket';
 
 BigInt.prototype.toJSON = function (): string {
     return this.toString();
