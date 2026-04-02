@@ -22,7 +22,7 @@ type CreateOneResidentParams = {
 // Resident 모델 데이터를 단건 응답 DTO로 변환
 const toResidentResponseDto = (resident: {
     id: bigint;
-    userId: bigint | null;
+    //userId: bigint | null;
     building: string;
     unitNumber: string;
     contact: string;
@@ -32,12 +32,13 @@ const toResidentResponseDto = (resident: {
     isRegistered: boolean;
     approvalStatus: ResidentResponseDto['approvalStatus'];
     user?: {
+        id: bigint;
         email: string;
     } | null;
 }): ResidentResponseDto => {
     return {
         id: resident.id.toString(),
-        userId: resident.userId?.toString(),
+        userId: resident.user?.id?.toString(),
         building: resident.building,
         unitNumber: resident.unitNumber,
         contact: resident.contact,

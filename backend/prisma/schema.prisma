@@ -73,7 +73,7 @@ enum HouseholdType {
 
 enum BoardType {
     NOTICE // 공지사항
-    COMPLAINT //민원
+    COMPLAINT // 민원
     POLL // 투표
 }
 
@@ -94,7 +94,8 @@ model User {
 
     apartmentId BigInt?
     apartment   Apartment? @relation(fields: [apartmentId], references: [id], onDelete: NoAction)
-    resident    Resident?
+    residentId  BigInt?    @unique
+    resident    Resident?  @relation(fields: [residentId], references: [id], onDelete: NoAction)
 
     comments      Comment[]
     votes         Vote[]
@@ -124,7 +125,7 @@ model Apartment {
     @@index([apartmentName])
 }
 
-//게시판 (아파트와 게시글 연결)
+// 게시판 (아파트와 게시글 연결)
 model Board {
     id   BigInt    @id @default(autoincrement())
     type BoardType // NOTICE, COMPLAINT, POLL
@@ -153,14 +154,14 @@ model Resident {
     residenceStatus ResidenceStatus @default(RESIDENCE) // 거주 여부
     isHouseholder   HouseholdType   @default(HOUSEMEMBER) // 세대주 여부
     isRegistered    Boolean         @default(false) // 입주민 회원여부
-    approvalStatus  ApprovalStatus  @default(PENDING) //관리자 승인여부
+    approvalStatus  ApprovalStatus  @default(PENDING) // 관리자 승인여부
     createdAt       DateTime        @default(now())
     updatedAt       DateTime        @updatedAt
 
-    userId      BigInt?   @unique
-    user        User?     @relation(fields: [userId], references: [id])
     apartmentId BigInt
     apartment   Apartment @relation(fields: [apartmentId], references: [id])
+
+    user User?
 
     @@unique([apartmentId, building, unitNumber, contact])
     @@index([apartmentId, approvalStatus])
