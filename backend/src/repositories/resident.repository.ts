@@ -111,6 +111,7 @@ export const findResidents = async ({
             include: {
                 user: {
                     select: {
+                        id: true,
                         email: true,
                     },
                 },
@@ -134,6 +135,7 @@ export const findResidentById = async (residentId: bigint, apartmentId: bigint) 
         include: {
             user: {
                 select: {
+                    id: true,
                     email: true,
                 },
             },
@@ -176,6 +178,7 @@ export const createResident = async ({ apartmentId, building, unitNumber, contac
         include: {
             user: {
                 select: {
+                    id: true,
                     email: true,
                 },
             },
