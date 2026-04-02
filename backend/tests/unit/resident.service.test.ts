@@ -1,26 +1,10 @@
 import { jest } from '@jest/globals';
-import {
-    ApprovalStatus,
-    HouseholdType,
-    ResidenceStatus,
-} from '../../generated/prisma';
+import { ApprovalStatus, HouseholdType, ResidenceStatus } from '../../generated/prisma';
 import { ConflictError } from '../../src/errors/ConflictError';
 import { NotFoundError } from '../../src/errors/NotFoundError';
 import { prisma } from '../../src/lib/prisma';
-import {
-    createResident,
-    existsResident,
-    findResidentById,
-    findResidents,
-    updateResident,
-} from '../../src/repositories/resident.repository';
-import {
-    createOneResident,
-    deleteResidentById,
-    getResidentById,
-    getResidents,
-    updateResidentById,
-} from '../../src/services/resident.service';
+import { createResident, existsResident, findResidentById, findResidents, updateResident } from '../../src/repositories/resident.repository';
+import { createOneResident, deleteResidentById, getResidentById, getResidents, updateResidentById } from '../../src/services/resident.service';
 
 jest.mock('../../src/repositories/resident.repository', () => ({
     findResidents: jest.fn(),
@@ -45,35 +29,37 @@ const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
 
 const tx = {
     vote: {
-        deleteMany: jest.fn(),
+        deleteMany: jest.fn<() => Promise<{ count: number }>>(),
     },
     comment: {
-        deleteMany: jest.fn(),
+        deleteMany: jest.fn<() => Promise<{ count: number }>>(),
     },
     resident: {
-        delete: jest.fn(),
+        delete: jest.fn<() => Promise<ReturnType<typeof makeResident>>>(),
     },
     user: {
-        delete: jest.fn(),
+        delete: jest.fn<() => Promise<object>>(),
     },
 };
 
-const makeResident = (overrides: Partial<{
-    id: bigint;
-    apartmentId: bigint;
-    userId: bigint | null;
-    building: string;
-    unitNumber: string;
-    contact: string;
-    name: string;
-    residenceStatus: ResidenceStatus;
-    isHouseholder: HouseholdType;
-    isRegistered: boolean;
-    approvalStatus: ApprovalStatus;
-    createdAt: Date;
-    updatedAt: Date;
-    user: { id: bigint; email: string } | null;
-}> = {}) => ({
+const makeResident = (
+    overrides: Partial<{
+        id: bigint;
+        apartmentId: bigint;
+        userId: bigint | null;
+        building: string;
+        unitNumber: string;
+        contact: string;
+        name: string;
+        residenceStatus: ResidenceStatus;
+        isHouseholder: HouseholdType;
+        isRegistered: boolean;
+        approvalStatus: ApprovalStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        user: { id: bigint; email: string } | null;
+    }> = {},
+) => ({
     id: 1n,
     apartmentId: 1n,
     userId: 10n,
@@ -103,9 +89,13 @@ describe('resident.service', () => {
         tx.user.delete.mockResolvedValue({});
         tx.resident.delete.mockResolvedValue(makeResident());
 
-        mockedPrisma.$transaction.mockImplementation(async (callback) => {
-            return callback(tx as never);
-        });
+        (mockedPrisma.$transaction as jest.Mock).mockImplementation(
+            async (callback: unknown) => {
+                const transactionCallback = callback as (trx: typeof tx) => Promise<unknown>;
+
+                return transactionCallback(tx);
+            },
+        );
     });
 
     describe('getResidents', () => {
@@ -432,6 +422,7 @@ describe('resident.service', () => {
                 include: {
                     user: {
                         select: {
+                            id: true,
                             email: true,
                         },
                     },
@@ -500,6 +491,7 @@ describe('resident.service', () => {
                 include: {
                     user: {
                         select: {
+                            id: true,
                             email: true,
                         },
                     },

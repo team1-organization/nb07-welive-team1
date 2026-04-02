@@ -197,7 +197,15 @@ export const createResident = async ({ apartmentId, building, unitNumber, contac
 };
 
 // 입주민 정보 수정
-export const updateResident = async ({ residentId, apartmentId, building, unitNumber, contact, name, isHouseholder }: UpdateResidentParams) => {
+export const updateResident = async ({
+    residentId,
+    apartmentId: _apartmentId,
+    building,
+    unitNumber,
+    contact,
+    name,
+    isHouseholder,
+}: UpdateResidentParams) => {
     return prisma.resident.update({
         where: {
             id: residentId,
@@ -212,6 +220,7 @@ export const updateResident = async ({ residentId, apartmentId, building, unitNu
         include: {
             user: {
                 select: {
+                    id: true,
                     email: true,
                 },
             },
@@ -228,6 +237,7 @@ export const deleteResident = async (residentId: bigint) => {
         include: {
             user: {
                 select: {
+                    id: true,
                     email: true,
                 },
             },

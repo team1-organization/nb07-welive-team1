@@ -34,7 +34,7 @@ type DeleteResidentParams = {
 // 입주민 엔티티를 응답 DTO로 변환
 const toResidentResponseDto = (resident: {
     id: bigint;
-    //userId: bigint | null;
+    userId: bigint | null;
     building: string;
     unitNumber: string;
     contact: string;
@@ -50,7 +50,7 @@ const toResidentResponseDto = (resident: {
 }): ResidentResponseDto => {
     return {
         id: resident.id.toString(),
-        userId: resident.user?.id?.toString(),
+        userId: resident.user?.id.toString() ?? null,
         building: resident.building,
         unitNumber: resident.unitNumber,
         contact: resident.contact,
@@ -200,6 +200,7 @@ export const deleteResidentById = async ({ apartmentId, residentId }: DeleteResi
             include: {
                 user: {
                     select: {
+                        id: true,
                         email: true,
                     },
                 },
