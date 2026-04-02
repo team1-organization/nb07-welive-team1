@@ -21,7 +21,7 @@ export const createComplaintReqSchema = z.object({
         title: z.string().min(1, '제목을 입력해주세요.').max(100),
         content: z.string().min(1, '내용을 입력해주세요.'),
         isPrivate: z.boolean().default(false),
-        apartmentId: z.string().uuid(),
+        apartmentId: z.string(),
     }),
 });
 
@@ -48,7 +48,7 @@ export const getComplaintDetailReqSchema = z.object({
         apartmentId: z.string(),
     }),
     params: z.object({
-        complaintId: z.string().uuid(),
+        complaintId: z.string(),
     }),
 });
 
@@ -56,7 +56,7 @@ export const getComplaintDetailReqSchema = z.object({
 export const updateComplaintReqSchema = z.object({
     user: residentUserSchema,
     params: z.object({
-        complaintId: z.string().uuid(),
+        complaintId: z.string(),
     }),
     body: z.object({
         title: z.string().min(1).max(100).optional(),
@@ -69,7 +69,7 @@ export const updateComplaintReqSchema = z.object({
 export const updateComplaintStatusReqSchema = z.object({
     user: adminUserSchema,
     params: z.object({
-        complaintId: z.string().uuid(),
+        complaintId: z.string(),
     }),
     body: z.object({
         status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED']),
@@ -84,7 +84,7 @@ export const deleteComplaintReqSchema = z.object({
         apartmentId: z.string(),
     }),
     params: z.object({
-        complaintId: z.string().uuid(),
+        complaintId: z.string(),
     }),
 });
 
