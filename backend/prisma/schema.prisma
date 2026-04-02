@@ -71,6 +71,12 @@ enum HouseholdType {
     HOUSEMEMBER // 세대원
 }
 
+enum BoardType {
+    NOTICE // 공지사항
+    COMPLAINT //민원
+    POLL // 투표
+}
+
 // 유저
 model User {
     id           BigInt     @id @default(autoincrement())
@@ -111,13 +117,30 @@ model Apartment {
     createdAt                 DateTime @default(now())
     updatedAt                 DateTime @updatedAt
 
-    users      User[]
+    users     User[]
+    residents Resident[]
+    board     Board[]
+
+    @@index([apartmentName])
+}
+
+//게시판 (아파트와 게시글 연결)
+model Board {
+    id   BigInt    @id @default(autoincrement())
+    type BoardType // NOTICE, COMPLAINT, POLL
+
+    apartmentId BigInt
+    apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
     notices    Notice[]
     polls      Poll[]
     complaints Complaint[]
-    residents  Resident[]
 
-    @@index([apartmentName])
+    @@unique([apartmentId, type])
+    @@index([apartmentId])
 }
 
 // 입주민
@@ -156,12 +179,12 @@ model Notice {
     createdAt DateTime       @default(now())
     updatedAt DateTime       @updatedAt
 
-    apartmentId BigInt
-    apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+    boardId BigInt
+    board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
 
     comments Comment[]
 
-    @@index([apartmentId, isPinned, createdAt(sort: Desc)])
+    @@index([boardId, isPinned, createdAt(sort: Desc)])
 }
 
 // 투표
@@ -176,12 +199,12 @@ model Poll {
     createdAt          DateTime   @default(now())
     updatedAt          DateTime   @updatedAt
 
-    apartmentId BigInt
-    apartment   Apartment @relation(fields: [apartmentId], references: [id])
+    boardId BigInt
+    board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
 
     pollOptions PollOption[]
 
-    @@index([apartmentId, status])
+    @@index([boardId, status])
 }
 
 // 투표 선택지
@@ -225,14 +248,14 @@ model Complaint {
     createdAt DateTime        @default(now())
     updatedAt DateTime        @updatedAt
 
-    userId      BigInt
-    user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-    apartmentId BigInt
-    apartment   Apartment @relation(fields: [apartmentId], references: [id])
+    userId BigInt
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+    boardId  BigInt
+    board    Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
     comments Comment[]
 
-    @@index([apartmentId, status])
+    @@index([boardId, status])
     @@index([userId])
 }
 
