@@ -18,6 +18,7 @@ const localStrategy = new LocalStrategy(
         const user = await prisma.user.findUnique({
             where: {
                 userId: data.username,
+                joinStatus: 'APPROVED', // 승인상태만 로그인 가능
             },
         });
         if (!user || !user.password) {

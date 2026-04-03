@@ -125,7 +125,7 @@ export const findResidents = async ({
 };
 
 // 특정 입주민 상세 조회
-export const findResidentById = async (residentId: bigint, apartmentId: bigint) => {
+export const findResidentWithUser = async (residentId: bigint, apartmentId: bigint) => {
     return prisma.resident.findFirst({
         where: {
             id: residentId,
@@ -182,3 +182,11 @@ export const createResident = async ({ apartmentId, building, unitNumber, contac
         },
     });
 };
+
+export async function findResidentById(residentId: string) {
+    return prisma.resident.findUnique({
+        where: {
+            id: BigInt(residentId),
+        },
+    });
+}

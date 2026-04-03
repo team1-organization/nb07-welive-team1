@@ -2,7 +2,7 @@ import { HouseholdType } from '../../generated/prisma';
 import { CreateOneResidentDto, GetResidentsQueryDto, ResidentListResponseDto, ResidentResponseDto } from '../dtos/resident.dto';
 import { ConflictError } from '../errors/ConflictError';
 import { NotFoundError } from '../errors/NotFoundError';
-import { createResident, existsResident, findResidentById, findResidents } from '../repositories/resident.repository';
+import { createResident, existsResident, findResidents, findResidentWithUser } from '../repositories/resident.repository';
 
 type GetResidentsParams = {
     apartmentId: bigint;
@@ -22,7 +22,7 @@ type CreateOneResidentParams = {
 // Resident 모델 데이터를 단건 응답 DTO로 변환
 const toResidentResponseDto = (resident: {
     id: bigint;
-    userId: bigint | null;
+    //userId: bigint | null;
     building: string;
     unitNumber: string;
     contact: string;
@@ -37,7 +37,7 @@ const toResidentResponseDto = (resident: {
 }): ResidentResponseDto => {
     return {
         id: resident.id.toString(),
-        userId: resident.userId?.toString(),
+        //userId: resident.userId?.toString(),
         building: resident.building,
         unitNumber: resident.unitNumber,
         contact: resident.contact,
@@ -75,7 +75,7 @@ export const getResidents = async ({ apartmentId, query }: GetResidentsParams): 
 
 // 입주민 상세 조회 서비스
 export const getResidentById = async ({ apartmentId, residentId }: GetResidentByIdParams): Promise<ResidentResponseDto> => {
-    const resident = await findResidentById(residentId, apartmentId);
+    const resident = await findResidentWithUser(residentId, apartmentId);
 
     if (!resident) {
         throw new NotFoundError('입주민을 찾을 수 없습니다.');
