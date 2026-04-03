@@ -34,7 +34,6 @@ type DeleteResidentParams = {
 // 입주민 엔티티를 응답 DTO로 변환
 const toResidentResponseDto = (resident: {
     id: bigint;
-    userId: bigint | null;
     building: string;
     unitNumber: string;
     contact: string;
@@ -176,18 +175,20 @@ export const deleteResidentById = async ({ apartmentId, residentId }: DeleteResi
 
     // 연결된 계정이 있으면 관련 데이터까지 함께 정리
     const deletedResident = await prisma.$transaction(async (tx) => {
-        if (resident.userId) {
+        const linkedUserId = resident.user?.id;
+
+        if (linkedUserId) {
             // 유저 투표 이력 삭제
             await tx.vote.deleteMany({
                 where: {
-                    userId: resident.userId,
+                    userId: linkedUserId,
                 },
             });
 
             // 유저 댓글 삭제
             await tx.comment.deleteMany({
                 where: {
-                    userId: resident.userId,
+                    userId: linkedUserId,
                 },
             });
         }
@@ -207,11 +208,11 @@ export const deleteResidentById = async ({ apartmentId, residentId }: DeleteResi
             },
         });
 
-        if (resident.userId) {
+        if (linkedUserId) {
             // 연결된 유저 삭제
             await tx.user.delete({
                 where: {
-                    id: resident.userId,
+                    id: linkedUserId,
                 },
             });
         }
