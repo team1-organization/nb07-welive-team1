@@ -21,7 +21,7 @@ const makeResident = (
     overrides: Partial<{
         id: bigint;
         apartmentId: bigint;
-        userId: bigint | null;
+        //userId: bigint | null;
         building: string;
         unitNumber: string;
         contact: string;
@@ -32,12 +32,12 @@ const makeResident = (
         approvalStatus: ApprovalStatus;
         createdAt: Date;
         updatedAt: Date;
-        user: { email: string } | null;
+        user: { id: bigint; email: string } | null;
     }> = {},
 ) => ({
     id: 1n,
     apartmentId: 1n,
-    userId: 10n,
+    //userId: 10n,
     building: '101',
     unitNumber: '1001',
     contact: '01012345678',
@@ -49,6 +49,7 @@ const makeResident = (
     createdAt: new Date('2026-03-31T00:00:00.000Z'),
     updatedAt: new Date('2026-03-31T00:00:00.000Z'),
     user: {
+        id: 10n,
         email: 'hong@example.com',
     },
     ...overrides,
@@ -114,7 +115,7 @@ describe('resident.service', () => {
             mockedFindResidentById.mockResolvedValue(
                 makeResident({
                     id: 2n,
-                    userId: null,
+                    //userId: null,
                     building: '102',
                     unitNumber: '1201',
                     contact: '01099998888',
@@ -164,7 +165,7 @@ describe('resident.service', () => {
             mockedCreateResident.mockResolvedValue(
                 makeResident({
                     id: 3n,
-                    userId: null,
+                    //userId: null,
                     building: '103',
                     unitNumber: '1301',
                     contact: '01011112222',

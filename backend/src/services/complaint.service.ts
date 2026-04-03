@@ -15,13 +15,21 @@ import { compact } from '../utils/object.util';
 
 export class ComplaintService {
     private complaintRepo = new ComplaintRepository();
-    private isAdmin(role: string): boolean {
-        return role === 'ADMIN' || role === 'SUPER_ADMIN';
-    }
 
     // 민원 등록
     async createComplaint(user: CreateComplaintReqDto['user'], body: CreateComplaintReqDto['body']) {
         return await prisma.$transaction(async (tx) => {
+            const board = await tx.board.findUnique({
+                where: {
+                    apartmentId_type: {
+                        apartmentId: BigInt(body.apartmentId),
+                        type: 'COMPLAINT',
+                    },
+                },
+            });
+            if (!board) {
+                throw new NotFoundError('해당 아파트의 민원 게시판을 찾을 수 없습니다.');
+            }
             const newComplaint = await tx.complaint.create({
                 data: {
                     title: body.title,
@@ -29,7 +37,7 @@ export class ComplaintService {
                     isPrivate: body.isPrivate,
                     status: 'PENDING',
                     userId: BigInt(user.id),
-                    apartmentId: BigInt(body.apartmentId),
+                    boardId: board.id,
                 },
             });
 
@@ -74,6 +82,7 @@ export class ComplaintService {
 
         return complaint;
     }
+
     // 민원 수정
     async updateComplaint(complaintId: string, user: UpdateComplaintReqDto['user'], body: UpdateComplaintReqDto['body']) {
         const complaint = await this.complaintRepo.findById(BigInt(complaintId));
@@ -137,5 +146,9 @@ export class ComplaintService {
         }
 
         return await this.complaintRepo.delete(BigInt(complaintId));
+    }
+
+    private isAdmin(role: string): boolean {
+        return role === 'ADMIN' || role === 'SUPER_ADMIN';
     }
 }

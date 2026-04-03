@@ -17,7 +17,9 @@ export class ComplaintRepository {
 
     async findMany(apartmentId: bigint, skip: number, take: number, status?: ComplaintStatus, keyword?: string) {
         const where: Prisma.ComplaintWhereInput = {
-            apartmentId,
+            board: {
+                apartmentId, // 스키마 변경으로 board에서 참조하게 수정
+            },
             ...(status && { status }),
             ...(keyword && {
                 OR: [{ title: { contains: keyword } }, { content: { contains: keyword } }],
