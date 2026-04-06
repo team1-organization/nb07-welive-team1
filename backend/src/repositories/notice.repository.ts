@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 
 interface CreateNoticeParams {
     boardId: bigint;
+    userId: bigint;
     category: NoticeCategory;
     title: string;
     content: string;
@@ -38,10 +39,11 @@ export const findBoardById = async (boardId: bigint) => {
     });
 };
 
-export const createNotice = async ({ boardId, category, title, content, isPinned, startDate, endDate }: CreateNoticeParams) => {
+export const createNotice = async ({ boardId, userId, category, title, content, isPinned, startDate, endDate }: CreateNoticeParams) => {
     return prisma.notice.create({
         data: {
             boardId,
+            userId,
             category,
             title,
             content,
@@ -91,6 +93,12 @@ export const findNoticeById = async (noticeId: bigint) => {
         where: { id: noticeId },
         include: {
             board: true,
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
             _count: {
                 select: {
                     comments: true,

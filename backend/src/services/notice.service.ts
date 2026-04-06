@@ -33,6 +33,7 @@ export const createNotice = async ({ user, body }: { user: User; body: CreateNot
 
     const notice = await noticeRepository.createNotice({
         boardId: body.boardId,
+        userId: BigInt(user.id),
         category: body.category,
         title: body.title,
         content: body.content,
@@ -90,15 +91,17 @@ export const getNoticeDetail = async ({ noticeId }: { noticeId: bigint }) => {
 
     return {
         noticeId: updatedNotice.id.toString(),
+        userId: updatedNotice.userId.toString(),
         category: updatedNotice.category,
         title: updatedNotice.title,
-        content: updatedNotice.content,
+        writerName: updatedNotice.user.name,
         createdAt: updatedNotice.createdAt,
         updatedAt: updatedNotice.updatedAt,
         viewsCount: updatedNotice.viewCount,
         commentsCount: updatedNotice._count.comments,
         isPinned: updatedNotice.isPinned,
-        boardId: updatedNotice.boardId.toString(),
+        content: updatedNotice.content,
+        boardName: updatedNotice.board.type,
         comments: updatedNotice.comments.map((comment) => ({
             id: comment.id.toString(),
             userId: comment.userId.toString(),
