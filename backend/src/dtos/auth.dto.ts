@@ -83,6 +83,14 @@ export const statusSchema = z.object({
     status: z.enum(['PENDING', 'APPROVED', 'REJECTED']),
 });
 
+export const updateAdminBody = baseUserSchema.partial().extend({
+    description: z.string().optional(),
+    apartmentName: z.string().optional(),
+    apartmentAddress: z.string().optional(),
+    apartmentManagementNumber: z.string().optional(),
+});
+
 export type CreateUserDTO = z.infer<typeof createUserBody>;
 export type UpdateUserDTO = z.infer<typeof updateUserBody>;
 export type LoginUserDTO = z.infer<typeof loginUserBody>;
+export type UpdateAdminDTO = z.infer<typeof updateAdminBody>;
