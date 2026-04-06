@@ -21,6 +21,16 @@ type CreateResidentParams = {
     isHouseholder: HouseholdType;
 };
 
+type UpdateResidentParams = {
+    residentId: bigint;
+    apartmentId: bigint;
+    building?: string;
+    unitNumber?: string;
+    contact?: string;
+    name?: string;
+    isHouseholder?: HouseholdType;
+};
+
 // 전달받은 필터 조건을 Prisma where 조건으로 변환
 const buildResidentWhere = ({
     apartmentId,
@@ -111,6 +121,7 @@ export const findResidents = async ({
             include: {
                 user: {
                     select: {
+                        id: true,
                         email: true,
                     },
                 },
@@ -134,6 +145,7 @@ export const findResidentWithUser = async (residentId: bigint, apartmentId: bigi
         include: {
             user: {
                 select: {
+                    id: true,
                     email: true,
                 },
             },
@@ -176,6 +188,56 @@ export const createResident = async ({ apartmentId, building, unitNumber, contac
         include: {
             user: {
                 select: {
+                    id: true,
+                    email: true,
+                },
+            },
+        },
+    });
+};
+
+// 입주민 정보 수정
+export const updateResident = async ({
+    residentId,
+    apartmentId: _apartmentId,
+    building,
+    unitNumber,
+    contact,
+    name,
+    isHouseholder,
+}: UpdateResidentParams) => {
+    return prisma.resident.update({
+        where: {
+            id: residentId,
+        },
+        data: {
+            building,
+            unitNumber,
+            contact,
+            name,
+            isHouseholder,
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    email: true,
+                },
+            },
+        },
+    });
+};
+
+// 입주민 정보 삭제
+export const deleteResident = async (residentId: bigint) => {
+    return prisma.resident.delete({
+        where: {
+            id: residentId,
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
                     email: true,
                 },
             },
