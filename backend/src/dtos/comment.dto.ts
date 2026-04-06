@@ -1,41 +1,31 @@
 import { z } from 'zod';
 
-const idRule = z.coerce.string().trim().min(1, '올바른 ID 값이어야 합니다');
+export const bigIntSchema = z.coerce.bigint().positive('올바른 ID 형식이어야 합니다');
+export const isoDateSchema = z.string().datetime('ISO datetime 형식이어야 합니다');
 
-export const boardTypeSchema = z.enum(['NOTICE', 'COMPLAINT'], {
-    message: '올바른 게시판 타입이어야 합니다',
+export const CommentIdParamDto = z.object({
+    commentId: bigIntSchema,
 });
 
-export const createCommentReqSchema = z.object({
-    body: z.object({
-        content: z.string().trim().min(1, '내용은 필수입니다').max(1000, '내용은 1000자 이하입니다'),
-        boardType: boardTypeSchema,
-        boardId: idRule,
-    }),
+//댓글 생성 (POST)
+export const CreateCommentDto = z.object({
+    content: z.string().min(1, '댓글 내용을 입력해주세요.').max(1000),
+
+    boardType: z.enum(['COMPLAINT', 'NOTICE'], '댓글은 민원(COMPLAINT) 또는 공지사항(NOTICE)에만 작성할 수 있습니다.'),
+    boardId: bigIntSchema,
 });
 
-export const updateCommentReqSchema = z.object({
-    params: z.object({
-        commentId: idRule,
-    }),
-    body: z
-        .object({
-            content: z.string().trim().min(1, '내용은 필수입니다').max(1000, '내용은 1000자 이하입니다').optional(),
-        })
-        .refine((data) => Object.keys(data).length > 0, {
-            message: '최소 하나 이상의 수정 값이 필요합니다',
-        }),
+//댓글 수정 (PATCH)
+export const UpdateCommentDto = z.object({
+    content: z.string().min(1, '수정할 내용을 입력해주세요.').max(1000),
+    boardType: z.enum(['COMPLAINT', 'NOTICE']),
+    boardId: bigIntSchema,
 });
 
-export const deleteCommentReqSchema = z.object({
-    params: z.object({
-        commentId: idRule,
-    }),
+//댓글 삭제 (DELETE)
+export const DeleteCommentParamSchema = z.object({
+    commentId: bigIntSchema,
 });
 
-export const getCommentsReqSchema = z.object({
-    query: z.object({
-        boardType: boardTypeSchema,
-        boardId: idRule,
-    }),
-});
+export type CreateCommentInput = z.infer<typeof CreateCommentDto>;
+export type UpdateCommentInput = z.infer<typeof UpdateCommentDto>;
