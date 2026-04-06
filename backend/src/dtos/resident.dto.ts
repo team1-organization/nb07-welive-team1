@@ -107,12 +107,12 @@ export const deleteResidentReqSchema = z.object({
 // 응답 DTO
 export type ResidentResponseDto = {
     id: string;
-    userId?: string | null;
+    userId: string | null;
     building: string;
     unitNumber: string;
     contact: string;
     name: string;
-    email?: string | null;
+    email: string | null;
     residenceStatus: ResidenceStatus;
     isHouseholder: HouseholdType;
     isRegistered: boolean;
