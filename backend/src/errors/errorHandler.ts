@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { CustomError } from './CustomError';
+import { ZodError } from 'zod';
 import { Prisma } from '../../generated/prisma';
+import { CustomError } from './CustomError';
 
 interface HttpError extends Error {
     statusCode: number;
@@ -18,6 +19,15 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
     let statusCode = 500;
     let message = '서버 내부 오류가 발생했습니다.';
     const stack = process.env.NODE_ENV === 'development' && err instanceof Error ? err.stack : undefined;
+
+    if (err instanceof ZodError) {
+        res.status(400).json({
+            message: '입력값이 유효하지 않습니다.',
+            errors: err.issues,
+            stack,
+        });
+        return;
+    }
 
     if (err instanceof CustomError) {
         statusCode = err.statusCode;
