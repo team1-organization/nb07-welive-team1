@@ -4,6 +4,7 @@ import express from 'express';
 import http from 'http';
 import morgan from 'morgan';
 import { errorHandler } from './errors/errorHandler';
+import passport from './lib/passport';
 import authRouter from './routers/auth.router';
 import complaintRouter from './routers/complaint.router';
 import residentRouter from './routers/resident.router';
@@ -31,6 +32,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
 app.use('/api/auth', authRouter);
 app.use('/api/residents', residentRouter);
