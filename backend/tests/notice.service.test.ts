@@ -26,12 +26,6 @@ describe('notice.service', () => {
             name: '슈퍼관리자',
         } as any;
 
-        const superAdminUser = {
-            id: '17',
-            role: 'SUPER_ADMIN',
-            name: '슈퍼관리자',
-        } as any;
-
         const normalUser = {
             id: '4',
             role: 'USER',
@@ -57,9 +51,8 @@ describe('notice.service', () => {
 
             mockedNoticeRepository.createNotice.mockResolvedValue({
                 id: 1n,
-                userId: 16n,
-                userId: 16n,
                 ...body,
+                userId: 16n,
             } as any);
 
             const result = await noticeService.createNotice({
@@ -84,8 +77,8 @@ describe('notice.service', () => {
 
             mockedNoticeRepository.createNotice.mockResolvedValue({
                 id: 2n,
-                userId: 17n,
                 ...body,
+                userId: 17n,
             } as any);
 
             await noticeService.createNotice({
@@ -251,7 +244,6 @@ describe('notice.service', () => {
 
             const result = await noticeService.getNoticeDetail({ noticeId: 1n });
 
-            // DB 조회는 1번만
             expect(mockedNoticeRepository.findNoticeById).toHaveBeenCalledTimes(1);
             expect(mockedNoticeRepository.findNoticeById).toHaveBeenCalledWith(1n);
             expect(mockedNoticeRepository.increaseViewCount).toHaveBeenCalledWith(1n);
@@ -262,7 +254,7 @@ describe('notice.service', () => {
                 category: 'COMMUNITY',
                 title: '상세 테스트',
                 writerName: '관리자',
-                viewsCount: 4, // viewCount(3) + 1
+                viewsCount: 4,
                 commentsCount: 1,
                 isPinned: true,
                 content: '공지 상세 내용',
@@ -327,7 +319,6 @@ describe('notice.service', () => {
                 body,
             } as any);
 
-            // body 통째로 넘기는지 확인
             expect(mockedNoticeRepository.updateNotice).toHaveBeenCalledWith({
                 noticeId: 1n,
                 data: body,
