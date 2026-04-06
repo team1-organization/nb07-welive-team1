@@ -74,7 +74,21 @@ export const findNoticeList = async ({ boardId, page, limit, category, search }:
             skip: (page - 1) * limit,
             take: limit,
             orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
-            include: {
+            select: {
+                id: true,
+                userId: true,
+                boardId: true,
+                category: true,
+                title: true,
+                createdAt: true,
+                updatedAt: true,
+                viewCount: true,
+                isPinned: true,
+                user: {
+                    select: {
+                        name: true,
+                    },
+                },
                 _count: {
                     select: {
                         comments: true,
@@ -143,6 +157,12 @@ export const updateNotice = async ({ noticeId, data }: UpdateNoticeParams) => {
             ...(data.endDate !== undefined ? { endDate: data.endDate ? new Date(data.endDate) : null } : {}),
         },
         include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
             _count: {
                 select: {
                     comments: true,

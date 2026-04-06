@@ -30,16 +30,9 @@ export const createNotice = async ({ user, body }: { user: User; body: CreateNot
     validateAdmin(user);
 
     await validateNoticeBoard(body.boardId);
-
     const notice = await noticeRepository.createNotice({
-        boardId: body.boardId,
+        ...body,
         userId: BigInt(user.id),
-        category: body.category,
-        title: body.title,
-        content: body.content,
-        isPinned: body.isPinned,
-        startDate: body.startDate,
-        endDate: body.endDate,
     });
 
     // TODO: 알림 기능 구현 후 공지 등록 알림 추가
@@ -62,14 +55,15 @@ export const getNoticeList = async (query: GetNoticeListQueryDto & { boardId: bi
     return {
         notices: notices.map((notice) => ({
             noticeId: notice.id.toString(),
+            userId: notice.userId.toString(),
             category: notice.category,
             title: notice.title,
+            writerName: notice.user.name,
             createdAt: notice.createdAt,
             updatedAt: notice.updatedAt,
             viewsCount: notice.viewCount,
             commentsCount: notice._count.comments,
             isPinned: notice.isPinned,
-            boardId: notice.boardId.toString(),
         })),
         totalCount,
     };
@@ -84,25 +78,20 @@ export const getNoticeDetail = async ({ noticeId }: { noticeId: bigint }) => {
 
     await noticeRepository.increaseViewCount(noticeId);
 
-    const updatedNotice = await noticeRepository.findNoticeById(noticeId);
-    if (!updatedNotice) {
-        throw new NotFoundError('공지사항을 찾을 수 없습니다.');
-    }
-
     return {
-        noticeId: updatedNotice.id.toString(),
-        userId: updatedNotice.userId.toString(),
-        category: updatedNotice.category,
-        title: updatedNotice.title,
-        writerName: updatedNotice.user.name,
-        createdAt: updatedNotice.createdAt,
-        updatedAt: updatedNotice.updatedAt,
-        viewsCount: updatedNotice.viewCount,
-        commentsCount: updatedNotice._count.comments,
-        isPinned: updatedNotice.isPinned,
-        content: updatedNotice.content,
-        boardName: updatedNotice.board.type,
-        comments: updatedNotice.comments.map((comment) => ({
+        noticeId: notice.id.toString(),
+        userId: notice.userId.toString(),
+        category: notice.category,
+        title: notice.title,
+        writerName: notice.user.name,
+        createdAt: notice.createdAt,
+        updatedAt: notice.updatedAt,
+        viewsCount: notice.viewCount + 1, // ← +1만 해주면 됨
+        commentsCount: notice._count.comments,
+        isPinned: notice.isPinned,
+        content: notice.content,
+        boardName: notice.board.type,
+        comments: notice.comments.map((comment) => ({
             id: comment.id.toString(),
             userId: comment.userId.toString(),
             content: comment.content,
@@ -124,30 +113,21 @@ export const updateNotice = async ({ user, noticeId, body }: { user: User; notic
     if (body.boardId !== undefined) {
         await validateNoticeBoard(body.boardId);
     }
-
     const updated = await noticeRepository.updateNotice({
         noticeId,
-        data: {
-            boardId: body.boardId,
-            category: body.category,
-            title: body.title,
-            content: body.content,
-            isPinned: body.isPinned,
-            startDate: body.startDate,
-            endDate: body.endDate,
-        },
+        data: body,
     });
-
     return {
         noticeId: updated.id.toString(),
+        userId: updated.userId.toString(),
         category: updated.category,
         title: updated.title,
+        writerName: updated.user.name,
         createdAt: updated.createdAt,
         updatedAt: updated.updatedAt,
         viewsCount: updated.viewCount,
         commentsCount: updated._count.comments,
         isPinned: updated.isPinned,
-        boardId: updated.boardId.toString(),
     };
 };
 

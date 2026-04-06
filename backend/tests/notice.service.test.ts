@@ -26,6 +26,12 @@ describe('notice.service', () => {
             name: '슈퍼관리자',
         } as any;
 
+        const superAdminUser = {
+            id: '17',
+            role: 'SUPER_ADMIN',
+            name: '슈퍼관리자',
+        } as any;
+
         const normalUser = {
             id: '4',
             role: 'USER',
@@ -52,6 +58,7 @@ describe('notice.service', () => {
             mockedNoticeRepository.createNotice.mockResolvedValue({
                 id: 1n,
                 userId: 16n,
+                userId: 16n,
                 ...body,
             } as any);
 
@@ -62,14 +69,8 @@ describe('notice.service', () => {
 
             expect(mockedNoticeRepository.findBoardById).toHaveBeenCalledWith(1n);
             expect(mockedNoticeRepository.createNotice).toHaveBeenCalledWith({
-                boardId: 1n,
+                ...body,
                 userId: 16n,
-                category: 'COMMUNITY',
-                title: '테스트 공지',
-                content: '공지 내용입니다',
-                isPinned: true,
-                startDate: null,
-                endDate: null,
             });
             expect(result).toBeDefined();
         });
@@ -93,14 +94,8 @@ describe('notice.service', () => {
             });
 
             expect(mockedNoticeRepository.createNotice).toHaveBeenCalledWith({
-                boardId: 1n,
+                ...body,
                 userId: 17n,
-                category: 'COMMUNITY',
-                title: '테스트 공지',
-                content: '공지 내용입니다',
-                isPinned: true,
-                startDate: null,
-                endDate: null,
             });
         });
 
@@ -159,6 +154,7 @@ describe('notice.service', () => {
                 notices: [
                     {
                         id: 10n,
+                        userId: 16n,
                         boardId: 1n,
                         category: 'COMMUNITY',
                         title: '목록 테스트',
@@ -166,6 +162,7 @@ describe('notice.service', () => {
                         updatedAt: new Date('2026-04-03T00:00:00.000Z'),
                         viewCount: 3,
                         isPinned: true,
+                        user: { name: '관리자' },
                         _count: { comments: 2 },
                     },
                 ],
@@ -192,9 +189,10 @@ describe('notice.service', () => {
             expect(result.totalCount).toBe(1);
             expect(result.notices[0]).toMatchObject({
                 noticeId: '10',
-                boardId: '1',
+                userId: '16',
                 category: 'COMMUNITY',
                 title: '목록 테스트',
+                writerName: '관리자',
                 viewsCount: 3,
                 commentsCount: 2,
                 isPinned: true,
@@ -221,88 +219,42 @@ describe('notice.service', () => {
     });
 
     describe('getNoticeDetail', () => {
-        it('공지 상세를 조회할 수 있다', async () => {
-            mockedNoticeRepository.findNoticeById
-                .mockResolvedValueOnce({
-                    id: 1n,
-                    userId: 16n,
-                    boardId: 1n,
-                    category: 'COMMUNITY',
-                    title: '상세 테스트',
-                    content: '공지 상세 내용',
-                    createdAt: new Date('2026-04-03T00:00:00.000Z'),
-                    updatedAt: new Date('2026-04-03T00:00:00.000Z'),
-                    viewCount: 3,
-                    isPinned: true,
-                    user: {
-                        id: 16n,
-                        name: '관리자',
-                    },
-                    board: {
-                        id: 1n,
-                        type: 'NOTICE',
-                    },
-                    _count: {
-                        comments: 1,
-                    },
-                    comments: [
-                        {
-                            id: 100n,
-                            userId: 4n,
-                            content: '댓글입니다',
-                            createdAt: new Date('2026-04-03T01:00:00.000Z'),
-                            updatedAt: new Date('2026-04-03T01:00:00.000Z'),
-                            User: {
-                                id: 4n,
-                                name: '일반유저',
-                            },
-                        },
-                    ],
-                } as any)
-                .mockResolvedValueOnce({
-                    id: 1n,
-                    userId: 16n,
-                    boardId: 1n,
-                    category: 'COMMUNITY',
-                    title: '상세 테스트',
-                    content: '공지 상세 내용',
-                    createdAt: new Date('2026-04-03T00:00:00.000Z'),
-                    updatedAt: new Date('2026-04-03T00:00:00.000Z'),
-                    viewCount: 4,
-                    isPinned: true,
-                    user: {
-                        id: 16n,
-                        name: '관리자',
-                    },
-                    board: {
-                        id: 1n,
-                        type: 'NOTICE',
-                    },
-                    _count: {
-                        comments: 1,
-                    },
-                    comments: [
-                        {
-                            id: 100n,
-                            userId: 4n,
-                            content: '댓글입니다',
-                            createdAt: new Date('2026-04-03T01:00:00.000Z'),
-                            updatedAt: new Date('2026-04-03T01:00:00.000Z'),
-                            User: {
-                                id: 4n,
-                                name: '일반유저',
-                            },
-                        },
-                    ],
-                } as any);
+        const mockNotice = {
+            id: 1n,
+            userId: 16n,
+            boardId: 1n,
+            category: 'COMMUNITY',
+            title: '상세 테스트',
+            content: '공지 상세 내용',
+            createdAt: new Date('2026-04-03T00:00:00.000Z'),
+            updatedAt: new Date('2026-04-03T00:00:00.000Z'),
+            viewCount: 3,
+            isPinned: true,
+            user: { id: 16n, name: '관리자' },
+            board: { id: 1n, type: 'NOTICE' },
+            _count: { comments: 1 },
+            comments: [
+                {
+                    id: 100n,
+                    userId: 4n,
+                    content: '댓글입니다',
+                    createdAt: new Date('2026-04-03T01:00:00.000Z'),
+                    updatedAt: new Date('2026-04-03T01:00:00.000Z'),
+                    User: { id: 4n, name: '일반유저' },
+                },
+            ],
+        };
 
+        it('공지 상세를 조회할 수 있다', async () => {
+            mockedNoticeRepository.findNoticeById.mockResolvedValue(mockNotice as any);
             mockedNoticeRepository.increaseViewCount.mockResolvedValue({} as any);
 
             const result = await noticeService.getNoticeDetail({ noticeId: 1n });
 
-            expect(mockedNoticeRepository.findNoticeById).toHaveBeenNthCalledWith(1, 1n);
+            // DB 조회는 1번만
+            expect(mockedNoticeRepository.findNoticeById).toHaveBeenCalledTimes(1);
+            expect(mockedNoticeRepository.findNoticeById).toHaveBeenCalledWith(1n);
             expect(mockedNoticeRepository.increaseViewCount).toHaveBeenCalledWith(1n);
-            expect(mockedNoticeRepository.findNoticeById).toHaveBeenNthCalledWith(2, 1n);
 
             expect(result).toMatchObject({
                 noticeId: '1',
@@ -310,7 +262,7 @@ describe('notice.service', () => {
                 category: 'COMMUNITY',
                 title: '상세 테스트',
                 writerName: '관리자',
-                viewsCount: 4,
+                viewsCount: 4, // viewCount(3) + 1
                 commentsCount: 1,
                 isPinned: true,
                 content: '공지 상세 내용',
@@ -355,6 +307,7 @@ describe('notice.service', () => {
 
             mockedNoticeRepository.updateNotice.mockResolvedValue({
                 id: 1n,
+                userId: 16n,
                 boardId: 1n,
                 category: 'COMMUNITY',
                 title: '수정된 제목',
@@ -362,37 +315,30 @@ describe('notice.service', () => {
                 updatedAt: new Date('2026-04-04T00:00:00.000Z'),
                 viewCount: 10,
                 isPinned: false,
-                _count: {
-                    comments: 2,
-                },
+                user: { id: 16n, name: '관리자' },
+                _count: { comments: 2 },
             } as any);
+
+            const body = { title: '수정된 제목' };
 
             const result = await noticeService.updateNotice({
                 user: adminUser,
                 noticeId: 1n,
-                body: {
-                    title: '수정된 제목',
-                },
+                body,
             } as any);
 
+            // body 통째로 넘기는지 확인
             expect(mockedNoticeRepository.updateNotice).toHaveBeenCalledWith({
                 noticeId: 1n,
-                data: {
-                    boardId: undefined,
-                    category: undefined,
-                    title: '수정된 제목',
-                    content: undefined,
-                    isPinned: undefined,
-                    startDate: undefined,
-                    endDate: undefined,
-                },
+                data: body,
             });
 
             expect(result).toMatchObject({
                 noticeId: '1',
-                boardId: '1',
+                userId: '16',
                 category: 'COMMUNITY',
                 title: '수정된 제목',
+                writerName: '관리자',
                 viewsCount: 10,
                 commentsCount: 2,
                 isPinned: false,
@@ -404,9 +350,7 @@ describe('notice.service', () => {
                 noticeService.updateNotice({
                     user: normalUser,
                     noticeId: 1n,
-                    body: {
-                        title: '수정된 제목',
-                    },
+                    body: { title: '수정된 제목' },
                 } as any),
             ).rejects.toThrow(ForbiddenError);
 
@@ -421,11 +365,67 @@ describe('notice.service', () => {
                 noticeService.updateNotice({
                     user: adminUser,
                     noticeId: 1n,
-                    body: {
-                        title: '수정된 제목',
-                    },
+                    body: { title: '수정된 제목' },
                 } as any),
             ).rejects.toThrow(NotFoundError);
+
+            expect(mockedNoticeRepository.updateNotice).not.toHaveBeenCalled();
+        });
+
+        it('boardId가 있으면 게시판 유효성 검사를 한다', async () => {
+            mockedNoticeRepository.findNoticeById.mockResolvedValue({
+                id: 1n,
+                boardId: 1n,
+            } as any);
+
+            mockedNoticeRepository.findBoardById.mockResolvedValue({
+                id: 2n,
+                type: 'NOTICE',
+                apartmentId: 1n,
+            } as any);
+
+            mockedNoticeRepository.updateNotice.mockResolvedValue({
+                id: 1n,
+                userId: 16n,
+                boardId: 2n,
+                category: 'COMMUNITY',
+                title: '제목',
+                createdAt: new Date('2026-04-03T00:00:00.000Z'),
+                updatedAt: new Date('2026-04-04T00:00:00.000Z'),
+                viewCount: 0,
+                isPinned: false,
+                user: { id: 16n, name: '관리자' },
+                _count: { comments: 0 },
+            } as any);
+
+            await noticeService.updateNotice({
+                user: adminUser,
+                noticeId: 1n,
+                body: { boardId: 2n },
+            } as any);
+
+            expect(mockedNoticeRepository.findBoardById).toHaveBeenCalledWith(2n);
+        });
+
+        it('NOTICE 게시판이 아닌 boardId로 수정하면 실패한다', async () => {
+            mockedNoticeRepository.findNoticeById.mockResolvedValue({
+                id: 1n,
+                boardId: 1n,
+            } as any);
+
+            mockedNoticeRepository.findBoardById.mockResolvedValue({
+                id: 2n,
+                type: 'COMPLAINT',
+                apartmentId: 1n,
+            } as any);
+
+            await expect(
+                noticeService.updateNotice({
+                    user: adminUser,
+                    noticeId: 1n,
+                    body: { boardId: 2n },
+                } as any),
+            ).rejects.toThrow(BadRequestError);
 
             expect(mockedNoticeRepository.updateNotice).not.toHaveBeenCalled();
         });
