@@ -188,5 +188,8 @@ export async function findResidentById(residentId: string) {
         where: {
             id: BigInt(residentId),
         },
+        include: {
+            user: true,
+        },
     });
 }

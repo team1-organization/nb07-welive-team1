@@ -8,6 +8,7 @@ import * as residentRepository from '../repositories/resident.repository';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { ForbiddenError } from '../errors/ForbiddenError';
 import { safeString } from '../utils/string.util';
+import { findByApartmentName } from '../repositories/apartment.repository';
 
 // [모든 사용자] 로그인
 export function login(userId: string) {
@@ -33,16 +34,23 @@ export async function register(data: CreateUserDTO) {
         });
     } else if (data.role === 'ADMIN') {
         // [관리자] 회원가입
+        const apartmentCheck = await findByApartmentName(data.apartmentName);
+        if (apartmentCheck) throw new BadRequestError('이미 등록되어 있는 아파트명 입니다');
         newUser = await authRepository.createAdmin({
             ...data,
             password: hashedPassword,
         });
     } else {
         // [유저] 회원가입
-        newUser = await authRepository.createUser({
-            ...data,
-            password: hashedPassword,
-        });
+        const apartmentCheck = await findByApartmentName(data.apartmentName);
+        if (!apartmentCheck) throw new BadRequestError('아파트를 찾을 수 없습니다.');
+        newUser = await authRepository.createUser(
+            {
+                ...data,
+                password: hashedPassword,
+            },
+            apartmentCheck.id,
+        );
     }
     return User.fromEntity(newUser);
 }
