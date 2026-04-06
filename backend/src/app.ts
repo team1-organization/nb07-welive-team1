@@ -8,14 +8,15 @@ import passport from './lib/passport';
 import authRouter from './routers/auth.router';
 import complaintRouter from './routers/complaint.router';
 import residentRouter from './routers/resident.router';
-import authRouter from './routers/auth.router';
 BigInt.prototype.toJSON = function (): string {
     return this.toString();
 };
 
 const app = express();
-app.use(morgan('dev'));
-app.use(morgan(':method :url '));
+if (process.env.NODE_ENV !== 'test') {
+    app.use(morgan('dev'));
+    app.use(morgan(':method :url '));
+}
 const allowedOrigins = [
     'http://localhost:3001', // 로컬 개발용
     //배포된 주소(현재 없음)

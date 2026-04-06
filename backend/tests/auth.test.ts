@@ -1,8 +1,8 @@
-import { prisma } from '../../src/lib/prisma';
-import { safeString } from '../../src/utils/string.util';
+import { prisma } from '../src/lib/prisma';
+import { safeString } from '../src/utils/string.util';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
-import server from '../../src/app';
+import server from '../src/app';
 describe('Auth API 통합 테스트', () => {
     let apartmentId: string;
     let adminToken: string;

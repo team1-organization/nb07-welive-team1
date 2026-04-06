@@ -101,6 +101,7 @@ model User {
     votes         Vote[]
     notifications Notification[]
     complaints    Complaint[]
+    polls         Poll[]
 
     @@index([apartmentId])
     @@index([role])
@@ -203,9 +204,13 @@ model Poll {
     boardId BigInt
     board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
 
+    userId BigInt
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
     pollOptions PollOption[]
 
     @@index([boardId, status])
+    @@index([userId])
 }
 
 // 투표 선택지
