@@ -1,9 +1,9 @@
-import { HouseholdType, ResidenceStatus } from '../../generated/prisma';
+import { HouseholdType, Prisma, ResidenceStatus } from '../../generated/prisma';
 import { CreateOneResidentDto, GetResidentsQueryDto, ResidentListResponseDto, ResidentResponseDto, UpdateResidentDto } from '../dtos/resident.dto';
 import { ConflictError } from '../errors/ConflictError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { prisma } from '../lib/prisma';
-import { createResident, existsResident, findResidentById, findResidents, updateResident } from '../repositories/resident.repository';
+import { createResident, existsResident, findResidents, findResidentWithApartment, updateResident } from '../repositories/resident.repository';
 
 type GetResidentsParams = {
     apartmentId: bigint;
@@ -30,6 +30,10 @@ type DeleteResidentParams = {
     apartmentId: bigint;
     residentId: bigint;
 };
+
+export type ResidentWithUser = Prisma.ResidentGetPayload<{
+    include: { user: { select: { id: true; email: true } } };
+}>;
 
 // 입주민 엔티티를 응답 DTO로 변환
 const toResidentResponseDto = (resident: {
@@ -85,7 +89,7 @@ export const getResidents = async ({ apartmentId, query }: GetResidentsParams): 
 
 // 입주민 상세 조회
 export const getResidentById = async ({ apartmentId, residentId }: GetResidentByIdParams): Promise<ResidentResponseDto> => {
-    const resident = await findResidentById(residentId, apartmentId);
+    const resident = await findResidentWithApartment(residentId, apartmentId);
 
     if (!resident) {
         throw new NotFoundError('입주민을 찾을 수 없습니다.');
@@ -126,7 +130,7 @@ export const createOneResident = async ({ apartmentId, body }: CreateOneResident
 // 입주민 정보 수정
 export const updateResidentById = async ({ apartmentId, residentId, body }: UpdateResidentParams): Promise<ResidentResponseDto> => {
     // 같은 아파트 입주민인지 먼저 확인
-    const resident = await findResidentById(residentId, apartmentId);
+    const resident = await findResidentWithApartment(residentId, apartmentId);
 
     if (!resident) {
         throw new NotFoundError('입주민을 찾을 수 없습니다.');
@@ -167,7 +171,7 @@ export const updateResidentById = async ({ apartmentId, residentId, body }: Upda
 // 입주민 정보 삭제
 export const deleteResidentById = async ({ apartmentId, residentId }: DeleteResidentParams): Promise<ResidentResponseDto> => {
     // 같은 아파트 입주민인지 먼저 확인
-    const resident = await findResidentById(residentId, apartmentId);
+    const resident = await findResidentWithApartment(residentId, apartmentId);
 
     if (!resident) {
         throw new NotFoundError('입주민을 찾을 수 없습니다.');

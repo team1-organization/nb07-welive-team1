@@ -42,6 +42,7 @@ const tx = {
     },
 };
 
+
 const makeResident = (
     overrides: Partial<{
         id: bigint;
@@ -78,7 +79,7 @@ const makeResident = (
         email: 'hong@example.com',
     },
     ...overrides,
-});
+}) as unknown as NonNullable<Awaited<ReturnType<typeof findResidentById>>>;
 
 describe('resident.service', () => {
     beforeEach(() => {
