@@ -7,6 +7,7 @@ import { errorHandler } from './errors/errorHandler';
 import passport from './lib/passport';
 import authRouter from './routers/auth.router';
 import complaintRouter from './routers/complaint.router';
+import noticeRouter from './routers/notice.router';
 import residentRouter from './routers/resident.router';
 BigInt.prototype.toJSON = function (): string {
     return this.toString();
@@ -38,6 +39,7 @@ app.use(passport.initialize());
 app.use('/api/auth', authRouter);
 app.use('/api/residents', residentRouter);
 app.use('/api/complaints', complaintRouter);
+app.use('/api/notices', noticeRouter);
 
 app.use(errorHandler);
 
