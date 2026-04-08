@@ -3,10 +3,6 @@ import { z } from 'zod';
 export const bigIntSchema = z.coerce.bigint().positive('올바른 ID 형식이어야 합니다');
 export const isoDateSchema = z.string().datetime('ISO datetime 형식이어야 합니다');
 
-export const CommentIdParamDto = z.object({
-    commentId: bigIntSchema,
-});
-
 //댓글 생성 (POST)
 export const CreateCommentDto = z.object({
     content: z.string().min(1, '댓글 내용을 입력해주세요.').max(1000),
@@ -18,8 +14,6 @@ export const CreateCommentDto = z.object({
 //댓글 수정 (PATCH)
 export const UpdateCommentDto = z.object({
     content: z.string().min(1, '수정할 내용을 입력해주세요.').max(1000),
-    boardType: z.enum(['COMPLAINT', 'NOTICE']),
-    boardId: bigIntSchema,
 });
 
 //댓글 삭제 (DELETE)
