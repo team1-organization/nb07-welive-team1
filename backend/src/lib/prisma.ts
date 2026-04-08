@@ -6,7 +6,9 @@ import pkg from 'pg';
 const connectionString: string = process.env.DATABASE_URL || '';
 const pool = new pkg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);
+const isTest = process.env.NODE_ENV === 'test';
 export const prisma = new PrismaClient({
     adapter,
-    log: ['query'],
+    //log: ['query'],
+    log: isTest ? ['error'] : ['query'],
 });

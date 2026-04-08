@@ -40,7 +40,7 @@ const refreshTokenOptions = {
 async function jwtVerify(payload: JwtPayload, done: VerifiedCallback) {
     try {
         if (!payload.id) return done(null, false);
-        const user = await prisma.user.findUniqueOrThrow({
+        const user = await prisma.user.findUnique({
             where: { id: BigInt(payload.id) },
         });
         if (!user) return done(null, false);
