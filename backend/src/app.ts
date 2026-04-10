@@ -8,6 +8,7 @@ import passport from './lib/passport';
 import authRouter from './routers/auth.router';
 import complaintRouter from './routers/complaint.router';
 import noticeRouter from './routers/notice.router';
+import optionRouter from './routers/option.router';
 import pollRouter from './routers/poll.router';
 import residentRouter from './routers/resident.router';
 
@@ -43,6 +44,7 @@ app.use('/api/residents', residentRouter);
 app.use('/api/complaints', complaintRouter);
 app.use('/api/notices', noticeRouter);
 app.use('/api/polls', pollRouter);
+app.use('/api/options', optionRouter);
 
 app.use(errorHandler);
 

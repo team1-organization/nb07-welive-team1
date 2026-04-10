@@ -26,17 +26,30 @@ export class PollRepository {
     }
 
     async findAll(filter: PollFilterQuery, apartmentId: bigint, userBuildingNumber?: number) {
+        const andConditions: Prisma.PollWhereInput[] = [];
+
+        if (userBuildingNumber !== undefined) {
+            andConditions.push({
+                OR: [{ buildingPermission: 0 }, { buildingPermission: userBuildingNumber }],
+            });
+        }
+
+        if (filter.searchKeyword) {
+            andConditions.push({
+                OR: [{ title: { contains: filter.searchKeyword } }, { content: { contains: filter.searchKeyword } }],
+            });
+        }
+
         const where: Prisma.PollWhereInput = {
             board: { apartmentId: apartmentId },
         };
 
-        if (userBuildingNumber !== undefined) {
-            where.OR = [{ buildingPermission: 0 }, { buildingPermission: userBuildingNumber }];
+        if (andConditions.length > 0) {
+            where.AND = andConditions;
         }
 
         if (filter.status) where.status = filter.status;
-        if (filter.buildingPermission) where.buildingPermission = parseInt(filter.buildingPermission, 10);
-        if (filter.keyword) where.title = { contains: filter.keyword };
+        if (filter.buildingPermission !== undefined) where.buildingPermission = filter.buildingPermission;
 
         return await prisma.poll.findMany({
             where,
@@ -78,6 +91,17 @@ export class PollRepository {
     async createVote(userId: bigint, optionId: bigint) {
         return await prisma.vote.create({
             data: { userId, optionId },
+        });
+    }
+
+    async deleteVote(userId: bigint, optionId: bigint) {
+        return await prisma.vote.delete({
+            where: {
+                userId_optionId: {
+                    userId,
+                    optionId,
+                },
+            },
         });
     }
 }

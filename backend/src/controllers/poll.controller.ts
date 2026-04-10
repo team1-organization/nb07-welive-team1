@@ -10,7 +10,17 @@ export class PollController {
         try {
             if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
             const user = req.user as unknown as AuthUser;
-            const data = req.body as CreatePollData;
+
+            const body = req.body;
+            const data: CreatePollData = {
+                title: body.title,
+                content: body.content,
+                buildingPermission: body.building || 0,
+                startDate: body.startDate,
+                endDate: body.endDate,
+                options: body.options,
+                boardId: BigInt(body.apartmentId),
+            };
 
             const result = await this.pollService.createPoll(user, data);
             res.status(201).json({ message: '투표가 등록되었습니다.', data: result });
@@ -26,8 +36,8 @@ export class PollController {
 
             const query: PollFilterQuery = {
                 status: typeof req.query.status === 'string' ? (req.query.status as PollStatus) : undefined,
-                buildingPermission: typeof req.query.buildingPermission === 'string' ? req.query.buildingPermission : undefined,
-                keyword: typeof req.query.keyword === 'string' ? req.query.keyword : undefined,
+                buildingPermission: typeof req.query.building === 'string' ? parseInt(req.query.building, 10) : undefined,
+                searchKeyword: typeof req.query.searchKeyword === 'string' ? req.query.searchKeyword : undefined,
             };
 
             const result = await this.pollService.getPolls(user, query);
@@ -41,7 +51,6 @@ export class PollController {
         try {
             if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
             const user = req.user as unknown as AuthUser;
-
             const pollId = BigInt(String(req.params.pollId));
 
             const result = await this.pollService.getPollDetail(user, pollId);
@@ -55,12 +64,23 @@ export class PollController {
         try {
             if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
             const user = req.user as unknown as AuthUser;
+            const optionId = BigInt(String(req.params.optionId));
 
-            const pollId = BigInt(String(req.params.pollId));
-            const optionId = BigInt(String(req.body.optionId));
-
-            const result = await this.pollService.vote(user, pollId, optionId);
+            const result = await this.pollService.vote(user, optionId);
             res.status(201).json({ message: '투표가 완료되었습니다.', data: result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    cancelVote = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
+            const user = req.user as unknown as AuthUser;
+            const optionId = BigInt(String(req.params.optionId));
+
+            await this.pollService.cancelVote(user, optionId);
+            res.status(200).json({ message: '투표가 취소되었습니다.' });
         } catch (error) {
             next(error);
         }
@@ -70,9 +90,16 @@ export class PollController {
         try {
             if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
             const user = req.user as unknown as AuthUser;
-
             const pollId = BigInt(String(req.params.pollId));
-            const data = req.body as UpdatePollData;
+
+            const data: UpdatePollData = {
+                title: req.body.title,
+                content: req.body.content,
+                status: req.body.status,
+                startDate: req.body.startDate,
+                endDate: req.body.endDate,
+                buildingPermission: req.body.building,
+            };
 
             const result = await this.pollService.updatePoll(user, pollId, data);
             res.status(200).json({ message: '투표가 수정되었습니다.', data: result });
@@ -85,7 +112,6 @@ export class PollController {
         try {
             if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
             const user = req.user as unknown as AuthUser;
-
             const pollId = BigInt(String(req.params.pollId));
 
             await this.pollService.deletePoll(user, pollId);

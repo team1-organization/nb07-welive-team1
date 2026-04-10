@@ -49,11 +49,16 @@ export class PollService {
         return { ...poll, showResults };
     }
 
-    async vote(user: AuthUser, pollId: bigint, optionId: bigint) {
+    async vote(user: AuthUser, optionId: bigint) {
         if (user.role !== 'USER') throw new Error('입주민만 투표할 수 있습니다.');
 
-        const poll = await this.pollRepository.findById(pollId);
-        if (!poll) throw new Error('투표를 찾을 수 없습니다.');
+        const option = await prisma.pollOption.findUnique({
+            where: { id: optionId },
+            include: { poll: true },
+        });
+
+        if (!option) throw new Error('해당 투표 선택지를 찾을 수 없습니다.');
+        const poll = option.poll;
 
         const now = new Date();
         if (poll.status !== PollStatus.IN_PROGRESS || now < poll.startDate || now > poll.endDate) {
@@ -68,6 +73,25 @@ export class PollService {
         }
 
         return await this.pollRepository.createVote(BigInt(user.id), optionId);
+    }
+
+    async cancelVote(user: AuthUser, optionId: bigint) {
+        if (user.role !== 'USER') throw new Error('입주민만 투표를 취소할 수 있습니다.');
+
+        const option = await prisma.pollOption.findUnique({
+            where: { id: optionId },
+            include: { poll: true },
+        });
+
+        if (!option) throw new Error('해당 투표 선택지를 찾을 수 없습니다.');
+        const poll = option.poll;
+
+        const now = new Date();
+        if (poll.status !== PollStatus.IN_PROGRESS || now < poll.startDate || now > poll.endDate) {
+            throw new Error('종료된 투표는 취소할 수 없습니다.');
+        }
+
+        return await this.pollRepository.deleteVote(BigInt(user.id), optionId);
     }
 
     async updatePoll(user: AuthUser, pollId: bigint, data: UpdatePollData) {

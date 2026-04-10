@@ -14,8 +14,8 @@ export interface CreatePollData {
     title: string;
     content: string;
     buildingPermission: number;
-    startDate: Date;
-    endDate: Date;
+    startDate: string;
+    endDate: string;
     options: string[];
     boardId: bigint;
 }
@@ -24,10 +24,13 @@ export interface UpdatePollData {
     title?: string;
     content?: string;
     status?: PollStatus;
+    startDate?: string;
+    endDate?: string;
+    buildingPermission?: number;
 }
 
 export interface PollFilterQuery {
     status?: PollStatus;
-    buildingPermission?: string;
-    keyword?: string;
+    buildingPermission?: number;
+    searchKeyword?: string;
 }
