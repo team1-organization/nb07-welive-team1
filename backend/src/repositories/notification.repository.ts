@@ -1,6 +1,5 @@
 import { prisma } from '../lib/prisma';
 import { CreateNotificationDTO } from '../dtos/notification.dto';
-
 // [모든 사용자] 읽지 않은 알림 수신
 export async function getNotifications(userId: string) {
     return prisma.notification.findMany({
@@ -27,7 +26,6 @@ export async function readNotification(notificationId: string, userId: string) {
         },
     });
 }
-
 // [모든 사용자] 알림 읽음 처리(전체)
 export async function readAllNotifications(userId: string) {
     const result = await prisma.notification.updateMany({
@@ -41,14 +39,12 @@ export async function readAllNotifications(userId: string) {
     });
     return result.count;
 }
-
 // [모든 사용자] 알림 찾기
 export async function findNotificationById(notificationId: string) {
     return prisma.notification.findUnique({
         where: { id: BigInt(notificationId) },
     });
 }
-
 // [모든 사용자] 알림 생성
 export async function createNotification(data: CreateNotificationDTO) {
     return prisma.notification.create({

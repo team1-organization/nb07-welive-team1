@@ -37,7 +37,6 @@ export async function findSuperAdminByUserId(userId: string) {
         },
     });
 }
-
 export async function findSuperAdminList() {
     return prisma.user.findMany({
         where: {
@@ -162,7 +161,6 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
         });
     });
 }
-
 // [관리자] 회원가입
 export async function createAdmin(data: Extract<CreateUserDTO, { role: 'ADMIN' }>) {
     return prisma.$transaction(async (tx) => {
@@ -225,7 +223,6 @@ export async function createAdmin(data: Extract<CreateUserDTO, { role: 'ADMIN' }
     });
 }
 
-// [슈퍼 관리자] 회원가입
 export async function createSuperAdmin(data: Extract<CreateUserDTO, { role: 'SUPER_ADMIN' }>) {
     return prisma.user.create({
         data: {
