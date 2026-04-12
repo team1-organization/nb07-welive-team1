@@ -26,4 +26,13 @@ function clearTokenCookies(res: Response) {
     res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { path: '/api/auth/refresh' });
 }
 
-export { generateTokens, setTokenCookies, clearTokenCookies };
+function verifyAccessToken(accessToken: string) {
+    const decoded = jwt.verify(accessToken, JWT_ACCESS_TOKEN_SECRET);
+    if (typeof decoded === 'string') throw new Error('Invalid token');
+
+    console.log(`decoded : ${JSON.stringify(decoded)}`);
+
+    return { userId: decoded.id };
+}
+
+export { generateTokens, setTokenCookies, clearTokenCookies, verifyAccessToken };

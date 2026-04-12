@@ -7,6 +7,8 @@
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec tsx src/server.ts",
+    "dev:local": "nodemon --watch 'src/**/*.ts' --exec tsx src/server.ts",
+    "test:local": "docker-compose down -v && docker-compose up -d && npx prisma db push && cross-env NODE_ENV=test jest --runInBand",
     "test": "cross-env NODE_ENV=test jest --runInBand",
     "build": "tsc",
     "lint": "eslint src/**/*.ts --quiet",
@@ -36,6 +38,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.17.2",
     "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {

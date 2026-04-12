@@ -27,7 +27,7 @@ export default tseslint.config(
         },
         rules: {
             "prettier/prettier": "error",
-            "no-console": "warn",
+            //"no-console": "warn",
             "@typescript-eslint/no-explicit-any": "warn",
             "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern : "^_"}],
             "@typescript-eslint/require-await": "error",
