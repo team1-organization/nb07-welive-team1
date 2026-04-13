@@ -37,6 +37,7 @@ export async function findSuperAdminByUserId(userId: string) {
         },
     });
 }
+
 export async function findSuperAdminList() {
     return prisma.user.findMany({
         where: {
@@ -99,7 +100,6 @@ export async function findAdminByadminId(adminId: string) {
     });
 }
 
-// [사용자] 회원가입
 export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
     return prisma.$transaction(async (tx) => {
         const apartment = await findByApartmentName(data.apartmentName);

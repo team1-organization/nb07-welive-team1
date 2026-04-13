@@ -48,7 +48,6 @@ app.use('/api/notices', noticeRouter);
 app.use('/api/polls', pollRouter);
 app.use('/api/options', optionRouter);
 app.use('/api/notifications', notificationRouter);
-
 app.use(errorHandler);
 
 const server = http.createServer(app);
