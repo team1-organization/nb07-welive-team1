@@ -74,7 +74,7 @@ export async function createRoleNotification(data: Omit<CreateNotificationDTO, '
     }
     const users = await authRepository.findUsersByRole(role, searchApartmentId);
     if (users.length === 0) {
-        console.log(`[Notification] 수신 대상 사용자가 없습니다. (Role: ${role}, AptId: ${searchApartmentId})`);
+        console.log(`수신 대상 사용자가 없습니다. (Role: ${role}, AptId: ${searchApartmentId})`);
         return [];
     }
 

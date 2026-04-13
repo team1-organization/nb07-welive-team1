@@ -15,7 +15,6 @@ export interface UserData {
     role: UserRole;
     isActive: boolean;
     joinStatus: JoinStatus;
-    apartmentId?: bigint | null;
     apartment?: {
         id: bigint;
         apartmentName: string;
@@ -41,7 +40,6 @@ export interface UserParam {
     role: UserRole;
     joinStatus: JoinStatus;
     isActive: boolean;
-    apartmentId?: string | null;
     apartmentName?: string | null;
     residentDong?: string | null;
     residentHo?: string | null;
@@ -80,7 +78,6 @@ export class User {
 
     readonly createdAt: string;
     readonly updatedAt: string;
-    readonly apartmentId?: string | null;
 
     constructor(params: UserParam) {
         this.id = params.id;
@@ -101,7 +98,6 @@ export class User {
 
         this.createdAt = params.createdAt;
         this.updatedAt = params.updatedAt;
-        this.apartmentId = params.apartmentId;
     }
     static fromEntity(data: UserData): User {
         if (!data) throw new Error('데이터가 없습니다');
@@ -138,7 +134,6 @@ export class User {
 
             createdAt: LocalDateTime(data.createdAt).format(DATE_FORMAT),
             updatedAt: LocalDateTime(data.updatedAt).format(DATE_FORMAT),
-            apartmentId: data.apartmentId ? safeString(data.apartmentId) : null,
         });
     }
     static fromEntityList(data: UserData[]): User[] {

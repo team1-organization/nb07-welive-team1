@@ -100,6 +100,7 @@ export async function findAdminByadminId(adminId: string) {
     });
 }
 
+// [사용자] 회원가입
 export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
     return prisma.$transaction(async (tx) => {
         const apartment = await findByApartmentName(data.apartmentName);
@@ -162,6 +163,7 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
     });
 }
 
+// [관리자] 회원가입
 export async function createAdmin(data: Extract<CreateUserDTO, { role: 'ADMIN' }>) {
     return prisma.$transaction(async (tx) => {
         const apartment = await tx.apartment.create({
@@ -223,6 +225,7 @@ export async function createAdmin(data: Extract<CreateUserDTO, { role: 'ADMIN' }
     });
 }
 
+// [슈퍼 관리자] 회원가입
 export async function createSuperAdmin(data: Extract<CreateUserDTO, { role: 'SUPER_ADMIN' }>) {
     return prisma.user.create({
         data: {

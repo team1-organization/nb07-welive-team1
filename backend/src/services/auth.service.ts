@@ -27,19 +27,16 @@ export async function register(data: CreateUserDTO) {
 
     let newUser: User | UserData | null = null;
     if (data.role === 'SUPER_ADMIN') {
-        // [슈퍼관리자] 회원가입
         newUser = await authRepository.createSuperAdmin({
             ...data,
             password: hashedPassword,
         });
     } else if (data.role === 'ADMIN') {
-        // [관리자] 회원가입
         newUser = await authRepository.createAdmin({
             ...data,
             password: hashedPassword,
         });
     } else {
-        // [유저] 회원가입
         newUser = await authRepository.createUser({
             ...data,
             password: hashedPassword,
