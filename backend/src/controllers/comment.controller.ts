@@ -9,7 +9,6 @@ export const createComment = async (req: Request, res: Response) => {
     });
 
     const result = await commentService.createComment(validated);
-
     res.status(201).json(result);
 };
 
@@ -21,7 +20,6 @@ export const updateComment = async (req: Request, res: Response) => {
     });
 
     const result = await commentService.updateComment(validated);
-
     res.status(200).json(result);
 };
 
@@ -32,6 +30,5 @@ export const deleteComment = async (req: Request, res: Response) => {
     });
 
     const result = await commentService.deleteComment(validated);
-
-    res.status(200).json({ message: '정상적으로 삭제 처리되었습니다' });
+    res.status(200).json(result);
 };
