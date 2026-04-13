@@ -1,43 +1,19 @@
-import { Request, Response } from 'express';
-import { CreateCommentDto, UpdateCommentDto, bigIntSchema } from '../dtos/comment.dto';
-import * as commentService from '../services/comment.service';
+import { Router } from 'express';
+import * as commentController from '../controllers/comment.controller';
+import passport from '../lib/passport';
+import { withAsync } from '../lib/withAsync';
 
-export const createComment = async (req: Request, res: Response) => {
-    const user = req.user;
-    const body = CreateCommentDto.parse(req.body);
+const router = Router();
 
-    const result = await commentService.createComment({
-        user,
-        body,
-    });
+router.use(
+    passport.authenticate('accessToken', {
+        session: false,
+        failWithError: true,
+    }),
+);
 
-    return res.status(201).json(result);
-};
+router.post('/', withAsync(commentController.createComment));
+router.patch('/:commentId', withAsync(commentController.updateComment));
+router.delete('/:commentId', withAsync(commentController.deleteComment));
 
-export const updateComment = async (req: Request, res: Response) => {
-    const user = req.user;
-
-    const commentId = bigIntSchema.parse(req.params.commentId);
-    const body = UpdateCommentDto.parse(req.body);
-
-    const result = await commentService.updateComment({
-        user,
-        commentId,
-        body,
-    });
-
-    return res.status(200).json(result);
-};
-
-export const deleteComment = async (req: Request, res: Response) => {
-    const user = req.user;
-    const commentId = bigIntSchema.parse(req.params.commentId);
-    await commentService.deleteComment({
-        user,
-        commentId,
-    });
-
-    return res.status(200).json({
-        message: '정상적으로 삭제 처리되었습니다',
-    });
-};
+export default router;

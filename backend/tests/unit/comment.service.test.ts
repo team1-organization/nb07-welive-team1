@@ -26,7 +26,6 @@ describe('comment.service', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
     (ComplaintRepository as jest.Mock).mockImplementation(() => mockComplaintRepo);
   });
 
@@ -157,7 +156,7 @@ describe('comment.service', () => {
       await expect(
         commentService.updateComment({
           user: mockUser,
-          commentId: 1n,
+          params: { commentId: 1n },
           body: {
             content: '수정',
           },
@@ -174,7 +173,7 @@ describe('comment.service', () => {
       await expect(
         commentService.updateComment({
           user: mockUser,
-          commentId: 1n,
+          params: { commentId: 1n },
           body: {
             content: '수정',
           },
@@ -203,12 +202,13 @@ describe('comment.service', () => {
 
       const result = await commentService.updateComment({
         user: mockUser,
-        commentId: 1n,
+        params: { commentId: 1n },
         body: {
           content: '수정된 댓글',
         },
       });
 
+      expect(commentRepository.findCommentById).toHaveBeenCalledWith(1n);
       expect(commentRepository.updateComment).toHaveBeenCalledWith({
         commentId: 1n,
         content: '수정된 댓글',
@@ -228,7 +228,7 @@ describe('comment.service', () => {
       await expect(
         commentService.deleteComment({
           user: mockUser,
-          commentId: 1n,
+          params: { commentId: 1n },
         }),
       ).rejects.toThrow(NotFoundError);
     });
@@ -242,7 +242,7 @@ describe('comment.service', () => {
       await expect(
         commentService.deleteComment({
           user: mockUser,
-          commentId: 1n,
+          params: { commentId: 1n },
         }),
       ).rejects.toThrow(ForbiddenError);
     });
@@ -257,12 +257,16 @@ describe('comment.service', () => {
         id: 1n,
       });
 
-      await commentService.deleteComment({
+      const result = await commentService.deleteComment({
         user: mockUser,
-        commentId: 1n,
+        params: { commentId: 1n },
       });
 
+      expect(commentRepository.findCommentById).toHaveBeenCalledWith(1n);
       expect(commentRepository.deleteComment).toHaveBeenCalledWith(1n);
+      expect(result).toEqual({
+        message: '정상적으로 삭제 처리되었습니다',
+      });
     });
 
     it('관리자면 삭제 성공', async () => {
@@ -275,12 +279,16 @@ describe('comment.service', () => {
         id: 1n,
       });
 
-      await commentService.deleteComment({
+      const result = await commentService.deleteComment({
         user: mockAdminUser,
-        commentId: 1n,
+        params: { commentId: 1n },
       });
 
+      expect(commentRepository.findCommentById).toHaveBeenCalledWith(1n);
       expect(commentRepository.deleteComment).toHaveBeenCalledWith(1n);
+      expect(result).toEqual({
+        message: '정상적으로 삭제 처리되었습니다',
+      });
     });
   });
 });

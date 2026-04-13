@@ -1,43 +1,37 @@
 import { Request, Response } from 'express';
-import { CommentIdParamSchema, CreateCommentDto, UpdateCommentDto } from '../dtos/comment.dto';
-import * as commentService from '../services/comment.service.ts';
+import { createCommentReqSchema, deleteCommentReqSchema, updateCommentReqSchema } from '../dtos/comment.dto';
+import * as commentService from '../services/comment.service';
 
 export const createComment = async (req: Request, res: Response) => {
-    const user = req.user;
-    const body = CreateCommentDto.parse(req.body);
-
-    const result = await commentService.createComment({
-        user,
-        body,
+    const validated = createCommentReqSchema.parse({
+        user: req.user,
+        body: req.body,
     });
 
-    return res.status(201).json(result);
+    const result = await commentService.createComment(validated);
+
+    res.status(201).json(result);
 };
 
 export const updateComment = async (req: Request, res: Response) => {
-    const user = req.user;
-    const params = CommentIdParamSchema.parse(req.params);
-    const body = UpdateCommentDto.parse(req.body);
-
-    const result = await commentService.updateComment({
-        user,
-        commentId: params.commentId,
-        body,
+    const validated = updateCommentReqSchema.parse({
+        user: req.user,
+        params: req.params,
+        body: req.body,
     });
 
-    return res.status(200).json(result);
+    const result = await commentService.updateComment(validated);
+
+    res.status(200).json(result);
 };
 
 export const deleteComment = async (req: Request, res: Response) => {
-    const user = req.user;
-    const params = CommentIdParamSchema.parse(req.params);
-
-    await commentService.deleteComment({
-        user,
-        commentId: params.commentId,
+    const validated = deleteCommentReqSchema.parse({
+        user: req.user,
+        params: req.params,
     });
 
-    return res.status(200).json({
-        message: '정상적으로 삭제 처리되었습니다',
-    });
+    const result = await commentService.deleteComment(validated);
+
+    res.status(200).json({ message: '정상적으로 삭제 처리되었습니다' });
 };

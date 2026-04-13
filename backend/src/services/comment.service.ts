@@ -1,4 +1,4 @@
-import { CreateCommentInput, UpdateCommentInput } from '../dtos/comment.dto';
+import { CreateCommentReqDto, DeleteCommentReqDto, UpdateCommentReqDto } from '../dtos/comment.dto';
 import { BadRequestError } from '../errors/BadRequestError';
 import { ForbiddenError } from '../errors/ForbiddenError';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -6,21 +6,14 @@ import * as commentRepository from '../repositories/comment.repository';
 import { ComplaintRepository } from '../repositories/complaint.repository';
 import * as noticeRepository from '../repositories/notice.repository';
 
-const complaintRepo = new ComplaintRepository();
-
-type AuthUser = {
-    id: bigint;
-    role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
-};
-
 const validateCommentTarget = async (boardType: 'COMPLAINT' | 'NOTICE', boardId: bigint) => {
     const complaintRepo = new ComplaintRepository();
-
     if (boardType === 'NOTICE') {
         const notice = await noticeRepository.findNoticeById(boardId);
         if (!notice) {
             throw new NotFoundError('공지사항을 찾을 수 없습니다.');
         }
+
         return {
             noticeId: notice.id,
             complaintId: null,
@@ -38,15 +31,16 @@ const validateCommentTarget = async (boardType: 'COMPLAINT' | 'NOTICE', boardId:
             complaintId: complaint.id,
         };
     }
+
     throw new BadRequestError('지원하지 않는 게시판 타입입니다.');
 };
 
-export const createComment = async ({ user, body }: { user: AuthUser; body: CreateCommentInput }) => {
-    const target = await validateCommentTarget(body.boardType, body.boardId);
+export const createComment = async (data: CreateCommentReqDto) => {
+    const target = await validateCommentTarget(data.body.boardType, data.body.boardId);
 
     const comment = await commentRepository.createComment({
-        userId: user.id,
-        content: body.content,
+        userId: data.user.id,
+        content: data.body.content,
         ...target,
     });
 
@@ -60,25 +54,25 @@ export const createComment = async ({ user, body }: { user: AuthUser; body: Crea
             writerName: comment.User.name,
         },
         board: {
-            id: body.boardId.toString(),
-            boardType: body.boardType,
+            id: data.body.boardId.toString(),
+            boardType: data.body.boardType,
         },
     };
 };
 
-export const updateComment = async ({ user, commentId, body }: { user: AuthUser; commentId: bigint; body: UpdateCommentInput }) => {
-    const existingComment = await commentRepository.findCommentById(commentId);
+export const updateComment = async (data: UpdateCommentReqDto) => {
+    const existingComment = await commentRepository.findCommentById(data.params.commentId);
     if (!existingComment) {
         throw new NotFoundError('댓글을 찾을 수 없습니다.');
     }
 
-    if (existingComment.userId !== user.id) {
+    if (existingComment.userId !== data.user.id) {
         throw new ForbiddenError('댓글 작성자만 수정할 수 있습니다.');
     }
 
     const updatedComment = await commentRepository.updateComment({
-        commentId,
-        content: body.content,
+        commentId: data.params.commentId,
+        content: data.body.content,
     });
 
     const boardType = updatedComment.noticeId ? 'NOTICE' : 'COMPLAINT';
@@ -100,19 +94,21 @@ export const updateComment = async ({ user, commentId, body }: { user: AuthUser;
     };
 };
 
-export const deleteComment = async ({ user, commentId }: { user: AuthUser; commentId: bigint }) => {
-    const existingComment = await commentRepository.findCommentById(commentId);
+export const deleteComment = async (data: DeleteCommentReqDto) => {
+    const existingComment = await commentRepository.findCommentById(data.params.commentId);
     if (!existingComment) {
         throw new NotFoundError('댓글을 찾을 수 없습니다.');
     }
 
-    const isAuthor = existingComment.userId === user.id;
-    const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
+    const isAuthor = existingComment.userId === data.user.id;
+    const isAdmin = data.user.role === 'ADMIN' || data.user.role === 'SUPER_ADMIN';
 
     if (!isAuthor && !isAdmin) {
         throw new ForbiddenError('댓글 작성자 또는 관리자만 삭제할 수 있습니다.');
     }
-    await commentRepository.deleteComment(commentId);
+
+    await commentRepository.deleteComment(data.params.commentId);
+
     return {
         message: '정상적으로 삭제 처리되었습니다',
     };
