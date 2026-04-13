@@ -6,6 +6,7 @@ import pkg from 'pg';
 const connectionString: string = process.env.DATABASE_URL || '';
 const pool = new pkg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);
+
 const getLogOptions = (): (Prisma.LogLevel | Prisma.LogDefinition)[] => {
     if (process.env.NODE_ENV === 'production') {
         // 운영 환경

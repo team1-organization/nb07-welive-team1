@@ -12,13 +12,15 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { prisma } from '../lib/prisma';
 import { ComplaintRepository } from '../repositories/complaint.repository';
 import { compact } from '../utils/object.util';
+import * as notificationService from '../services/notification.service';
+import { safeString } from '../utils/string.util';
 
 export class ComplaintService {
     private complaintRepo = new ComplaintRepository();
 
     // 민원 등록
     async createComplaint(user: CreateComplaintReqDto['user'], body: CreateComplaintReqDto['body']) {
-        return await prisma.$transaction(async (tx) => {
+        return prisma.$transaction(async (tx) => {
             const board = await tx.board.findUnique({
                 where: {
                     apartmentId_type: {
@@ -50,12 +52,14 @@ export class ComplaintService {
             });
 
             if (admins.length > 0) {
-                const notifications = admins.map((admin) => ({
-                    userId: admin.id,
-                    content: `[신규 민원] ${body.title}`,
-                }));
-                await tx.notification.createMany({ data: notifications });
-                // TODO: tx 완료 후 소켓 전송 로직 호출
+                for (const admin of admins) {
+                    await notificationService.createNotification({
+                        userId: safeString(admin.id),
+                        type: 'COMPLAINT',
+                        content: `[신규 민원] ${body.title}`,
+                        referenceId: safeString(newComplaint.id),
+                    });
+                }
             }
 
             return newComplaint;
@@ -115,7 +119,7 @@ export class ComplaintService {
         const complaint = await this.complaintRepo.findById(BigInt(complaintId));
         if (!complaint) throw new NotFoundError('민원을 찾을 수 없습니다.');
 
-        return await prisma.$transaction(async (tx) => {
+        return prisma.$transaction(async (tx) => {
             const updated = await tx.complaint.update({
                 where: { id: BigInt(complaintId) },
                 data: { status },
@@ -125,6 +129,7 @@ export class ComplaintService {
                 data: {
                     userId: complaint.userId,
                     content: `작성하신 민원의 상태가 [${status}](으)로 변경되었습니다.`,
+                    type: 'COMPLAINT',
                 },
             });
 
