@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { commonIdParam } from '../dtos/common.dto';
 import * as notificationService from '../services/notification.service';
+import { prisma } from '../lib/prisma';
+import socket from '../lib/socket';
 
 // [모든 사용자] 읽지 않은 알림 수신
 export async function getNotifications(req: Request, res: Response) {

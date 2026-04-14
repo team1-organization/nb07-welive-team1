@@ -7,7 +7,7 @@
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec tsx src/server.ts",
-    "dev:local": "nodemon --watch 'src/**/*.ts' --exec tsx src/server.ts",
+    "dev:local": "docker-compose down -v && docker-compose up -d && npx prisma db push && nodemon --watch 'src/**/*.ts' --exec tsx src/server.ts",
     "test:local": "docker-compose down -v && docker-compose up -d && npx prisma db push && cross-env NODE_ENV=test jest --runInBand",
     "test": "cross-env NODE_ENV=test jest --runInBand",
     "build": "tsc",

@@ -30,12 +30,24 @@ class SocketService {
         });
     }
 
+    // 유저 ID
     sendNotification(userId: string, notification: Notification) {
         this.io.to(`USER_${userId}`).emit('notification', notification);
     }
 
+    // 룸 네임으로 발송
     broadcastToRoom(roomName: string, notification: Partial<Notification>) {
         this.io.to(roomName).emit('notification', notification);
+    }
+
+    // 민원
+    sendComplaintToAdmin(apartmentId: string, notification: Partial<Notification>) {
+        this.io.to(`A:${apartmentId}:ADMIN`).emit('complaint', notification);
+    }
+
+    // 공지사항
+    sendNoticeToApartment(apartmentId: string, notification: Partial<Notification>) {
+        this.io.to(`A:${apartmentId}:ADMIN`).emit('notice', notification);
     }
 
     private async authenticate(socket: Socket, next: (err?: ExtendedError) => void) {
@@ -61,6 +73,8 @@ class SocketService {
         await socket.join(`USER_${safeString(user.id)}`);
         // 권한별
         await socket.join(`ROLE_${safeString(user.role)}`);
+        // 읽지않은 알림
+        await socket.join('unread_notifications');
         // 아파트 관련
         const isAdmin = user.role === 'ADMIN';
         const isApartment = user.apartmentId ? user.apartmentId : undefined;

@@ -266,19 +266,25 @@ export async function updateManyAdminStatus(status: 'PENDING' | 'APPROVED' | 'RE
     });
 }
 export async function updateResidentStatus(residentId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
-    return prisma.resident.update({
-        where: {
-            id: BigInt(residentId),
-        },
-        data: {
-            approvalStatus: status,
-            user: {
-                update: {
-                    joinStatus: status,
-                    isActive: status === 'APPROVED',
-                },
+    return prisma.$transaction(async (tx) => {
+        const resident = await tx.resident.update({
+            where: {
+                id: BigInt(residentId),
             },
-        },
+            data: {
+                approvalStatus: status,
+            },
+            include: { user: true },
+        });
+
+        await tx.user.updateMany({
+            where: { residentId: BigInt(residentId) },
+            data: {
+                joinStatus: status,
+                isActive: status === 'APPROVED',
+            },
+        });
+        return resident;
     });
 }
 export async function updateManyResidentStatus(apartmentId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
