@@ -1,0 +1,226 @@
+paths:
+  $/api/polls:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Polls"
+      summary: "투표 글 작성"
+      description: "새로운 투표 게시글을 생성합니다."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePollRequest"
+      responses:
+        201:
+          description: "투표 등록 성공 응답"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+              example:
+                message: "정상적으로 등록 처리되었습니다"
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Polls"
+      summary: "투표 글 전체 조회"
+      description: "필터 조건에 따라 투표 글 목록을 페이징하여 조회합니다."
+      parameters:
+        - name: "page"
+          in: "query"
+          schema:
+            type: "integer"
+            default: 1
+        - name: "limit"
+          in: "query"
+          schema:
+            type: "integer"
+            default: 20
+        - name: "status"
+          in: "query"
+          schema:
+            type: "string"
+            enum: ["PENDING", "IN_PROGRESS", "CLOSED"]
+        - name: "searchKeyword"
+          in: "query"
+          schema:
+            type: "string"
+        - name: "building"
+          in: "query"
+          schema:
+            type: "integer"
+      responses:
+        200:
+          description: "투표 글 전체 조회 성공"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  polls:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/PollDetail"
+                  totalCount:
+                    type: "integer"
+
+  $/api/polls/{pollId}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Polls"
+      summary: "투표 글 상세 조회"
+      parameters:
+        - name: "pollId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "투표 글 상세 조회 성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollDetail"
+
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Polls"
+      summary: "투표 글 수정"
+      parameters:
+        - name: "pollId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePollRequest"
+      responses:
+        200:
+          description: "성공"
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Polls"
+      summary: "투표 글 삭제"
+      parameters:
+        - name: "pollId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "성공"
+
+components:
+  schemas:
+    CreatePollRequest:
+      type: "object"
+      required: ["title", "content", "startDate", "endDate", "apartmentId", "options"]
+      properties:
+        title:
+          type: "string"
+          minLength: 1
+        content:
+          type: "string"
+          minLength: 1
+        startDate:
+          type: "string"
+          format: "date-time"
+        endDate:
+          type: "string"
+          format: "date-time"
+        apartmentId:
+          type: "string"
+        building:
+          type: "integer"
+          nullable: true
+        options:
+          type: "array"
+          minItems: 2
+          items:
+            type: "string"
+            minLength: 1
+      example:
+        title: "단지 내 분리수거함 추가 설치"
+        content: "분리수거함 위치 선정 투표입니다."
+        startDate: "2026-06-01T09:00:00Z"
+        endDate: "2026-06-07T18:00:00Z"
+        apartmentId: "apartment-uuid"
+        building: 101
+        options: ["정문 옆", "후문 근처"]
+
+    UpdatePollRequest:
+      type: "object"
+      properties:
+        title:
+          type: "string"
+        content:
+          type: "string"
+        startDate:
+          type: "string"
+          format: "date-time"
+        endDate:
+          type: "string"
+          format: "date-time"
+        building:
+          type: "integer"
+          nullable: true
+        options:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              id:
+                type: "string"
+              title:
+                type: "string"
+
+    PollDetail:
+      type: "object"
+      properties:
+        pollId:
+          type: "string"
+        title:
+          type: "string"
+        content:
+          type: "string"
+        startDate:
+          type: "string"
+          format: "date-time"
+        endDate:
+          type: "string"
+          format: "date-time"
+        status:
+          type: "string"
+          enum: ["PENDING", "IN_PROGRESS", "CLOSED"]
+        options:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              id:
+                type: "string"
+              title:
+                type: "string"
+              voteCount:
+                type: "integer"
