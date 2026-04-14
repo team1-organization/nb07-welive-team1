@@ -3,17 +3,24 @@ import passport from 'passport';
 import {
     createResidentController,
     deleteResidentController,
+    downloadResidentsFileController,
+    downloadResidentTemplateController,
     getResidentDetailController,
     getResidentsController,
     updateResidentController,
+    uploadResidentsFileController,
 } from '../controllers/resident.controller';
 import { withAsync } from '../lib/withAsync';
+import { csvMulterUtil } from '../utils/multer.util';
 
 const residentRouter = Router();
 
 residentRouter.use(passport.authenticate('accessToken', { session: false }));
 
 residentRouter.get('/', withAsync(getResidentsController));
+residentRouter.get('/file/template', withAsync(downloadResidentTemplateController));
+residentRouter.post('/from-file', csvMulterUtil.single('file'), withAsync(uploadResidentsFileController));
+residentRouter.get('/file', withAsync(downloadResidentsFileController));
 residentRouter.post('/', withAsync(createResidentController));
 residentRouter.get('/:id', withAsync(getResidentDetailController));
 residentRouter.patch('/:id', withAsync(updateResidentController));
