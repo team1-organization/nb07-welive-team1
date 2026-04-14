@@ -12,6 +12,8 @@ type FindResidentsParams = {
     keyword?: string;
 };
 
+type FindResidentsForDownloadParams = Omit<FindResidentsParams, 'page' | 'limit'>;
+
 type CreateResidentParams = {
     apartmentId: bigint;
     building: string;
@@ -19,6 +21,14 @@ type CreateResidentParams = {
     contact: string;
     name: string;
     isHouseholder: HouseholdType;
+};
+
+type CreateResidentWithUserParams = CreateResidentParams & {
+    userId: bigint;
+};
+
+type CreateResidentsParams = {
+    residents: CreateResidentParams[];
 };
 
 type UpdateResidentParams = {
@@ -86,6 +96,11 @@ const buildResidentWhere = ({
     return where;
 };
 
+// resident id 타입 정리
+const toResidentId = (residentId: bigint | string) => {
+    return typeof residentId === 'bigint' ? residentId : BigInt(residentId);
+};
+
 // 입주민 목록과 전체 개수를 함께 조회
 export const findResidents = async ({
     apartmentId,
@@ -135,12 +150,44 @@ export const findResidents = async ({
     };
 };
 
-// 특정 입주민 상세 조회
-export const findResidentWithApartment = async (residentId: bigint, apartmentId: bigint) => {
+// 파일 다운로드용 입주민 전체 목록 조회
+export const findResidentsForDownload = async ({
+    apartmentId,
+    building,
+    unitNumber,
+    residenceStatus,
+    isRegistered,
+    keyword,
+}: FindResidentsForDownloadParams) => {
+    const where = buildResidentWhere({
+        apartmentId,
+        building,
+        unitNumber,
+        residenceStatus,
+        isRegistered,
+        keyword,
+    });
+
+    return prisma.resident.findMany({
+        where,
+        orderBy: [{ building: 'asc' }, { unitNumber: 'asc' }, { createdAt: 'desc' }],
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    email: true,
+                },
+            },
+        },
+    });
+};
+
+// 특정 입주민 조회
+export const findResidentById = async (residentId: bigint | string, apartmentId?: bigint) => {
     return prisma.resident.findFirst({
         where: {
-            id: residentId,
-            apartmentId,
+            id: toResidentId(residentId),
+            ...(apartmentId ? { apartmentId } : {}),
         },
         include: {
             user: {
@@ -149,6 +196,29 @@ export const findResidentWithApartment = async (residentId: bigint, apartmentId:
                     email: true,
                 },
             },
+        },
+    });
+};
+
+// 같은 아파트의 특정 입주민 조회
+export const findResidentWithApartment = async (residentId: bigint, apartmentId: bigint) => {
+    return findResidentById(residentId, apartmentId);
+};
+
+// 사용자 기반 입주민 생성용 사용자 조회
+export const findUserByIdForResidentCreation = async (userId: bigint, apartmentId: bigint) => {
+    return prisma.user.findFirst({
+        where: {
+            id: userId,
+            apartmentId,
+        },
+        select: {
+            id: true,
+            name: true,
+            contact: true,
+            email: true,
+            apartmentId: true,
+            residentId: true,
         },
     });
 };
@@ -193,6 +263,67 @@ export const createResident = async ({ apartmentId, building, unitNumber, contac
                 },
             },
         },
+    });
+};
+
+// 사용자와 연결된 입주민 생성
+export const createResidentWithUser = async ({
+    apartmentId,
+    userId,
+    building,
+    unitNumber,
+    contact,
+    name,
+    isHouseholder,
+}: CreateResidentWithUserParams) => {
+    return prisma.$transaction(async (tx) => {
+        const resident = await tx.resident.create({
+            data: {
+                apartmentId,
+                building,
+                unitNumber,
+                contact,
+                name,
+                isHouseholder,
+            },
+        });
+
+        await tx.user.update({
+            where: {
+                id: userId,
+            },
+            data: {
+                residentId: resident.id,
+            },
+        });
+
+        return tx.resident.findUniqueOrThrow({
+            where: {
+                id: resident.id,
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                    },
+                },
+            },
+        });
+    });
+};
+
+// 파일 업로드용 입주민 다건 생성
+export const createResidents = async ({ residents }: CreateResidentsParams) => {
+    return prisma.resident.createMany({
+        data: residents.map((resident) => ({
+            apartmentId: resident.apartmentId,
+            building: resident.building,
+            unitNumber: resident.unitNumber,
+            contact: resident.contact,
+            name: resident.name,
+            isHouseholder: resident.isHouseholder,
+        })),
     });
 };
 
@@ -244,14 +375,3 @@ export const deleteResident = async (residentId: bigint) => {
         },
     });
 };
-
-export async function findResidentById(residentId: string) {
-    return prisma.resident.findUnique({
-        where: {
-            id: BigInt(residentId),
-        },
-        include: {
-            user: true,
-        },
-    });
-}
