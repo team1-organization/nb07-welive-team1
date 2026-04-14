@@ -23,9 +23,9 @@ export const createPollReqSchema = z
             content: z.string().min(1),
             startDate: z.string().datetime(),
             endDate: z.string().datetime(),
-            apartmentId: z.string().uuid(),
+            apartmentId: z.string(),
             building: z.number().int().nullable().optional(),
-            options: z.array(z.object({ title: z.string().min(1) })).min(2),
+            options: z.array(z.string().min(1)).min(2),
         }),
     })
     .refine((data) => new Date(data.body.endDate) > new Date(data.body.startDate), {
@@ -57,7 +57,7 @@ export const getPollDetailReqSchema = z.object({
         apartmentId: z.string(),
     }),
     params: z.object({
-        pollId: z.string().uuid(),
+        pollId: z.string(),
     }),
 });
 
@@ -66,7 +66,7 @@ export const updatePollReqSchema = z
     .object({
         user: adminUserSchema,
         params: z.object({
-            pollId: z.string().uuid(),
+            pollId: z.string(),
         }),
         body: z.object({
             title: z.string().min(1).optional(),
@@ -77,7 +77,7 @@ export const updatePollReqSchema = z
             options: z
                 .array(
                     z.object({
-                        id: z.string().uuid(),
+                        id: z.string(),
                         title: z.string().min(1),
                     }),
                 )
@@ -101,7 +101,7 @@ export const updatePollReqSchema = z
 export const deletePollReqSchema = z.object({
     user: adminUserSchema,
     params: z.object({
-        pollId: z.string().uuid(),
+        pollId: z.string(),
     }),
 });
 
@@ -109,8 +109,8 @@ export const deletePollReqSchema = z.object({
 export const votePollReqSchema = z.object({
     user: residentUserSchema,
     params: z.object({
-        pollId: z.string().uuid(),
-        optionId: z.string().uuid(),
+        pollId: z.string(),
+        optionId: z.string(),
     }),
 });
 
