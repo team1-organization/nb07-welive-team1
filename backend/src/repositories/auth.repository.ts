@@ -1,5 +1,5 @@
-import { prisma } from '../lib/prisma';
 import { CreateUserDTO, UpdateAdminDTO } from '../dtos/auth.dto';
+import { prisma } from '../lib/prisma';
 import { findByApartmentName } from './apartment.repository';
 
 export async function findUserById(userId: string) {
@@ -149,6 +149,8 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
                 role: data.role,
                 joinStatus: resident.approvalStatus === 'APPROVED' ? 'APPROVED' : 'PENDING',
                 isActive: true,
+                building: data.apartmentDong,
+                unitNumber: data.apartmentHo,
                 apartmentId: apartment.id,
                 residentId: resident.id,
             },
