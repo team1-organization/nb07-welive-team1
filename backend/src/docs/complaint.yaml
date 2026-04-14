@@ -1,0 +1,221 @@
+paths:
+  /api/complaints:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Complaints"
+      summary: "민원 등록"
+      description: "새로운 민원 게시글을 생성합니다."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateComplaintRequest"
+      responses:
+        201:
+          description: "민원 등록 성공 응답"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+              example:
+                message: "정상적으로 등록 처리되었습니다"
+
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Complaints"
+      summary: "전체 민원 조회"
+      description: "필터 조건에 따라 민원 목록을 페이징하여 조회합니다."
+      parameters:
+        - name: "page"
+          in: "query"
+          description: "페이지 번호 (기본값: 1)"
+          schema:
+            type: "integer"
+            default: 1
+        - name: "limit"
+          in: "query"
+          description: "페이지 별 아이템 수 (기본값: 10)"
+          schema:
+            type: "integer"
+            default: 10
+        - name: "status"
+          in: "query"
+          description: "처리 상태"
+          schema:
+            type: "string"
+            enum: ["PENDING", "PROCESSING", "COMPLETED"]
+        - name: "keyword"
+          in: "query"
+          description: "검색 키워드"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "민원 리스트 응답"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  complaints:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/ComplaintDetail"
+                  totalCount:
+                    type: "integer"
+
+  /api/complaints/{complaintId}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Complaints"
+      summary: "민원 상세 조회"
+      parameters:
+        - name: "complaintId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "민원 상세 조회 성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplaintDetail"
+
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Complaints"
+      summary: "일반 유저 민원 수정"
+      parameters:
+        - name: "complaintId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateComplaintRequest"
+      responses:
+        200:
+          description: "민원 수정 성공 응답"
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Complaints"
+      summary: "민원 삭제"
+      parameters:
+        - name: "complaintId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "민원 삭제 성공 응답"
+
+  /api/complaints/{complaintId}/status:
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Complaints"
+      summary: "관리자 이상 민원 수정"
+      description: "민원의 처리 상태를 변경합니다."
+      parameters:
+        - name: "complaintId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateComplaintStatusRequest"
+      responses:
+        200:
+          description: "민원 수정 성공 응답"
+
+components:
+  schemas:
+    CreateComplaintRequest:
+      type: "object"
+      required: ["title", "content", "apartmentId"]
+      properties:
+        title:
+          type: "string"
+          minLength: 1
+          maxLength: 100
+        content:
+          type: "string"
+          minLength: 1
+        isPrivate:
+          type: "boolean"
+          default: false
+        apartmentId:
+          type: "string"
+      example:
+        title: "202호 층간소음 관련 민원"
+        content: "새벽에 소음이 너무 심합니다."
+        isPrivate: false
+        apartmentId: "apartment-uuid-here"
+
+    UpdateComplaintRequest:
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          minLength: 1
+          maxLength: 100
+        content:
+          type: "string"
+          minLength: 1
+        isPrivate:
+          type: "boolean"
+
+    UpdateComplaintStatusRequest:
+      type: "object"
+      required: ["status"]
+      properties:
+        status:
+          type: "string"
+          enum: ["PENDING", "PROCESSING", "COMPLETED"]
+
+    ComplaintDetail:
+      type: "object"
+      properties:
+        complaintId:
+          type: "string"
+        userId:
+          type: "string"
+        title:
+          type: "string"
+        content:
+          type: "string"
+        status:
+          type: "string"
+          enum: ["PENDING", "PROCESSING", "COMPLETED"]
+        isPrivate:
+          type: "boolean"
+        createdAt:
+          type: "string"
+          format: "date-time"

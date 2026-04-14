@@ -3,6 +3,9 @@ import cors from 'cors';
 import express from 'express';
 import http from 'http';
 import morgan from 'morgan';
+import path from 'path';
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 import { errorHandler } from './errors/errorHandler';
 import passport from './lib/passport';
 import authRouter from './routers/auth.router';
@@ -41,6 +44,49 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
+
+// Swagger 설정
+const port = process.env.PORT || 3000;
+const servers = [
+    {
+        url: `http://localhost:${port}`,
+        description: '로컬 개발 서버',
+    },
+];
+
+if (process.env.DEPLOY_URL) {
+    servers.push({
+        url: process.env.DEPLOY_URL,
+        description: '배포 서버',
+    });
+}
+
+const swaggerOptions: swaggerJSDoc.Options = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Welive API',
+            version: '1.0.0',
+            description: 'NB 7기 1팀 고급 프로젝트 API',
+        },
+        servers: servers,
+    },
+    apis: [path.join(process.cwd(), './src/docs/swagger.yaml'), path.join(process.cwd(), './src/docs/!(swagger).yaml')],
+};
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, undefined, {
+        swaggerOptions: {
+            tagsSorter: undefined,
+            operationsSorter: undefined,
+            defaultModelsExpandDepth: -1,
+        },
+    }),
+);
 
 app.use('/api/auth', authRouter);
 app.use('/api/residents', residentRouter);

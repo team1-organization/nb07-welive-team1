@@ -1,0 +1,82 @@
+/api/options/{optionId}/vote:
+  post:
+    tags:
+      - Pollsvote
+    summary: 투표하기
+    description: 특정 투표 항목에 투표를 행사합니다.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: optionId
+        in: path
+        required: true
+        description: 투표 항목(선택지)의 UUID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '201':
+        description: 투표 완료 응답
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "투표가 완료되었습니다."
+                data:
+                  type: object
+                  properties:
+                    updatedOption:
+                      $ref: '#/components/schemas/VoteOption'
+                    winnerOption:
+                      $ref: '#/components/schemas/VoteOption'
+                    options:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/VoteOption'
+
+  delete:
+    tags:
+      - Pollsvote
+    summary: 투표 취소
+    description: 이미 행사한 투표를 취소합니다.
+    security:
+      - bearerAuth: []
+    parameters:
+      - name: optionId
+        in: path
+        required: true
+        description: 취소할 투표 항목(선택지)의 UUID
+        schema:
+          type: string
+          format: uuid
+    responses:
+      '200':
+        description: 투표 취소 성공 응답
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "투표가 취소되었습니다."
+
+components:
+  schemas:
+    VoteOption:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "optionId(uuid)"
+        title:
+          type: string
+          example: "옵션 제목"
+        votes:
+          type: integer
+          description: 해당 항목의 총 득표 수
+          example: 42

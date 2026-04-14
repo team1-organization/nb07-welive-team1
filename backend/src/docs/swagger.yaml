@@ -1,0 +1,31 @@
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Access Token을 입력해주세요.
+tags:
+  - name: Auth
+    description: 인증 관리
+  - name: Users
+    description: 사용자 관리
+  - name: Apartments
+    description: 아파트 관리
+  - name: Residents
+    description: 입주민 관리
+  - name: Complaints
+    description: 민원 관리
+  - name: Polls
+    description: 투표 관리
+  - name: Notices
+    description: 공지사항 관리
+  - name: Comments
+    description: 댓글 관리
+  - name: Notifications
+    description: 알림 관리
+  - name: Events
+    description: 이벤트 관리
+  - name: App
+    description: 앱
+  - name: Pollsvote
