@@ -77,6 +77,14 @@ enum BoardType {
     POLL // 투표
 }
 
+enum NotificationType {
+    ADMIN_SIGNUP
+    USER_SIGNUP
+    NOTICE
+    POLL
+    COMPLAINT
+}
+
 // 유저
 model User {
     id           BigInt     @id @default(autoincrement())
@@ -290,11 +298,13 @@ model Comment {
 
 // 알림
 model Notification {
-    id        BigInt   @id @default(autoincrement())
-    content   String // 알림 내용
-    isRead    Boolean  @default(false) // 알림 읽음 여부
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id          BigInt           @id @default(autoincrement())
+    content     String // 알림 내용
+    isRead      Boolean          @default(false) // 알림 읽음 여부
+    createdAt   DateTime         @default(now())
+    updatedAt   DateTime         @updatedAt
+    referenceId BigInt?
+    type        NotificationType
 
     userId BigInt
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

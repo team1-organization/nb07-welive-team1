@@ -13,5 +13,18 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data # 데이터 휘발 방지 (로컬에 저장)
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=welive@welive.com
+      - PGADMIN_DEFAULT_PASSWORD=welive
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "8080:80"
+    restart: always
+
 volumes:
   postgres_data:
+  pgadmin_data:

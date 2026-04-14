@@ -15,7 +15,6 @@ export interface UserData {
     role: UserRole;
     isActive: boolean;
     joinStatus: JoinStatus;
-    apartmentId?: bigint | null;
     apartment?: {
         id: bigint;
         apartmentName: string;
@@ -31,6 +30,7 @@ export interface UserData {
     } | null;
     createdAt: Date;
     updatedAt: Date;
+    apartmentId?: bigint | null;
 }
 
 export interface UserParam {
@@ -40,7 +40,6 @@ export interface UserParam {
     role: UserRole;
     joinStatus: JoinStatus;
     isActive: boolean;
-    apartmentId?: string | null;
     apartmentName?: string | null;
     residentDong?: string | null;
     residentHo?: string | null;
@@ -54,6 +53,7 @@ export interface UserParam {
     avatar: string | null;
     createdAt: string;
     updatedAt: string;
+    apartmentId?: string | null;
 }
 export class User {
     readonly id: string;
@@ -137,6 +137,7 @@ export class User {
         });
     }
     static fromEntityList(data: UserData[]): User[] {
+        if (!data || !Array.isArray(data)) return [];
         return data.map((userData: UserData) => User.fromEntity(userData));
     }
 }
