@@ -8,6 +8,8 @@ import passport from './lib/passport';
 import authRouter from './routers/auth.router';
 import complaintRouter from './routers/complaint.router';
 import noticeRouter from './routers/notice.router';
+import optionRouter from './routers/option.router';
+import pollRouter from './routers/poll.router';
 import residentRouter from './routers/resident.router';
 import notificationRouter from './routers/notification.router';
 import socket from './lib/socket';
@@ -43,8 +45,9 @@ app.use('/api/auth', authRouter);
 app.use('/api/residents', residentRouter);
 app.use('/api/complaints', complaintRouter);
 app.use('/api/notices', noticeRouter);
+app.use('/api/polls', pollRouter);
+app.use('/api/options', optionRouter);
 app.use('/api/notifications', notificationRouter);
-
 app.use(errorHandler);
 
 const server = http.createServer(app);
