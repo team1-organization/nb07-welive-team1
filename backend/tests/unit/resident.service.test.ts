@@ -1,16 +1,36 @@
 import { jest } from '@jest/globals';
 import { ApprovalStatus, HouseholdType, ResidenceStatus } from '../../generated/prisma';
+import { BadRequestError } from '../../src/errors/BadRequestError';
 import { ConflictError } from '../../src/errors/ConflictError';
 import { NotFoundError } from '../../src/errors/NotFoundError';
 import { prisma } from '../../src/lib/prisma';
-import { createResident, existsResident, findResidentById, findResidents, updateResident } from '../../src/repositories/resident.repository';
-import { createOneResident, deleteResidentById, getResidentById, getResidents, updateResidentById } from '../../src/services/resident.service';
+import {
+    createResident,
+    createResidents,
+    existsResident,
+    findResidents,
+    findResidentsForDownload,
+    findResidentWithApartment,
+    updateResident,
+} from '../../src/repositories/resident.repository';
+import {
+    createOneResident,
+    createResidentsFromFile,
+    deleteResidentById,
+    downloadResidentsFile,
+    downloadResidentTemplate,
+    getResidentById,
+    getResidents,
+    updateResidentById,
+} from '../../src/services/resident.service';
 
 jest.mock('../../src/repositories/resident.repository', () => ({
     findResidents: jest.fn(),
-    findResidentById: jest.fn(),
+    findResidentsForDownload: jest.fn(),
+    findResidentWithApartment: jest.fn(),
     existsResident: jest.fn(),
     createResident: jest.fn(),
+    createResidents: jest.fn(),
     updateResident: jest.fn(),
 }));
 
@@ -21,9 +41,11 @@ jest.mock('../../src/lib/prisma', () => ({
 }));
 
 const mockedFindResidents = findResidents as jest.MockedFunction<typeof findResidents>;
-const mockedFindResidentById = findResidentById as jest.MockedFunction<typeof findResidentById>;
+const mockedFindResidentsForDownload = findResidentsForDownload as jest.MockedFunction<typeof findResidentsForDownload>;
+const mockedFindResidentWithApartment = findResidentWithApartment as jest.MockedFunction<typeof findResidentWithApartment>;
 const mockedExistsResident = existsResident as jest.MockedFunction<typeof existsResident>;
 const mockedCreateResident = createResident as jest.MockedFunction<typeof createResident>;
+const mockedCreateResidents = createResidents as jest.MockedFunction<typeof createResidents>;
 const mockedUpdateResident = updateResident as jest.MockedFunction<typeof updateResident>;
 const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
 
@@ -42,12 +64,10 @@ const tx = {
     },
 };
 
-
 const makeResident = (
     overrides: Partial<{
         id: bigint;
         apartmentId: bigint;
-        userId: bigint | null;
         building: string;
         unitNumber: string;
         contact: string;
@@ -63,7 +83,6 @@ const makeResident = (
 ) => ({
     id: 1n,
     apartmentId: 1n,
-    userId: 10n,
     building: '101',
     unitNumber: '1001',
     contact: '01012345678',
@@ -79,7 +98,7 @@ const makeResident = (
         email: 'hong@example.com',
     },
     ...overrides,
-}) as unknown as NonNullable<Awaited<ReturnType<typeof findResidentById>>>;
+});
 
 describe('resident.service', () => {
     beforeEach(() => {
@@ -90,31 +109,41 @@ describe('resident.service', () => {
         tx.user.delete.mockResolvedValue({});
         tx.resident.delete.mockResolvedValue(makeResident());
 
-        (mockedPrisma.$transaction as jest.Mock).mockImplementation(
-            async (callback: unknown) => {
-                const transactionCallback = callback as (trx: typeof tx) => Promise<unknown>;
+        const mockedTransaction = mockedPrisma.$transaction as jest.Mock;
 
-                return transactionCallback(tx);
-            },
-        );
+        mockedTransaction.mockImplementation(async (callback: unknown) => {
+            if (typeof callback !== 'function') {
+                throw new Error('Transaction callback is required.');
+            }
+
+            return callback(tx);
+        });
+    });
+
+    describe('downloadResidentTemplate', () => {
+        it('업로드 템플릿 문자열을 반환한다', async () => {
+            const result = await downloadResidentTemplate();
+
+            expect(result).toBe('name,contact,building,unitNumber,isHouseholder\n');
+        });
     });
 
     describe('getResidents', () => {
         it('입주민 목록을 DTO 형태로 반환한다', async () => {
             mockedFindResidents.mockResolvedValue({
                 residents: [
-                    makeResident(),
+                    makeResident({
+                        id: 1n,
+                        building: '101',
+                        unitNumber: '1001',
+                    }),
                     makeResident({
                         id: 2n,
-                        userId: null,
                         building: '102',
-                        unitNumber: '1201',
-                        contact: '01099998888',
-                        name: '김철수',
-                        isHouseholder: HouseholdType.HOUSEMEMBER,
+                        unitNumber: '1202',
+                        user: null,
                         isRegistered: false,
                         approvalStatus: ApprovalStatus.PENDING,
-                        user: null,
                     }),
                 ],
                 totalCount: 2,
@@ -125,12 +154,18 @@ describe('resident.service', () => {
                 query: {
                     page: 1,
                     limit: 20,
-                    building: undefined,
-                    unitNumber: undefined,
-                    residenceStatus: undefined,
-                    isRegistered: undefined,
-                    keyword: undefined,
                 },
+            });
+
+            expect(mockedFindResidents).toHaveBeenCalledWith({
+                apartmentId: 1n,
+                page: 1,
+                limit: 20,
+                building: undefined,
+                unitNumber: undefined,
+                residenceStatus: undefined,
+                isRegistered: undefined,
+                keyword: undefined,
             });
 
             expect(result).toEqual({
@@ -152,12 +187,12 @@ describe('resident.service', () => {
                         id: '2',
                         userId: null,
                         building: '102',
-                        unitNumber: '1201',
-                        contact: '01099998888',
-                        name: '김철수',
+                        unitNumber: '1202',
+                        contact: '01012345678',
+                        name: '홍길동',
                         email: null,
                         residenceStatus: ResidenceStatus.RESIDENCE,
-                        isHouseholder: HouseholdType.HOUSEMEMBER,
+                        isHouseholder: HouseholdType.HOUSEHOLDER,
                         isRegistered: false,
                         approvalStatus: ApprovalStatus.PENDING,
                     },
@@ -169,45 +204,89 @@ describe('resident.service', () => {
         });
     });
 
-    describe('getResidentById', () => {
-        it('입주민 상세 조회에 성공한다', async () => {
-            mockedFindResidentById.mockResolvedValue(
+    describe('downloadResidentsFile', () => {
+        it('입주민 목록을 CSV 문자열로 반환한다', async () => {
+            mockedFindResidentsForDownload.mockResolvedValue([
+                makeResident({
+                    building: '101',
+                    unitNumber: '1001',
+                    name: '홍길동',
+                    contact: '01012345678',
+                    residenceStatus: ResidenceStatus.RESIDENCE,
+                    isHouseholder: HouseholdType.HOUSEHOLDER,
+                    isRegistered: true,
+                }),
                 makeResident({
                     id: 2n,
-                    userId: null,
                     building: '102',
-                    unitNumber: '1201',
+                    unitNumber: '1202',
+                    name: '김영희',
                     contact: '01099998888',
-                    name: '김철수',
+                    residenceStatus: ResidenceStatus.NO_RESIDENCE,
                     isHouseholder: HouseholdType.HOUSEMEMBER,
                     isRegistered: false,
-                    approvalStatus: ApprovalStatus.PENDING,
                     user: null,
+                }),
+            ]);
+
+            const result = await downloadResidentsFile({
+                apartmentId: 1n,
+                query: {
+                    page: 1,
+                    limit: 20,
+                },
+            });
+
+            expect(mockedFindResidentsForDownload).toHaveBeenCalledWith({
+                apartmentId: 1n,
+                building: undefined,
+                unitNumber: undefined,
+                residenceStatus: undefined,
+                isRegistered: undefined,
+                keyword: undefined,
+            });
+
+            expect(result).toBe(
+                'building,unitNumber,name,contact,residenceStatus,isHouseholder,isRegistered\n' +
+                    '101,1001,홍길동,01012345678,RESIDENCE,HOUSEHOLDER,true\n' +
+                    '102,1202,김영희,01099998888,NO_RESIDENCE,HOUSEMEMBER,false\n',
+            );
+        });
+    });
+
+    describe('getResidentById', () => {
+        it('입주민 상세 조회에 성공한다', async () => {
+            mockedFindResidentWithApartment.mockResolvedValue(
+                makeResident({
+                    id: 3n,
+                    building: '103',
+                    unitNumber: '1301',
                 }),
             );
 
             const result = await getResidentById({
                 apartmentId: 1n,
-                residentId: 2n,
+                residentId: 3n,
             });
 
+            expect(mockedFindResidentWithApartment).toHaveBeenCalledWith(3n, 1n);
             expect(result).toEqual({
-                id: '2',
-                userId: null,
-                building: '102',
-                unitNumber: '1201',
-                contact: '01099998888',
-                name: '김철수',
-                email: null,
+                id: '3',
+                userId: '10',
+                building: '103',
+                unitNumber: '1301',
+                contact: '01012345678',
+                name: '홍길동',
+                email: 'hong@example.com',
                 residenceStatus: ResidenceStatus.RESIDENCE,
-                isHouseholder: HouseholdType.HOUSEMEMBER,
-                isRegistered: false,
-                approvalStatus: ApprovalStatus.PENDING,
+                isHouseholder: HouseholdType.HOUSEHOLDER,
+                isRegistered: true,
+                approvalStatus: ApprovalStatus.APPROVED,
             });
         });
 
         it('입주민이 없으면 NotFoundError를 던진다', async () => {
-            mockedFindResidentById.mockResolvedValue(null);
+            mockedFindResidentWithApartment.mockResolvedValue(null);
 
             await expect(
                 getResidentById({
@@ -223,16 +302,15 @@ describe('resident.service', () => {
             mockedExistsResident.mockResolvedValue(false);
             mockedCreateResident.mockResolvedValue(
                 makeResident({
-                    id: 3n,
-                    userId: null,
+                    id: 4n,
                     building: '103',
                     unitNumber: '1301',
                     contact: '01011112222',
                     name: '이영희',
-                    isHouseholder: HouseholdType.HOUSEHOLDER,
+                    isHouseholder: HouseholdType.HOUSEMEMBER,
+                    user: null,
                     isRegistered: false,
                     approvalStatus: ApprovalStatus.PENDING,
-                    user: null,
                 }),
             );
 
@@ -243,7 +321,7 @@ describe('resident.service', () => {
                     unitNumber: '1301',
                     contact: '01011112222',
                     name: '이영희',
-                    isHouseholder: HouseholdType.HOUSEHOLDER,
+                    isHouseholder: HouseholdType.HOUSEMEMBER,
                 },
             });
 
@@ -254,8 +332,17 @@ describe('resident.service', () => {
                 contact: '01011112222',
             });
 
+            expect(mockedCreateResident).toHaveBeenCalledWith({
+                apartmentId: 1n,
+                building: '103',
+                unitNumber: '1301',
+                contact: '01011112222',
+                name: '이영희',
+                isHouseholder: HouseholdType.HOUSEMEMBER,
+            });
+
             expect(result).toEqual({
-                id: '3',
+                id: '4',
                 userId: null,
                 building: '103',
                 unitNumber: '1301',
@@ -263,7 +350,7 @@ describe('resident.service', () => {
                 name: '이영희',
                 email: null,
                 residenceStatus: ResidenceStatus.RESIDENCE,
-                isHouseholder: HouseholdType.HOUSEHOLDER,
+                isHouseholder: HouseholdType.HOUSEMEMBER,
                 isRegistered: false,
                 approvalStatus: ApprovalStatus.PENDING,
             });
@@ -287,9 +374,124 @@ describe('resident.service', () => {
         });
     });
 
+    describe('createResidentsFromFile', () => {
+        it('파일 업로드로 입주민을 다건 등록한다', async () => {
+            mockedExistsResident.mockResolvedValue(false);
+            mockedCreateResidents.mockResolvedValue({ count: 2 });
+
+            const fileBuffer = Buffer.from(
+                'name,contact,building,unitNumber,isHouseholder\n' +
+                    '홍길동,01012345678,101,1001,HOUSEHOLDER\n' +
+                    '김영희,01099998888,102,1202,HOUSEMEMBER\n',
+                'utf-8',
+            );
+
+            const result = await createResidentsFromFile({
+                apartmentId: 1n,
+                fileBuffer,
+            });
+
+            expect(mockedCreateResidents).toHaveBeenCalledWith({
+                residents: [
+                    {
+                        apartmentId: 1n,
+                        building: '101',
+                        unitNumber: '1001',
+                        contact: '01012345678',
+                        name: '홍길동',
+                        isHouseholder: HouseholdType.HOUSEHOLDER,
+                    },
+                    {
+                        apartmentId: 1n,
+                        building: '102',
+                        unitNumber: '1202',
+                        contact: '01099998888',
+                        name: '김영희',
+                        isHouseholder: HouseholdType.HOUSEMEMBER,
+                    },
+                ],
+            });
+
+            expect(result).toEqual({
+                message: '2명의 입주민이 등록되었습니다',
+                count: 2,
+            });
+        });
+
+        it('파일이 비어 있으면 BadRequestError를 던진다', async () => {
+            const fileBuffer = Buffer.from('', 'utf-8');
+
+            await expect(
+                createResidentsFromFile({
+                    apartmentId: 1n,
+                    fileBuffer,
+                }),
+            ).rejects.toThrow(new BadRequestError('파일이 비어 있습니다.'));
+        });
+
+        it('파일 양식이 올바르지 않으면 BadRequestError를 던진다', async () => {
+            const fileBuffer = Buffer.from(
+                'wrong,contact,building,unitNumber,isHouseholder\n' + '홍길동,01012345678,101,1001,HOUSEHOLDER\n',
+                'utf-8',
+            );
+
+            await expect(
+                createResidentsFromFile({
+                    apartmentId: 1n,
+                    fileBuffer,
+                }),
+            ).rejects.toThrow(new BadRequestError('파일 양식이 올바르지 않습니다. 양식 다운로드 후 다시 업로드해주세요.'));
+        });
+
+        it('파일 안에 중복된 입주민 정보가 있으면 ConflictError를 던진다', async () => {
+            const fileBuffer = Buffer.from(
+                'name,contact,building,unitNumber,isHouseholder\n' +
+                    '홍길동,01012345678,101,1001,HOUSEHOLDER\n' +
+                    '홍길순,01012345678,101,1001,HOUSEMEMBER\n',
+                'utf-8',
+            );
+
+            await expect(
+                createResidentsFromFile({
+                    apartmentId: 1n,
+                    fileBuffer,
+                }),
+            ).rejects.toThrow(new ConflictError('동, 호수, 연락처가 동일한 입주민 정보가 파일 안에 중복되어 있습니다.'));
+        });
+
+        it('이미 등록된 입주민 정보가 파일에 포함되어 있으면 ConflictError를 던진다', async () => {
+            mockedExistsResident.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+
+            const fileBuffer = Buffer.from(
+                'name,contact,building,unitNumber,isHouseholder\n' +
+                    '홍길동,01012345678,101,1001,HOUSEHOLDER\n' +
+                    '김영희,01099998888,102,1202,HOUSEMEMBER\n',
+                'utf-8',
+            );
+
+            await expect(
+                createResidentsFromFile({
+                    apartmentId: 1n,
+                    fileBuffer,
+                }),
+            ).rejects.toThrow(new ConflictError('이미 등록된 입주민 정보가 파일에 포함되어 있습니다.'));
+        });
+
+        it('세대구분 값이 올바르지 않으면 BadRequestError를 던진다', async () => {
+            const fileBuffer = Buffer.from('name,contact,building,unitNumber,isHouseholder\n' + '홍길동,01012345678,101,1001,OWNER\n', 'utf-8');
+
+            await expect(
+                createResidentsFromFile({
+                    apartmentId: 1n,
+                    fileBuffer,
+                }),
+            ).rejects.toThrow(new BadRequestError('2번째 행의 세대구분 값이 올바르지 않습니다. HOUSEHOLDER 또는 HOUSEMEMBER로 입력해주세요.'));
+        });
+    });
+
     describe('updateResidentById', () => {
         it('입주민 정보 수정에 성공한다', async () => {
-            mockedFindResidentById.mockResolvedValue(
+            mockedFindResidentWithApartment.mockResolvedValue(
                 makeResident({
                     id: 4n,
                     building: '101',
@@ -324,7 +526,7 @@ describe('resident.service', () => {
                 },
             });
 
-            expect(mockedFindResidentById).toHaveBeenCalledWith(4n, 1n);
+            expect(mockedFindResidentWithApartment).toHaveBeenCalledWith(4n, 1n);
             expect(mockedUpdateResident).toHaveBeenCalledWith({
                 residentId: 4n,
                 apartmentId: 1n,
@@ -351,7 +553,7 @@ describe('resident.service', () => {
         });
 
         it('수정 대상 입주민이 없으면 NotFoundError를 던진다', async () => {
-            mockedFindResidentById.mockResolvedValue(null);
+            mockedFindResidentWithApartment.mockResolvedValue(null);
 
             await expect(
                 updateResidentById({
@@ -365,7 +567,7 @@ describe('resident.service', () => {
         });
 
         it('수정 결과가 다른 입주민과 중복이면 ConflictError를 던진다', async () => {
-            mockedFindResidentById.mockResolvedValue(
+            mockedFindResidentWithApartment.mockResolvedValue(
                 makeResident({
                     id: 4n,
                     building: '101',
@@ -392,10 +594,9 @@ describe('resident.service', () => {
 
     describe('deleteResidentById', () => {
         it('연결 계정이 없는 입주민 삭제에 성공한다', async () => {
-            mockedFindResidentById.mockResolvedValue(
+            mockedFindResidentWithApartment.mockResolvedValue(
                 makeResident({
                     id: 5n,
-                    userId: null,
                     user: null,
                 }),
             );
@@ -403,7 +604,6 @@ describe('resident.service', () => {
             tx.resident.delete.mockResolvedValue(
                 makeResident({
                     id: 5n,
-                    userId: null,
                     user: null,
                 }),
             );
@@ -446,10 +646,9 @@ describe('resident.service', () => {
         });
 
         it('연결 계정이 있는 입주민 삭제에 성공한다', async () => {
-            mockedFindResidentById.mockResolvedValue(
+            mockedFindResidentWithApartment.mockResolvedValue(
                 makeResident({
                     id: 6n,
-                    userId: 10n,
                     user: {
                         id: 10n,
                         email: 'hong@example.com',
@@ -460,7 +659,6 @@ describe('resident.service', () => {
             tx.resident.delete.mockResolvedValue(
                 makeResident({
                     id: 6n,
-                    userId: 10n,
                     user: {
                         id: 10n,
                         email: 'hong@example.com',
@@ -521,7 +719,7 @@ describe('resident.service', () => {
         });
 
         it('삭제 대상 입주민이 없으면 NotFoundError를 던진다', async () => {
-            mockedFindResidentById.mockResolvedValue(null);
+            mockedFindResidentWithApartment.mockResolvedValue(null);
 
             await expect(
                 deleteResidentById({

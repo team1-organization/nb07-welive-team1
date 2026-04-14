@@ -104,6 +104,28 @@ export const deleteResidentReqSchema = z.object({
     params: residentIdParamSchema,
 });
 
+// 템플릿 다운로드 요청
+export const downloadResidentTemplateReqSchema = z.object({
+    user: adminUserSchema,
+});
+
+// 명부 파일 다운로드 요청
+export const downloadResidentsFileReqSchema = z.object({
+    user: adminUserSchema,
+    query: getResidentsQuerySchema,
+});
+
+// 사용자로부터 입주민 리소스 생성 요청
+export const createResidentFromUserReqSchema = z.object({
+    user: adminUserSchema,
+    params: userIdParamSchema,
+});
+
+// 파일 업로드 요청
+export const uploadResidentsFileReqSchema = z.object({
+    user: adminUserSchema,
+});
+
 // 응답 DTO
 export type ResidentResponseDto = {
     id: string;
@@ -126,6 +148,11 @@ export type ResidentListResponseDto = {
     totalCount: number;
 };
 
+export type BulkOperationResponseDto = {
+    message: string;
+    count: number;
+};
+
 // infer 타입
 export type GetResidentsQueryDto = z.infer<typeof getResidentsQuerySchema>;
 export type CreateOneResidentDto = z.infer<typeof createOneResidentBodySchema>;
@@ -136,3 +163,7 @@ export type GetResidentDetailReqDto = z.infer<typeof getResidentDetailReqSchema>
 export type CreateOneResidentReqDto = z.infer<typeof createOneResidentReqSchema>;
 export type UpdateResidentReqDto = z.infer<typeof updateResidentReqSchema>;
 export type DeleteResidentReqDto = z.infer<typeof deleteResidentReqSchema>;
+export type DownloadResidentTemplateReqDto = z.infer<typeof downloadResidentTemplateReqSchema>;
+export type DownloadResidentsFileReqDto = z.infer<typeof downloadResidentsFileReqSchema>;
+export type CreateResidentFromUserReqDto = z.infer<typeof createResidentFromUserReqSchema>;
+export type UploadResidentsFileReqDto = z.infer<typeof uploadResidentsFileReqSchema>;
