@@ -8,6 +8,7 @@ export async function findUserById(userId: string) {
         },
         select: {
             id: true,
+            password: true,
             userId: true,
             name: true,
             email: true,
@@ -32,11 +33,11 @@ export async function updateMyProfile(userId: string, data: UpdateProfileDTO) {
         },
     });
 }
-export async function updatePassword(userId: string, data: ChangePasswordDTO) {
+export async function updatePassword(userId: string, newPassword: string) {
     return prisma.user.update({
         where: { id: BigInt(userId) },
         data: {
-            password: data.newPassword,
+            password: newPassword,
         },
     });
 }
