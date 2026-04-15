@@ -1,3 +1,5 @@
+import { UnauthorizedError } from '../errors/UnauthorizedError';
+import { Request } from 'express';
 /**
  * 이메일 형식 유효성 검사
  * @param value 검사할 문자열
@@ -140,4 +142,11 @@ export function isValidJson(value: string): boolean {
  */
 export function isInList<T>(value: any, list: readonly T[]): value is T {
     return list.includes(value);
+}
+
+export function getAuthenticatedUser(req: Request) {
+    if (!req.user) {
+        throw new UnauthorizedError('인증된 사용자가 아닙니다.');
+    }
+    return req.user;
 }
