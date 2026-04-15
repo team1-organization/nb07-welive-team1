@@ -65,7 +65,7 @@ export async function findAdminListByApartment(apartmentId: string) {
     });
 }
 
-export async function findUsersByRole(role: 'SUPER_ADMIN' | 'ADMIN', apartmentId?: string) {
+export async function findUsersByRole(role: 'SUPER_ADMIN' | 'ADMIN' | 'USER', apartmentId?: string) {
     return prisma.user.findMany({
         where: {
             role: role,

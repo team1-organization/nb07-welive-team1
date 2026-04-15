@@ -1,10 +1,15 @@
 import { BoardType } from '../../generated/prisma';
 import { CreateNoticeBodyDto, GetNoticeListQueryDto, UpdateNoticeBodyDto } from '../dtos/notice.dto';
+import { CreateNotificationDTO } from '../dtos/notification.dto';
 import { BadRequestError } from '../errors/BadRequestError';
 import { ForbiddenError } from '../errors/ForbiddenError';
 import { NotFoundError } from '../errors/NotFoundError';
+import socket from '../lib/socket';
+import * as authRepository from '../repositories/auth.repository';
 import * as noticeRepository from '../repositories/notice.repository';
+import * as notificationRepository from '../repositories/notification.repository';
 import { User } from '../types/auth.type';
+import { safeString } from '../utils/string.util';
 
 const validateAdmin = (user: User) => {
     if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
@@ -25,18 +30,37 @@ const validateNoticeBoard = async (boardId: bigint) => {
 
     return board;
 };
-
 export const createNotice = async ({ user, body }: { user: User; body: CreateNoticeBodyDto }) => {
     validateAdmin(user);
 
-    await validateNoticeBoard(body.boardId);
+    const board = await validateNoticeBoard(body.boardId);
     const notice = await noticeRepository.createNotice({
         ...body,
         userId: BigInt(user.id),
     });
 
-    // TODO: 알림 기능 구현 후 공지 등록 알림 추가
-    // await notificationService.createNoticeNotifications(...);
+    const users = await authRepository.findUsersByRole('USER', board.apartmentId.toString());
+
+    if (users.length > 0) {
+        const content = `[공지] ${notice.title}`;
+
+        const notificationPayloads: CreateNotificationDTO[] = users.map((user) => ({
+            type: 'NOTICE',
+            content,
+            referenceId: safeString(notice.id),
+            userId: safeString(user.id),
+        }));
+
+        await notificationRepository.createManyNotification(notificationPayloads);
+
+        socket.broadcastToRoom(`A:${board.apartmentId.toString()}:USER`, {
+            type: 'NOTICE',
+            content,
+            referenceId: safeString(notice.id),
+            isRead: false,
+            createdAt: new Date().toISOString(),
+        });
+    }
 
     return notice;
 };
