@@ -1,5 +1,6 @@
-import { prisma } from '../lib/prisma';
 import { CreateUserDTO, UpdateAdminDTO } from '../dtos/auth.dto';
+import { prisma } from '../lib/prisma';
+import { findByApartmentName } from './apartment.repository';
 
 export async function findUserById(userId: string) {
     return prisma.user.findUnique({
@@ -37,11 +38,76 @@ export async function findSuperAdminByUserId(userId: string) {
     });
 }
 
-export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>, apartmentId: bigint) {
+export async function findSuperAdminList() {
+    return prisma.user.findMany({
+        where: {
+            role: 'SUPER_ADMIN',
+            isActive: true,
+        },
+        select: {
+            id: true,
+            name: true,
+        },
+    });
+}
+
+export async function findAdminListByApartment(apartmentId: string) {
+    return prisma.user.findMany({
+        where: {
+            role: 'ADMIN',
+            isActive: true,
+            apartmentId: BigInt(apartmentId),
+        },
+        select: {
+            id: true,
+            name: true,
+        },
+    });
+}
+
+export async function findUsersByRole(role: 'SUPER_ADMIN' | 'ADMIN', apartmentId?: string) {
+    return prisma.user.findMany({
+        where: {
+            role: role,
+            isActive: true,
+            ...(apartmentId && { apartmentId: BigInt(apartmentId) }),
+        },
+        select: {
+            id: true,
+        },
+    });
+}
+
+export async function findByUserId(userId: string) {
+    return prisma.user.findFirst({
+        where: { userId },
+    });
+}
+
+export async function findByUserEmail(userEmail: string) {
+    return prisma.user.findFirst({
+        where: { email: userEmail },
+    });
+}
+
+export async function findAdminByadminId(adminId: string) {
+    return prisma.user.findFirst({
+        where: {
+            id: BigInt(adminId),
+            role: 'ADMIN',
+            isActive: true,
+        },
+    });
+}
+
+export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
     return prisma.$transaction(async (tx) => {
+        const apartment = await findByApartmentName(data.apartmentName);
+        if (!apartment) throw new Error('아파트를 찾을 수 없습니다.');
+
         let resident = await tx.resident.findFirst({
             where: {
-                apartmentId: apartmentId,
+                apartmentId: apartment.id,
                 name: data.name,
                 building: data.apartmentDong,
                 unitNumber: data.apartmentHo,
@@ -65,7 +131,7 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>, apart
                     contact: data.contact,
                     building: data.apartmentDong,
                     unitNumber: data.apartmentHo,
-                    apartmentId: apartmentId,
+                    apartmentId: apartment.id,
                     residenceStatus: 'RESIDENCE',
                     isHouseholder: 'HOUSEMEMBER',
                     isRegistered: true,
@@ -83,7 +149,9 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>, apart
                 role: data.role,
                 joinStatus: resident.approvalStatus === 'APPROVED' ? 'APPROVED' : 'PENDING',
                 isActive: true,
-                apartmentId: apartmentId,
+                building: data.apartmentDong,
+                unitNumber: data.apartmentHo,
+                apartmentId: apartment.id,
                 residentId: resident.id,
             },
             include: {
@@ -95,7 +163,7 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>, apart
         });
     });
 }
-
+// [관리자] 회원가입
 export async function createAdmin(data: Extract<CreateUserDTO, { role: 'ADMIN' }>) {
     return prisma.$transaction(async (tx) => {
         const apartment = await tx.apartment.create({
@@ -200,19 +268,25 @@ export async function updateManyAdminStatus(status: 'PENDING' | 'APPROVED' | 'RE
     });
 }
 export async function updateResidentStatus(residentId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
-    return prisma.resident.update({
-        where: {
-            id: BigInt(residentId),
-        },
-        data: {
-            approvalStatus: status,
-            user: {
-                update: {
-                    joinStatus: status,
-                    isActive: status === 'APPROVED',
-                },
+    return prisma.$transaction(async (tx) => {
+        const resident = await tx.resident.update({
+            where: {
+                id: BigInt(residentId),
             },
-        },
+            data: {
+                approvalStatus: status,
+            },
+            include: { user: true },
+        });
+
+        await tx.user.updateMany({
+            where: { residentId: BigInt(residentId) },
+            data: {
+                joinStatus: status,
+                isActive: status === 'APPROVED',
+            },
+        });
+        return resident;
     });
 }
 export async function updateManyResidentStatus(apartmentId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {

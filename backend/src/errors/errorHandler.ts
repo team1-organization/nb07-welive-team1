@@ -15,9 +15,17 @@ const PRISMA_ERROR_MAP: Record<string, { status: number; message: string }> = {
 };
 
 export function errorHandler(err: unknown, req: Request, res: Response, next: NextFunction): void {
-    console.error(`[Error] ${req.method} ${req.url}`, err);
     let statusCode = 500;
     let message = '서버 내부 오류가 발생했습니다.';
+
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        console.error(`[Prisma Error] ${req.method} ${req.url} - Code: ${err.code}`);
+    } else if (err instanceof Error) {
+        console.error(`[Error] ${req.method} ${req.url} - ${err.message}`);
+    } else {
+        console.error(`[Unknown Error] ${req.method} ${req.url}`, err);
+    }
+
     const stack = process.env.NODE_ENV === 'development' && err instanceof Error ? err.stack : undefined;
 
     if (err instanceof ZodError) {
