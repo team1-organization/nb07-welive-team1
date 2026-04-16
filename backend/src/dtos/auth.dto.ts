@@ -79,6 +79,7 @@ export const updateProfileBody = baseUserSchema
         name: true,
         contact: true,
         profileImage: true,
+        email: true,
     })
     .partial()
     .refine((value) => Object.keys(value).length > 0, {

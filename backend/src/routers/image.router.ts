@@ -11,8 +11,8 @@ router.use(passport.authenticate('accessToken', { session: false, failWithError:
 // [모든 사용자] 이미지 업로드
 router.post('/upload', s3Util.single('image'), withAsync(imageController.imageUpload));
 
-router.delete('/:imageId', withAsync(imageController.imageDelete));
+router.delete('/', withAsync(imageController.imageDelete));
 
-router.patch('/:imageId', s3Util.single('image'), withAsync(imageController.imageUpdate));
+router.patch('/', s3Util.single('image'), withAsync(imageController.imageUpdate));
 
 export default router;
