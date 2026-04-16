@@ -16,6 +16,7 @@ import optionRouter from './routers/option.router';
 import pollRouter from './routers/poll.router';
 import residentRouter from './routers/resident.router';
 import notificationRouter from './routers/notification.router';
+import imageRouter from './routers/image.router';
 import userRouter from './routers/user.router';
 import socket from './lib/socket';
 
@@ -98,6 +99,7 @@ app.use('/api/polls', pollRouter);
 app.use('/api/options', optionRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/users', userRouter);
+app.use('/api/images', imageRouter);
 app.use(errorHandler);
 
 const server = http.createServer(app);
