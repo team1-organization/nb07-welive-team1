@@ -14,7 +14,6 @@ export async function imageUpload(req: Request, res: Response) {
         userId: req.user?.id,
     });
 
-    console.log(`file : ${JSON.stringify(file)}`);
     const imageUrl = await imageService.imageUpload(userId, file);
     return res.status(200).json({
         message: '이미지 업로드 성공',

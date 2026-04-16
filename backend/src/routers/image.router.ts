@@ -8,11 +8,11 @@ const router = Router();
 
 router.use(passport.authenticate('accessToken', { session: false, failWithError: true }));
 
-// [모든 사용자] 이미지 업로드
+// 이미지 업로드
 router.post('/upload', s3Util.single('image'), withAsync(imageController.imageUpload));
-
+// 이미지 삭제
 router.delete('/', withAsync(imageController.imageDelete));
-
+// 이미지 수정
 router.patch('/', s3Util.single('image'), withAsync(imageController.imageUpdate));
 
 export default router;
