@@ -1,10 +1,10 @@
-import { ExtendedError, Server, Socket } from 'socket.io';
 import http from 'http';
-import * as authService from '../services/auth.service';
-import { Notification } from '../types/notification.type';
-import { User } from '../types/auth.type';
-import { safeString } from '../utils/string.util';
+import { ExtendedError, Server, Socket } from 'socket.io';
 import { BadRequestError } from '../errors/BadRequestError';
+import * as authService from '../services/auth.service';
+import { User } from '../types/auth.type';
+import { Notification } from '../types/notification.type';
+import { safeString } from '../utils/string.util';
 
 class SocketService {
     private io: Server;
@@ -77,6 +77,7 @@ class SocketService {
         await socket.join('unread_notifications');
         // 아파트 관련
         const isAdmin = user.role === 'ADMIN';
+        const isUser = user.role === 'USER';
         const isApartment = user.apartmentId ? user.apartmentId : undefined;
         if (isApartment) {
             // 아파트 전체 입주민
@@ -84,6 +85,10 @@ class SocketService {
             // 아파트의 모든 관리자
             if (isAdmin) {
                 await socket.join(`A:${safeString(user.apartmentId)}:${user.role}`);
+            }
+            // 아파트의 일반 사용자(USER)
+            if (isUser) {
+                await socket.join(`A:${safeString(user.apartmentId)}:USER`);
             }
         }
         next();
