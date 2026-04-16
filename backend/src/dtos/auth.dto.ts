@@ -74,6 +74,22 @@ export const updateUserBody = baseUserSchema
         };
     });
 
+export const updateProfileBody = baseUserSchema
+    .pick({
+        name: true,
+        contact: true,
+        profileImage: true,
+    })
+    .partial()
+    .refine((value) => Object.keys(value).length > 0, {
+        message: '수정할 정보가 없습니다.',
+    });
+
+export const changePasswordBody = z.object({
+    currentPassword: z.string().min(4, '현재 비밀번호를 입력해주세요'),
+    newPassword: z.string().min(4, '새 비밀번호는 4자 이상이어야 합니다.'),
+});
+
 export const loginUserBody = z.object({
     username: z.string().min(4),
     password: z.string().min(4, '비밀번호는 4자 이상이어야 합니다.'),
@@ -94,3 +110,5 @@ export type CreateUserDTO = z.infer<typeof createUserBody>;
 export type UpdateUserDTO = z.infer<typeof updateUserBody>;
 export type LoginUserDTO = z.infer<typeof loginUserBody>;
 export type UpdateAdminDTO = z.infer<typeof updateAdminBody>;
+export type UpdateProfileDTO = z.infer<typeof updateProfileBody>;
+export type ChangePasswordDTO = z.infer<typeof changePasswordBody>;
