@@ -149,8 +149,6 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
                 role: data.role,
                 joinStatus: resident.approvalStatus === 'APPROVED' ? 'APPROVED' : 'PENDING',
                 isActive: true,
-                building: data.apartmentDong,
-                unitNumber: data.apartmentHo,
                 apartmentId: apartment.id,
                 residentId: resident.id,
             },
