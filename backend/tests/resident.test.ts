@@ -36,8 +36,11 @@ describe('Resident API 통합 테스트', () => {
 
         const adminPassword = 'admin123!';
         const hashedPassword = await bcrypt.hash(adminPassword, 10);
-        const adminUserId = `resident_admin_${testIndex}`;
-        const adminEmail = `resident_admin_${testIndex}@test.com`;
+
+        const unique = `${testIndex}_${Date.now()}`;
+
+        const adminUserId = `resident_admin_${unique}`;
+        const adminEmail = `resident_admin_${unique}@test.com`;
 
         await prisma.user.create({
             data: {
@@ -241,6 +244,137 @@ describe('Resident API 통합 테스트', () => {
             expect(response.body.count).toBe(2);
             expect(response.body.totalCount).toBe(2);
             expect(response.body.residents).toHaveLength(2);
+        });
+    });
+
+    describe('POST /api/residents/from-users/:userId', () => {
+        it('사용자 정보로 입주민을 생성하고 연결한다', async () => {
+            const user = await prisma.user.create({
+                data: {
+                    userId: `from_user_${testIndex}`,
+                    password: 'hash',
+                    name: '사용자입주민',
+                    email: `from_user_${testIndex}@test.com`,
+                    contact: '01077778888',
+                    role: 'USER',
+                    joinStatus: 'PENDING',
+                    isActive: false,
+                    building: '105',
+                    unitNumber: '1501',
+                    apartmentId: BigInt(apartmentId),
+                },
+            });
+
+            const response = await request(server)
+                .post(`/api/residents/from-users/${safeString(user.id)}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(response.status).toBe(201);
+            expect(response.body.userId).toBe(safeString(user.id));
+            expect(response.body.building).toBe('105');
+            expect(response.body.unitNumber).toBe('1501');
+            expect(response.body.isRegistered).toBe(true);
+
+            const updatedUser = await prisma.user.findUnique({
+                where: { id: user.id },
+            });
+
+            expect(updatedUser?.residentId).not.toBeNull();
+        });
+
+        it('이미 resident와 연결된 사용자는 409를 반환한다', async () => {
+            const resident = await prisma.resident.create({
+                data: {
+                    apartmentId: BigInt(apartmentId),
+                    name: '기존입주민',
+                    contact: '01012121212',
+                    building: '106',
+                    unitNumber: '1601',
+                    isRegistered: true,
+                },
+            });
+
+            const user = await prisma.user.create({
+                data: {
+                    userId: `linked_user_${testIndex}`,
+                    password: 'hash',
+                    name: '기존연결사용자',
+                    email: `linked_user_${testIndex}@test.com`,
+                    contact: '01012121212',
+                    role: 'USER',
+                    joinStatus: 'PENDING',
+                    isActive: false,
+                    building: '106',
+                    unitNumber: '1601',
+                    apartmentId: BigInt(apartmentId),
+                    residentId: resident.id,
+                },
+            });
+
+            const response = await request(server)
+                .post(`/api/residents/from-users/${safeString(user.id)}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(response.status).toBe(409);
+            expect(response.body.message).toBe('이미 입주민 명부와 연결된 사용자입니다.');
+        });
+
+        it('동/호 정보가 없는 사용자는 400을 반환한다', async () => {
+            const user = await prisma.user.create({
+                data: {
+                    userId: `no_unit_user_${testIndex}`,
+                    password: 'hash',
+                    name: '동호없음',
+                    email: `no_unit_user_${testIndex}@test.com`,
+                    contact: '01034343434',
+                    role: 'USER',
+                    joinStatus: 'PENDING',
+                    isActive: false,
+                    apartmentId: BigInt(apartmentId),
+                },
+            });
+
+            const response = await request(server)
+                .post(`/api/residents/from-users/${safeString(user.id)}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(response.status).toBe(400);
+            expect(response.body.message).toBe('사용자 정보에 동/호 정보가 없습니다.');
+        });
+
+        it('이미 등록된 입주민 정보와 중복되면 409를 반환한다', async () => {
+            await prisma.resident.create({
+                data: {
+                    apartmentId: BigInt(apartmentId),
+                    name: '중복입주민',
+                    contact: '01056565656',
+                    building: '107',
+                    unitNumber: '1701',
+                },
+            });
+
+            const user = await prisma.user.create({
+                data: {
+                    userId: `duplicated_user_${testIndex}`,
+                    password: 'hash',
+                    name: '중복사용자',
+                    email: `duplicated_user_${testIndex}@test.com`,
+                    contact: '01056565656',
+                    role: 'USER',
+                    joinStatus: 'PENDING',
+                    isActive: false,
+                    building: '107',
+                    unitNumber: '1701',
+                    apartmentId: BigInt(apartmentId),
+                },
+            });
+
+            const response = await request(server)
+                .post(`/api/residents/from-users/${safeString(user.id)}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(response.status).toBe(409);
+            expect(response.body.message).toBe('이미 등록된 입주민입니다.');
         });
     });
 });

@@ -1,8 +1,8 @@
-import { prisma } from '../src/lib/prisma';
-import { safeString } from '../src/utils/string.util';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
 import server from '../src/app';
+import { prisma } from '../src/lib/prisma';
+import { safeString } from '../src/utils/string.util';
 describe('Auth API 통합 테스트', () => {
     let apartmentId: string;
     let adminToken: string;
@@ -14,7 +14,6 @@ describe('Auth API 통합 테스트', () => {
     });
 
     beforeEach(async () => {
-
         await prisma.user.deleteMany();
         await prisma.resident.deleteMany();
         await prisma.board.deleteMany();
@@ -25,10 +24,10 @@ describe('Auth API 통합 테스트', () => {
                 apartmentName: '테스트아파트',
                 apartmentAddress: '서울시 테스트구',
                 apartmentManagementNumber: '12345',
-            }
+            },
         });
-        apartmentId = safeString(newApartment.id)
-    })
+        apartmentId = safeString(newApartment.id);
+    });
 
     afterAll(async () => {
         await prisma.$disconnect();
@@ -45,11 +44,9 @@ describe('Auth API 통합 테스트', () => {
                 apartmentName: '테스트아파트',
                 apartmentDong: '101',
                 apartmentHo: '101',
-                role:'USER'
+                role: 'USER',
             };
-            const response = await request(server)
-                .post('/api/auth/signup')
-                .send(signupData);
+            const response = await request(server).post('/api/auth/signup').send(signupData);
 
             expect(response.status).toBe(201);
 
@@ -69,8 +66,8 @@ describe('Auth API 통합 테스트', () => {
                     contact: '01000000000',
                     role: 'USER',
                     joinStatus: 'APPROVED',
-                    isActive : true,
-                }
+                    isActive: true,
+                },
             });
             const signupData = {
                 username: 'existed',
@@ -81,13 +78,11 @@ describe('Auth API 통합 테스트', () => {
                 apartmentName: '테스트아파트',
                 apartmentDong: '102',
                 apartmentHo: '202',
-                role:'USER',
+                role: 'USER',
                 joinStatus: 'PENDING',
-                isActive : false,
+                isActive: false,
             };
-            const response = await request(server)
-                .post('/api/auth/signup')
-                .send(signupData);
+            const response = await request(server).post('/api/auth/signup').send(signupData);
 
             expect(response.status).toBe(400);
             expect(response.body.message).toContain('이미 사용중인 아이디입니다');
@@ -107,13 +102,11 @@ describe('Auth API 통합 테스트', () => {
                     contact: '01099998888',
                     role: 'USER',
                     joinStatus: 'APPROVED',
-                    isActive: true
-                }
+                    isActive: true,
+                },
             });
 
-            const response = await request(server)
-                .post('/api/auth/login')
-                .send({ username: 'test_user2', password });
+            const response = await request(server).post('/api/auth/login').send({ username: 'test_user2', password });
 
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty('accessToken');
@@ -134,12 +127,10 @@ describe('Auth API 통합 테스트', () => {
                     role: 'ADMIN',
                     joinStatus: 'APPROVED',
                     isActive: true,
-                    apartmentId: BigInt(apartmentId)
-                }
+                    apartmentId: BigInt(apartmentId),
+                },
             });
-            const loginRes = await request(server)
-                .post('/api/auth/login')
-                .send({ username: 'admin01', password: adminPass });
+            const loginRes = await request(server).post('/api/auth/login').send({ username: 'admin01', password: adminPass });
             adminToken = loginRes.body.accessToken;
 
             const resident = await prisma.resident.create({
@@ -149,8 +140,8 @@ describe('Auth API 통합 테스트', () => {
                     building: '101',
                     unitNumber: '101',
                     apartmentId: BigInt(apartmentId),
-                    approvalStatus: 'PENDING'
-                }
+                    approvalStatus: 'PENDING',
+                },
             });
             residentId = safeString(resident.id);
             await prisma.user.create({
@@ -164,31 +155,31 @@ describe('Auth API 통합 테스트', () => {
                     joinStatus: 'PENDING',
                     isActive: false,
                     residentId: resident.id,
-                    apartmentId: BigInt(apartmentId)
-                }
+                    apartmentId: BigInt(apartmentId),
+                },
             });
-        })
+        });
         it('관리자가 아파트 입주민을 승인하면 User의 isActive가 true가 된다.', async () => {
             const response = await request(server)
                 .patch(`/api/auth/residents/${residentId}/status`)
                 .set('Authorization', `Bearer ${adminToken}`)
-                .send({ status: 'APPROVED', isActive : true });
+                .send({ status: 'APPROVED', isActive: true });
 
             expect(response.status).toBe(200);
 
-            const updatedUser = await prisma.user.findFirst(
-                { where: { residentId: BigInt(residentId) }
-                });
+            const updatedUser = await prisma.user.findFirst({
+                where: { residentId: BigInt(residentId) },
+            });
             expect(updatedUser?.joinStatus).toBe('APPROVED');
             expect(updatedUser?.isActive).toBe(true);
-        })
+        });
         it('다른 아파트 관리자가 승인을 시도하면 403 에러를 반환한다.', async () => {
             const otherApt = await prisma.apartment.create({
                 data: {
                     apartmentName: '다른아파트',
                     apartmentAddress: '주소',
-                    apartmentManagementNumber: '999'
-                }
+                    apartmentManagementNumber: '999',
+                },
             });
             const otherAdminPass = 'pass!';
             await prisma.user.create({
@@ -201,12 +192,10 @@ describe('Auth API 통합 테스트', () => {
                     role: 'ADMIN',
                     joinStatus: 'APPROVED',
                     isActive: true,
-                    apartmentId: otherApt.id
-                }
+                    apartmentId: otherApt.id,
+                },
             });
-            const loginRes = await request(server)
-                .post('/api/auth/login')
-                .send({ username: 'otherAdmin', password: otherAdminPass });
+            const loginRes = await request(server).post('/api/auth/login').send({ username: 'otherAdmin', password: otherAdminPass });
 
             const otherToken = loginRes.body.accessToken;
 
@@ -217,8 +206,95 @@ describe('Auth API 통합 테스트', () => {
 
             expect(response.status).toBe(403);
             expect(response.body.message).toContain('자신의 아파트');
-        })
-    })
+        });
+
+        // 명부에만 존재하고 실제 가입 신청이 없는 입주민은 승인/거절 대상이 아니므로
+        // 상태 변경 시 400 에러 반환
+        it('연결된 가입 신청 계정이 없는 입주민은 상태 변경 시 400을 반환한다.', async () => {
+            const residentWithoutUser = await prisma.resident.create({
+                data: {
+                    name: '명부전용입주민',
+                    contact: '01077778888',
+                    building: '102',
+                    unitNumber: '202',
+                    apartmentId: BigInt(apartmentId),
+                    approvalStatus: 'PENDING',
+                },
+            });
+
+            const response = await request(server)
+                .patch(`/api/auth/residents/${safeString(residentWithoutUser.id)}/status`)
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ status: 'APPROVED' });
+
+            expect(response.status).toBe(400);
+            expect(response.body.message).toBe('가입 신청한 입주민 계정이 없습니다.');
+        });
+
+        // 가입 신청(user)과 연결된 resident만 approvalStatus 변경
+        // 연결되지 않은 resident는 상태 유지되는지 검증
+        it('일괄 상태 변경 시 가입 신청 계정이 연결된 resident만 변경된다.', async () => {
+            const linkedResident = await prisma.resident.create({
+                data: {
+                    name: '연결입주민',
+                    contact: '01022223333',
+                    building: '103',
+                    unitNumber: '303',
+                    apartmentId: BigInt(apartmentId),
+                    approvalStatus: 'PENDING',
+                },
+            });
+
+            await prisma.user.create({
+                data: {
+                    userId: 'bulk_user_01',
+                    password: 'hash',
+                    name: '연결입주민',
+                    email: 'bulk_user_01@test.com',
+                    contact: '01022223333',
+                    role: 'USER',
+                    joinStatus: 'PENDING',
+                    isActive: false,
+                    residentId: linkedResident.id,
+                    apartmentId: BigInt(apartmentId),
+                },
+            });
+
+            const unlinkedResident = await prisma.resident.create({
+                data: {
+                    name: '미연결입주민',
+                    contact: '01044445555',
+                    building: '104',
+                    unitNumber: '404',
+                    apartmentId: BigInt(apartmentId),
+                    approvalStatus: 'PENDING',
+                },
+            });
+
+            const response = await request(server)
+                .patch('/api/auth/residents/status')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ status: 'REJECTED' });
+
+            expect(response.status).toBe(200);
+
+            const updatedLinkedResident = await prisma.resident.findUnique({
+                where: { id: linkedResident.id },
+            });
+            const updatedUnlinkedResident = await prisma.resident.findUnique({
+                where: { id: unlinkedResident.id },
+            });
+            const updatedLinkedUser = await prisma.user.findUnique({
+                where: { userId: 'bulk_user_01' },
+            });
+
+            expect(updatedLinkedResident?.approvalStatus).toBe('REJECTED');
+            expect(updatedLinkedUser?.joinStatus).toBe('REJECTED');
+            expect(updatedLinkedUser?.isActive).toBe(false);
+            expect(updatedUnlinkedResident?.approvalStatus).toBe('PENDING');
+        });
+    });
+
     describe('4. 슈퍼 관리자 및 권한 테스트', () => {
         beforeEach(async () => {
             const spPass = 'super123!';
@@ -231,12 +307,10 @@ describe('Auth API 통합 테스트', () => {
                     contact: '01011110000',
                     role: 'SUPER_ADMIN',
                     joinStatus: 'APPROVED',
-                    isActive: true
-                }
+                    isActive: true,
+                },
             });
-            const loginRes = await request(server)
-                .post('/api/auth/login')
-                .send({ username: 'super01', password: spPass });
+            const loginRes = await request(server).post('/api/auth/login').send({ username: 'super01', password: spPass });
 
             superAdminToken = loginRes.body.accessToken;
 
@@ -254,15 +328,12 @@ describe('Auth API 통합 테스트', () => {
                     apartmentId: BigInt(apartmentId),
                 },
             });
-            const adminLoginRes = await request(server)
-                .post('/api/auth/login')
-                .send({ username: 'normalAdmin', password: normalAdminPass });
+            const adminLoginRes = await request(server).post('/api/auth/login').send({ username: 'normalAdmin', password: normalAdminPass });
 
             adminToken = adminLoginRes.body.accessToken;
         });
         it('슈퍼 관리자는 대기 중인 관리자를 승인할 수 있다.', async () => {
-
-            const pendingAdmin  = await prisma.user.create({
+            const pendingAdmin = await prisma.user.create({
                 data: {
                     userId: 'pending_admin',
                     password: 'hash',
@@ -271,10 +342,9 @@ describe('Auth API 통합 테스트', () => {
                     contact: '01022223333',
                     role: 'ADMIN',
                     joinStatus: 'PENDING',
-                    isActive: false
-                }
+                    isActive: false,
+                },
             });
-
 
             const response = await request(server)
                 .patch(`/api/auth/admins/${safeString(pendingAdmin.id)}/status`)
@@ -285,8 +355,8 @@ describe('Auth API 통합 테스트', () => {
 
             const updated = await prisma.user.findUnique({
                 where: {
-                    id: pendingAdmin.id
-                }
+                    id: pendingAdmin.id,
+                },
             });
             expect(updated?.joinStatus).toBe('APPROVED');
             expect(updated?.isActive).toBe(true);
@@ -312,7 +382,7 @@ describe('Auth API 통합 테스트', () => {
 
             expect(response.status).toBe(403);
         });
-    })
+    });
     describe('5. 거절 계정 정리 (Cleanup)', () => {
         let cleanAdminToken: string; // 이 블록 전용 토큰
 
@@ -329,13 +399,11 @@ describe('Auth API 통합 테스트', () => {
                     role: 'ADMIN',
                     joinStatus: 'APPROVED',
                     isActive: true,
-                    apartmentId: BigInt(apartmentId)
-                }
+                    apartmentId: BigInt(apartmentId),
+                },
             });
 
-            const loginRes = await request(server)
-                .post('/api/auth/login')
-                .send({ username: 'cleanAdmin', password: adminPass });
+            const loginRes = await request(server).post('/api/auth/login').send({ username: 'cleanAdmin', password: adminPass });
             cleanAdminToken = loginRes.body.accessToken;
         });
         it('관리자가 자기 아파트의 거절된 유저를 일괄 삭제한다.', async () => {
@@ -351,28 +419,20 @@ describe('Auth API 통합 테스트', () => {
                     role: 'USER',
                     joinStatus: 'REJECTED',
                     isActive: true,
-                    apartmentId: BigInt(apartmentId)
-                }
+                    apartmentId: BigInt(apartmentId),
+                },
             });
 
-            const response = await request(server)
-                .post('/api/auth/cleanup')
-                .set('Authorization', `Bearer ${cleanAdminToken}`);
+            const response = await request(server).post('/api/auth/cleanup').set('Authorization', `Bearer ${cleanAdminToken}`);
 
             expect(response.status).toBe(200);
 
             const user = await prisma.user.findUnique({
                 where: {
-                    userId: 'rejected_user'
-                }
+                    userId: 'rejected_user',
+                },
             });
             expect(user).toBeNull();
         });
-    })
-})
-
-
-
-
-
-
+    });
+});

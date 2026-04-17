@@ -1,6 +1,5 @@
 import { CreateUserDTO, UpdateAdminDTO } from '../dtos/auth.dto';
 import { prisma } from '../lib/prisma';
-import { findByApartmentName } from './apartment.repository';
 
 export async function findUserById(userId: string) {
     return prisma.user.findUnique({
@@ -102,18 +101,16 @@ export async function findAdminByadminId(adminId: string) {
 
 export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
     return prisma.$transaction(async (tx) => {
-        const apartment = await findByApartmentName(data.apartmentName);
-        if (!apartment) throw new Error('아파트를 찾을 수 없습니다.');
-
         let resident = await tx.resident.findFirst({
             where: {
-                apartmentId: apartment.id,
+                apartmentId: apartmentId,
                 name: data.name,
                 building: data.apartmentDong,
                 unitNumber: data.apartmentHo,
                 contact: data.contact,
             },
         });
+
         if (resident) {
             // 입주민 명부에 있는지 확인
             resident = await tx.resident.update({
@@ -131,7 +128,7 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
                     contact: data.contact,
                     building: data.apartmentDong,
                     unitNumber: data.apartmentHo,
-                    apartmentId: apartment.id,
+                    apartmentId: apartmentId,
                     residenceStatus: 'RESIDENCE',
                     isHouseholder: 'HOUSEMEMBER',
                     isRegistered: true,
@@ -139,6 +136,7 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
                 },
             });
         }
+
         return tx.user.create({
             data: {
                 userId: data.username,
@@ -149,7 +147,9 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
                 role: data.role,
                 joinStatus: resident.approvalStatus === 'APPROVED' ? 'APPROVED' : 'PENDING',
                 isActive: true,
-                apartmentId: apartment.id,
+                building: data.apartmentDong,
+                unitNumber: data.apartmentHo,
+                apartmentId: apartmentId,
                 residentId: resident.id,
             },
             include: {
@@ -266,33 +266,49 @@ export async function updateManyAdminStatus(status: 'PENDING' | 'APPROVED' | 'RE
     });
 }
 export async function updateResidentStatus(residentId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
-    return prisma.$transaction(async (tx) => {
-        const resident = await tx.resident.update({
-            where: {
-                id: BigInt(residentId),
+    return prisma.resident.update({
+        where: {
+            id: BigInt(residentId),
+        },
+        data: {
+            approvalStatus: status,
+            user: {
+                update: {
+                    joinStatus: status,
+                    isActive: status === 'APPROVED',
+                },
             },
-            data: {
-                approvalStatus: status,
-            },
-            include: { user: true },
-        });
-
-        await tx.user.updateMany({
-            where: { residentId: BigInt(residentId) },
-            data: {
-                joinStatus: status,
-                isActive: status === 'APPROVED',
-            },
-        });
-        return resident;
+        },
     });
 }
 export async function updateManyResidentStatus(apartmentId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
     return prisma.$transaction(async (tx) => {
-        const updatedResidents = await tx.resident.updateMany({
-            where: { apartmentId: BigInt(apartmentId) },
-            data: { approvalStatus: status },
+        // 해당 아파트의 "가입된 사용자 계정"만 조회 (residentId 있는 경우만)
+        const users = await tx.user.findMany({
+            where: {
+                apartmentId: BigInt(apartmentId),
+                role: 'USER',
+                residentId: { not: null },
+            },
+            select: {
+                residentId: true,
+            },
         });
+
+        // user에 연결된 residentId만 추출
+        const residentIds = users.map((user) => user.residentId).filter((residentId): residentId is bigint => residentId !== null);
+
+        // 실제 가입 신청 계정과 연결된 resident만 상태 변경
+        const updatedResidents =
+            residentIds.length > 0
+                ? await tx.resident.updateMany({
+                      where: {
+                          apartmentId: BigInt(apartmentId),
+                          id: { in: residentIds },
+                      },
+                      data: { approvalStatus: status },
+                  })
+                : { count: 0 };
 
         await tx.user.updateMany({
             where: {

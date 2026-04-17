@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import {
     createOneResidentReqSchema,
+    createResidentFromUserReqSchema,
     deleteResidentReqSchema,
     downloadResidentsFileReqSchema,
     downloadResidentTemplateReqSchema,
@@ -12,6 +13,7 @@ import {
 import { BadRequestError } from '../errors/BadRequestError';
 import {
     createOneResident,
+    createResidentFromUser,
     createResidentsFromFile,
     deleteResidentById,
     downloadResidentsFile,
@@ -129,6 +131,21 @@ export const createResidentController = async (req: Request, res: Response) => {
     const result = await createOneResident({
         apartmentId: dto.user.apartmentId,
         body: dto.body,
+    });
+
+    return res.status(201).json(result);
+};
+
+// 사용자로부터 입주민 생성
+export const createResidentFromUserController = async (req: Request, res: Response) => {
+    const dto = createResidentFromUserReqSchema.parse({
+        user: req.user,
+        params: req.params,
+    });
+
+    const result = await createResidentFromUser({
+        apartmentId: dto.user.apartmentId,
+        userId: dto.params.userId,
     });
 
     return res.status(201).json(result);
