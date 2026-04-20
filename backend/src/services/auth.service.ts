@@ -9,6 +9,7 @@ import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { ForbiddenError } from '../errors/ForbiddenError';
 import { safeString } from '../utils/string.util';
 import * as notificationService from '../services/notification.service';
+import * as imageService from '../services/image.service';
 
 // [모든 사용자] 로그인
 export function login(userId: string) {
@@ -138,7 +139,13 @@ export async function deleteAdmin(adminId: string, userId: string) {
 export async function cleanupRejectedUsers(userId: string) {
     const user = await authRepository.findUserById(userId);
     if (!user) throw new UnauthorizedError('거절한 관리자/사용자 정보 일괄 삭제 중 오류가 발생했습니다');
-
+    if (user.profileImage) {
+        try {
+            await imageService.imageDelete(userId);
+        } catch (error) {
+            console.error(`이미지 삭제 실패 (User: ${userId}):`, error);
+        }
+    }
     if (user.role === 'SUPER_ADMIN') {
         await authRepository.deleteRejectedAdmins();
     } else if (user.role === 'ADMIN') {

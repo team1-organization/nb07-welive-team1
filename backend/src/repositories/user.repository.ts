@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { ChangePasswordDTO, UpdateProfileDTO } from '../dtos/auth.dto';
+import { UpdateProfileDTO } from '../dtos/auth.dto';
 
 export async function findUserById(userId: string) {
     return prisma.user.findUnique({
@@ -29,6 +29,7 @@ export async function updateMyProfile(userId: string, data: UpdateProfileDTO) {
         data: {
             name: data.name,
             contact: data.contact,
+            email: data.email,
             profileImage: data.profileImage,
         },
     });
@@ -38,6 +39,15 @@ export async function updatePassword(userId: string, newPassword: string) {
         where: { id: BigInt(userId) },
         data: {
             password: newPassword,
+        },
+    });
+}
+
+export async function updateProfileImage(userId: string, imageUrl: string | null) {
+    return prisma.user.update({
+        where: { id: BigInt(userId) },
+        data: {
+            profileImage: imageUrl,
         },
     });
 }

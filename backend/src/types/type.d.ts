@@ -1,4 +1,5 @@
 import type { User as UserType } from './auth.type';
+import { MulterS3File } from 'multer-s3';
 
 declare global {
     namespace Express {
@@ -6,8 +7,8 @@ declare global {
 
         interface Request {
             user?: User;
-            file?: Multer.File;
-            files?: Multer.File[] | { [fieldName: string]: Multer.File[] };
+            file?: Multer.File | MulterS3File;
+            files?: Multer.File[] | { [fieldName: string]: Multer.File[] } | MulterS3File[];
         }
     }
 
