@@ -99,14 +99,9 @@ export class User {
         this.createdAt = params.createdAt;
         this.updatedAt = params.updatedAt;
     }
+
     static fromEntity(data: UserData): User {
         if (!data) throw new Error('데이터가 없습니다');
-
-        const boards = data.apartment?.board || [];
-        const findBoardId = (type: 'NOTICE' | 'COMPLAINT' | 'POLL') => {
-            const board = boards.find((b) => b.type === type);
-            return board ? safeString(board.id) : null;
-        };
 
         return new User({
             id: safeString(data.id),
@@ -114,7 +109,7 @@ export class User {
             username: safeString(data.userId),
             name: safeString(data.name),
             contact: safeString(data.contact),
-            avatar: data.profileImage || null,
+            avatar: this.generateFullUrl(data.profileImage),
             role: data.role,
             isActive: data.isActive,
             joinStatus: data.joinStatus,
@@ -124,20 +119,35 @@ export class User {
             residentDong: data.resident?.building ?? null,
             residentHo: data.resident?.unitNumber ?? null,
 
-            boardIds: data.apartment
-                ? {
-                      NOTICE: findBoardId('NOTICE'),
-                      COMPLAINT: findBoardId('COMPLAINT'),
-                      POLL: findBoardId('POLL'),
-                  }
-                : null,
+            boardIds: this.mapBoardIds(data.apartment),
 
             createdAt: LocalDateTime(data.createdAt).format(DATE_FORMAT),
             updatedAt: LocalDateTime(data.updatedAt).format(DATE_FORMAT),
         });
     }
+
     static fromEntityList(data: UserData[]): User[] {
         if (!data || !Array.isArray(data)) return [];
         return data.map((userData: UserData) => User.fromEntity(userData));
+    }
+
+    private static generateFullUrl(key: string | null): string | null {
+        if (!key) return null;
+        if (key.startsWith('http')) return key;
+        return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    }
+
+    private static mapBoardIds(apartment: UserData['apartment']) {
+        if (!apartment) return null;
+        const boards = apartment.board || [];
+        const findId = (type: 'NOTICE' | 'COMPLAINT' | 'POLL') => {
+            const board = boards.find((b) => b.type === type);
+            return board ? safeString(board.id) : null;
+        };
+        return {
+            NOTICE: findId('NOTICE'),
+            COMPLAINT: findId('COMPLAINT'),
+            POLL: findId('POLL'),
+        };
     }
 }
