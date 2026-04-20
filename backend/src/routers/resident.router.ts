@@ -2,6 +2,7 @@ import { Router } from 'express';
 import passport from 'passport';
 import {
     createResidentController,
+    createResidentFromUserController,
     deleteResidentController,
     downloadResidentsFileController,
     downloadResidentTemplateController,
@@ -21,6 +22,7 @@ residentRouter.get('/', withAsync(getResidentsController));
 residentRouter.get('/file/template', withAsync(downloadResidentTemplateController));
 residentRouter.post('/from-file', csvMulterUtil.single('file'), withAsync(uploadResidentsFileController));
 residentRouter.get('/file', withAsync(downloadResidentsFileController));
+residentRouter.post('/from-users/:userId', withAsync(createResidentFromUserController));
 residentRouter.post('/', withAsync(createResidentController));
 residentRouter.get('/:id', withAsync(getResidentDetailController));
 residentRouter.patch('/:id', withAsync(updateResidentController));

@@ -1,15 +1,15 @@
-import { generateTokens, verifyAccessToken } from '../lib/token';
-import { CreateUserDTO, UpdateAdminDTO, UpdateUserDTO } from '../dtos/auth.dto';
 import bcrypt from 'bcrypt';
+import { CreateUserDTO, UpdateAdminDTO } from '../dtos/auth.dto';
 import { BadRequestError } from '../errors/BadRequestError';
-import { User, UserData } from '../types/auth.type';
+import { ForbiddenError } from '../errors/ForbiddenError';
+import { UnauthorizedError } from '../errors/UnauthorizedError';
+import { generateTokens, verifyAccessToken } from '../lib/token';
+import { findByApartmentName } from '../repositories/apartment.repository';
 import * as authRepository from '../repositories/auth.repository';
 import * as residentRepository from '../repositories/resident.repository';
-import { UnauthorizedError } from '../errors/UnauthorizedError';
-import { ForbiddenError } from '../errors/ForbiddenError';
-import { safeString } from '../utils/string.util';
 import * as notificationService from '../services/notification.service';
-import * as imageService from '../services/image.service';
+import { User, UserData } from '../types/auth.type';
+import { safeString } from '../utils/string.util';
 
 // [모든 사용자] 로그인
 export function login(userId: string) {
@@ -38,10 +38,16 @@ export async function register(data: CreateUserDTO) {
             password: hashedPassword,
         });
     } else {
-        newUser = await authRepository.createUser({
-            ...data,
-            password: hashedPassword,
-        });
+        const apartmentCheck = await findByApartmentName(data.apartmentName);
+        if (!apartmentCheck) throw new BadRequestError('아파트를 찾을 수 없습니다.');
+
+        newUser = await authRepository.createUser(
+            {
+                ...data,
+                password: hashedPassword,
+            },
+            apartmentCheck.id,
+        );
     }
     if (!newUser) throw new BadRequestError('회원가입에 실패했습니다.');
     try {
@@ -66,7 +72,7 @@ export async function register(data: CreateUserDTO) {
             );
         }
     } catch (error) {
-        console.error('알림 발송을 실패했습니다');
+        console.error('알림 발송을 실패했습니다', error);
     }
     return User.fromEntity(newUser);
 }
@@ -105,6 +111,12 @@ export async function updateResidentStatus(residentId: string, userId: string, s
     if (safeString(resident.apartmentId) !== safeString(admin.apartmentId)) {
         throw new ForbiddenError('자신의 아파트 소속 입주민만 관리할 수 있습니다');
     }
+
+    // 명부에는 있지만 실제 가입 신청 계정이 없는 경우 상태 변경 불가
+    if (!resident.user) {
+        throw new BadRequestError('가입 신청한 입주민 계정이 없습니다.');
+    }
+
     await authRepository.updateResidentStatus(residentId, status);
     return { message: '입주민 가입 상태 변경이 완료되었습니다' };
 }
@@ -139,13 +151,7 @@ export async function deleteAdmin(adminId: string, userId: string) {
 export async function cleanupRejectedUsers(userId: string) {
     const user = await authRepository.findUserById(userId);
     if (!user) throw new UnauthorizedError('거절한 관리자/사용자 정보 일괄 삭제 중 오류가 발생했습니다');
-    if (user.profileImage) {
-        try {
-            await imageService.imageDelete(userId);
-        } catch (error) {
-            console.error(`이미지 삭제 실패 (User: ${userId}):`, error);
-        }
-    }
+
     if (user.role === 'SUPER_ADMIN') {
         await authRepository.deleteRejectedAdmins();
     } else if (user.role === 'ADMIN') {

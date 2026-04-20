@@ -14,10 +14,12 @@ import { prisma } from '../lib/prisma';
 import {
     createResident,
     createResidents,
+    createResidentWithUser,
     existsResident,
     findResidents,
     findResidentsForDownload,
     findResidentWithApartment,
+    findUserByIdForResidentCreation,
     updateResident,
 } from '../repositories/resident.repository';
 
@@ -34,6 +36,11 @@ type GetResidentByIdParams = {
 type CreateOneResidentParams = {
     apartmentId: bigint;
     body: CreateOneResidentDto;
+};
+
+type CreateResidentFromUserParams = {
+    apartmentId: bigint;
+    userId: bigint;
 };
 
 type UpdateResidentParams = {
@@ -327,6 +334,48 @@ export const createOneResident = async ({ apartmentId, body }: CreateOneResident
         contact,
         name,
         isHouseholder: isHouseholder as HouseholdType,
+    });
+
+    return toResidentResponseDto(resident);
+};
+
+// 사용자로부터 입주민 생성
+export const createResidentFromUser = async ({ apartmentId, userId }: CreateResidentFromUserParams): Promise<ResidentResponseDto> => {
+    const user = await findUserByIdForResidentCreation(userId, apartmentId);
+
+    if (!user) {
+        throw new NotFoundError('사용자를 찾을 수 없습니다.');
+    }
+
+    // 이미 입주민 명부와 연결된 사용자면 생성 불가
+    if (user.residentId) {
+        throw new ConflictError('이미 입주민 명부와 연결된 사용자입니다.');
+    }
+
+    // 사용자 정보에 동/호가 있어야 생성 가능
+    if (!user.building || !user.unitNumber) {
+        throw new BadRequestError('사용자 정보에 동/호 정보가 없습니다.');
+    }
+
+    const duplicated = await existsResident({
+        apartmentId,
+        building: user.building,
+        unitNumber: user.unitNumber,
+        contact: user.contact,
+    });
+
+    if (duplicated) {
+        throw new ConflictError('이미 등록된 입주민입니다.');
+    }
+
+    const resident = await createResidentWithUser({
+        apartmentId,
+        userId: user.id,
+        building: user.building,
+        unitNumber: user.unitNumber,
+        contact: user.contact,
+        name: user.name,
+        isHouseholder: HouseholdType.HOUSEMEMBER,
     });
 
     return toResidentResponseDto(resident);

@@ -217,6 +217,8 @@ export const findUserByIdForResidentCreation = async (userId: bigint, apartmentI
             name: true,
             contact: true,
             email: true,
+            building: true,
+            unitNumber: true,
             apartmentId: true,
             residentId: true,
         },
@@ -285,6 +287,7 @@ export const createResidentWithUser = async ({
                 contact,
                 name,
                 isHouseholder,
+                isRegistered: true,
             },
         });
 
