@@ -37,69 +37,7 @@ export async function findSuperAdminByUserId(userId: string) {
     });
 }
 
-export async function findSuperAdminList() {
-    return prisma.user.findMany({
-        where: {
-            role: 'SUPER_ADMIN',
-            isActive: true,
-        },
-        select: {
-            id: true,
-            name: true,
-        },
-    });
-}
-
-export async function findAdminListByApartment(apartmentId: string) {
-    return prisma.user.findMany({
-        where: {
-            role: 'ADMIN',
-            isActive: true,
-            apartmentId: BigInt(apartmentId),
-        },
-        select: {
-            id: true,
-            name: true,
-        },
-    });
-}
-
-export async function findUsersByRole(role: 'SUPER_ADMIN' | 'ADMIN' | 'USER', apartmentId?: string) {
-    return prisma.user.findMany({
-        where: {
-            role: role,
-            isActive: true,
-            ...(apartmentId && { apartmentId: BigInt(apartmentId) }),
-        },
-        select: {
-            id: true,
-        },
-    });
-}
-
-export async function findByUserId(userId: string) {
-    return prisma.user.findFirst({
-        where: { userId },
-    });
-}
-
-export async function findByUserEmail(userEmail: string) {
-    return prisma.user.findFirst({
-        where: { email: userEmail },
-    });
-}
-
-export async function findAdminByadminId(adminId: string) {
-    return prisma.user.findFirst({
-        where: {
-            id: BigInt(adminId),
-            role: 'ADMIN',
-            isActive: true,
-        },
-    });
-}
-
-export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>) {
+export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>, apartmentId: bigint) {
     return prisma.$transaction(async (tx) => {
         let resident = await tx.resident.findFirst({
             where: {
