@@ -24,8 +24,6 @@ tags:
     description: 댓글 관리
   - name: Notifications
     description: 알림 관리
-  - name: Events
-    description: 이벤트 관리
   - name: App
     description: 앱
   - name: Pollsvote
