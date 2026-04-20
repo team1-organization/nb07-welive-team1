@@ -1,0 +1,61 @@
+name: EC2 배포
+on:
+  push:
+    branches: ["main", "feature/gy/deploy"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # environment: production
+
+    steps:
+      - name: 1. 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: 2. Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: 3. 빌드 확인
+        run: |
+          cd backend
+          npm ci
+          npx prisma generate
+          # 빌드 오류 확인
+          npm run build
+
+
+      - name: 4. SSH 접속 및 배포
+        run: | 
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            # 에러 발생 시 즉시 중단
+            set -e
+            
+            cd ~/welive-backend
+          
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+          
+            cd backend
+            npm install
+          
+            npx prisma generate
+            npm run build
+                    
+            if pm2 describe welive > /dev/null; then
+              pm2 restart welive --update-env
+            else
+              pm2 start tsx --name "welive" -- src/server.ts
+            fi
+          
+            pm2 save
+          EOF
