@@ -1,0 +1,436 @@
+paths:
+  /api/auth/signup:
+    post:
+      tags:
+        - "Auth"
+      summary: "[일반 사용자] 회원가입"
+      description: "사용자 정보를 입력받아 새로운 계정을 생성합니다 역할에 따라 추가 정보를 입력받을 수 있습니다"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSignupRequest"
+      responses:
+        201:
+          description: "회원가입이 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        400:
+          description: "잘못된 요청(필수사항 누락 또는 잘못된 입력값)입니다"
+        403:
+          description: "접근 권한이 없습니다(이미 로그인 상태이거나 비활성화된 계정입니다)"
+        409:
+          description: "이미 사용 중인 정보(아이디, 이메일, 전화번호)입니다"
+        413:
+          description: "요청 데이터가 너무 큽니다"
+        429:
+          description: "요청이 너무 많습니다(비정상적인 요청 또는 봇 행위로 의심됩니다)"
+        500:
+          description: "회원가입을 진행하는 중 오류가 발생했습니다"
+
+  /api/auth/signup/admin:
+    post:
+      tags:
+        - "Auth"
+      summary: "[관리자] 회원가입"
+      description: "관리자 정보를 입력받아 새로운 계정을 생성합니다 역할에 따라 추가 정보를 입력받을 수 있습니다"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSignupRequest"
+      responses:
+        201:
+          description: "회원가입이 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        400:
+          description: "잘못된 요청(필수사항 누락 또는 잘못된 입력값)입니다"
+        403:
+          description: "접근 권한이 없습니다(이미 로그인 상태이거나 비활성화된 계정입니다)"
+        409:
+          description: "이미 사용 중인 정보(아이디, 이메일, 전화번호)입니다"
+        500:
+          description: "회원가입을 진행하는 중 오류가 발생했습니다"
+
+  /api/auth/signup/super-admin:
+    post:
+      tags:
+        - "Auth"
+      summary: "[슈퍼 관리자] 회원가입"
+      description: "슈퍼 관리자 정보를 입력받아 새로운 계정을 생성합니다 역할에 따라 추가 정보를 입력받을 수 있습니다"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuperAdminSignupRequest"
+      responses:
+        201:
+          description: "회원가입이 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        400:
+          description: "잘못된 요청(필수사항 누락 또는 잘못된 입력값)입니다"
+        409:
+          description: "이미 사용 중인 정보입니다"
+        500:
+          description: "회원가입을 진행하는 중 오류가 발생했습니다"
+
+  /api/auth/login:
+    post:
+      tags:
+        - "Auth"
+      summary: "[모든 사용자] 로그인"
+      description: "사용자 정보를 입력받아 로그인합니다."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: "로그인이 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        401:
+          description: "인증 실패(잘못된 이메일 또는 비밀번호)"
+        404:
+          description: "사용자를 찾을 수 없습니다"
+        500:
+          description: "로그인을 진행하는 중 오류가 발생했습니다"
+
+  /api/auth/logout:
+    post:
+      tags:
+        - "Auth"
+      summary: "[모든 사용자] 로그아웃"
+      responses:
+        204:
+          description: "로그아웃이 완료되었습니다"
+        401:
+          description: "로그아웃 중 오류가 발생했습니다"
+
+  /api/auth/refresh:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Auth"
+      summary: "[모든 사용자] 토큰 갱신"
+      responses:
+        200:
+          description: "토큰 갱신이 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        401:
+          description: "토큰 갱신 중 오류가 발생했습니다"
+
+  /api/auth/admins/{adminId}/status:
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Auth"
+      summary: "[슈퍼 관리자] 관리자 가입 상태 변경(단건)"
+      parameters:
+        - name: adminId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ["APPROVED", "REJECTED", "PENDING"]
+      responses:
+        200:
+          description: "관리자 가입 상태 변경이 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        401:
+          description: "관리자 가입 상태 변경 중 오류가 발생했습니다"
+
+  /api/auth/admins/status:
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Auth"
+      summary: "[슈퍼관리자] 관리자 가입 상태 일괄 변경"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ["APPROVED", "REJECTED"]
+      responses:
+        200:
+          description: "관리자 가입 상태 일괄 변경이 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        401:
+          description: "관리자 가입 상태 일괄 변경 중 오류가 발생했습니다"
+
+  /api/auth/residents/{residentId}/status:
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Auth"
+      summary: "[관리자] 주민 가입 상태 변경(단건)"
+      parameters:
+        - name: residentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        200:
+          description: "주민 가입 상태 변경 성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        400:
+          description: "주민 가입 상태 변경 실패"
+
+  /api/auth/residents/status:
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Auth"
+      summary: "[관리자] 주민 가입 상태 일괄 변경"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        200:
+          description: "[관리자] 주민 가입 상태 일괄 변경이 완료되었습니다."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        401:
+          description: "주민 가입 상태 일괄 변경 중 오류가 발생했습니다"
+
+  /api/auth/admins/{adminId}:
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Auth"
+      summary: "[슈퍼 관리자] 관리자 정보(아파트 정보) 수정"
+      parameters:
+        - name: adminId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminRequest"
+      responses:
+        200:
+          description: "관리자 정보(아파트 정보) 수정이 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        401:
+          description: "관리자 정보(아파트 정보) 수정 중 오류가 발생했습니다"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Auth"
+      summary: "[슈퍼 관리자] 관리자 정보(아파트 정보 포함) 삭제"
+      parameters:
+        - name: adminId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "관리자 정보(아파트 정보 포함) 삭제가 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        401:
+          description: "관리자 정보(아파트 정보 포함) 삭제 중 오류가 발생했습니다"
+
+  /api/auth/cleanup:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - "Auth"
+      summary: "[최고관리자/관리자] 거절 계정 관리"
+      description: "최고관리자는 관리자 계정을, 관리자는 사용자 계정을 일괄 정리합니다"
+      responses:
+        200:
+          description: "거절한 관리자/사용자 정보 일괄 정리가 완료되었습니다"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        401:
+          description: "거절한 관리자/사용자 정보 일괄 삭제 중 오류가 발생했습니다"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    # --- Request Schemas ---
+    UserSignupRequest:
+      type: object
+      required: ["username", "password", "contact", "name", "email", "apartmentName", "apartmentDong", "apartmentHo"]
+      properties:
+        username: { type: string, example: "jalon9607" }
+        password: { type: string, example: "GVr_d_UuBXo4u_J" }
+        contact: { type: string, example: "01055876165" }
+        name: { type: string, example: "가솔" }
+        email: { type: string, example: "armani_schmeler45@hotmail.com" }
+        role: { type: string, default: "USER" }
+        apartmentName: { type: string, example: "세현아파트" }
+        apartmentDong: { type: string, example: "518" }
+        apartmentHo: { type: string, example: "636" }
+
+    AdminSignupRequest:
+      type: object
+      required: ["username", "password", "contact", "name", "email", "apartmentName", "apartmentAddress"]
+      properties:
+        username: { type: string, example: "jalon9607" }
+        password: { type: string, example: "GVr_d_UuBXo4u_J" }
+        contact: { type: string, example: "01055876165" }
+        name: { type: string, example: "가솔" }
+        email: { type: string, example: "armani_schmeler45@hotmail.com" }
+        description: { type: string, example: "테스트 아파트 설명입니다." }
+        startComplexNumber: { type: string }
+        endComplexNumber: { type: string }
+        startDongNumber: { type: string }
+        endDongNumber: { type: string }
+        startFloorNumber: { type: string }
+        endFloorNumber: { type: string }
+        startHoNumber: { type: string }
+        endHoNumber: { type: string }
+        role: { type: string, default: "ADMIN" }
+        apartmentName: { type: string, example: "지훈아파트" }
+        apartmentAddress: { type: string, example: "대구광역시 부평군 3813 판교4길" }
+        apartmentManagementNumber: { type: string, example: "0428485280" }
+
+    SuperAdminSignupRequest:
+      type: object
+      properties:
+        username: { type: string }
+        password: { type: string }
+        contact: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, default: "SUPER_ADMIN" }
+        joinStatus: { type: string, default: "APPROVED" }
+
+    UpdateAdminRequest:
+      type: object
+      properties:
+        contact: { type: string }
+        name: { type: string }
+        email: { type: string }
+        description: { type: string }
+        apartmentName: { type: string }
+        apartmentAddress: { type: string }
+        apartmentManagementNumber: { type: string }
+
+    # --- Response Schemas ---
+    AuthResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        joinStatus: { type: string }
+        isActive: { type: boolean }
+        role: { type: string }
+
+    LoginResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string }
+        joinStatus: { type: string }
+        isActive: { type: boolean }
+        apartmentId: { type: string }
+        apartmentName: { type: string }
+        residentDong: { type: string }
+        boardIds:
+          type: object
+          properties:
+            COMPLAINT: { type: string }
+            NOTICE: { type: string }
+            POLL: { type: string }
+        username: { type: string }
+        contact: { type: string }
+        avatar: { type: string }
+
+    SuccessResponse:
+      type: object
+      properties:
+        message: { type: string, example: "작업이 성공적으로 완료되었습니다" }
