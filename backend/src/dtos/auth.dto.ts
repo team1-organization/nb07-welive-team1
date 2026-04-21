@@ -107,9 +107,39 @@ export const updateAdminBody = baseUserSchema.partial().extend({
     apartmentManagementNumber: z.string().optional(),
 });
 
+// 입주민 계정 신청 목록 조회 query
+export const getResidentAccountListQuery = z.object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().max(100).default(20),
+    keyword: z.string().trim().min(1).optional(),
+    building: z.string().trim().min(1).optional(),
+    unitNumber: z.string().trim().min(1).optional(),
+});
+
+// 입주민 계정 수정 body
+export const updateResidentAccountBody = z
+    .object({
+        name: z.string().min(2).optional(),
+        email: z.string().min(4).optional(),
+        contact: z.string().optional(),
+        building: z.string().trim().min(1).optional(),
+        unitNumber: z.string().trim().min(1).optional(),
+    })
+    .refine((value) => Object.keys(value).length > 0, {
+        message: '수정할 정보가 없습니다.',
+    });
+
+// 입주민 계정 path param
+export const residentAccountUserIdParam = z.object({
+    userId: z.string().min(1),
+});
+
 export type CreateUserDTO = z.infer<typeof createUserBody>;
 export type UpdateUserDTO = z.infer<typeof updateUserBody>;
 export type LoginUserDTO = z.infer<typeof loginUserBody>;
 export type UpdateAdminDTO = z.infer<typeof updateAdminBody>;
 export type UpdateProfileDTO = z.infer<typeof updateProfileBody>;
 export type ChangePasswordDTO = z.infer<typeof changePasswordBody>;
+export type GetResidentAccountListQueryDTO = z.infer<typeof getResidentAccountListQuery>;
+export type UpdateResidentAccountDTO = z.infer<typeof updateResidentAccountBody>;
+export type ResidentAccountUserIdParamDTO = z.infer<typeof residentAccountUserIdParam>;
