@@ -1,0 +1,410 @@
+paths:
+  /api/notices:
+    post:
+      tags:
+        - Notices
+      summary: "[관리자] 공지사항 등록"
+      description: "관리자가 공지사항을 등록합니다."
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                boardId:
+                  type: string
+                  description: 공지 게시판 ID
+                  example: "1"
+                category:
+                  type: string
+                  enum:
+                    - MAINTENANCE
+                    - EMERGENCY
+                    - COMMUNITY
+                    - RESIDENT_VOTE
+                    - RESIDENT_COUNCIL
+                    - ETC
+                  example: MAINTENANCE
+                title:
+                  type: string
+                  example: 테스트 공지
+                content:
+                  type: string
+                  example: 내용입니다
+                isPinned:
+                  type: boolean
+                  example: true
+                startDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  example: null
+                endDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  example: null
+              required:
+                - boardId
+                - category
+                - title
+                - content
+                - isPinned
+      responses:
+        201:
+          description: "공지사항 등록 성공"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 정상적으로 등록 처리되었습니다
+                  data:
+                    type: object
+                    properties:
+                      noticeId:
+                        type: string
+                        example: "11"
+                      category:
+                        type: string
+                        example: MAINTENANCE
+                      title:
+                        type: string
+                        example: 테스트 공지
+                      content:
+                        type: string
+                        example: 내용입니다
+                      isPinned:
+                        type: boolean
+                        example: true
+                      viewCount:
+                        type: integer
+                        example: 0
+                      startDate:
+                        type: string
+                        format: date-time
+                        nullable: true
+                        example: null
+                      endDate:
+                        type: string
+                        format: date-time
+                        nullable: true
+                        example: null
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2026-04-23T02:44:39.142Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: "2026-04-23T02:44:39.142Z"
+                      userId:
+                        type: string
+                        example: "10"
+                      boardId:
+                        type: string
+                        example: "1"
+        400:
+          description: "입력값 오류"
+        401:
+          description: "인증 필요"
+        403:
+          description: "관리자 권한 필요"
+
+    get:
+      tags:
+        - Notices
+      summary: "공지사항 목록 조회"
+      description: "공지 게시판의 공지사항 목록을 조회합니다."
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: boardId
+          required: true
+          description: 공지 게시판 ID
+          schema:
+            type: string
+          example: "1"
+        - in: query
+          name: category
+          required: false
+          description: "필터링할 카테고리"
+          schema:
+            type: string
+            enum:
+              - MAINTENANCE
+              - EMERGENCY
+              - COMMUNITY
+              - RESIDENT_VOTE
+              - RESIDENT_COUNCIL
+              - ETC
+          example: MAINTENANCE
+        - in: query
+          name: limit
+          required: false
+          description: 페이지당 조회 개수
+          schema:
+            type: integer
+            example: 10
+      responses:
+        200:
+          description: "공지사항 목록 조회 성공"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        noticeId:
+                          type: string
+                          example: "9"
+                        userId:
+                          type: string
+                          example: "10"
+                        category:
+                          type: string
+                          example: COMMUNITY
+                        title:
+                          type: string
+                          example: 테스트 공지
+                        writerName:
+                          type: string
+                          example: 테스트관리자
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2026-04-23T02:07:23.790Z"
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          example: "2026-04-23T02:07:23.790Z"
+                        viewsCount:
+                          type: integer
+                          example: 0
+                        commentsCount:
+                          type: integer
+                          example: 0
+                        isPinned:
+                          type: boolean
+                          example: true
+                  totalCount:
+                    type: integer
+                    example: 1
+        400:
+          description: "입력값 오류"
+        401:
+          description: "인증 필요"
+
+  /api/notices/{noticeId}:
+    get:
+      tags:
+        - Notices
+      summary: "공지사항 상세 조회"
+      description: "공지사항 상세 내용을 조회합니다."
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: noticeId
+          required: true
+          description: 공지사항 ID
+          schema:
+            type: string
+          example: "2"
+      responses:
+        200:
+          description: "공지사항 상세 조회 성공"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  noticeId:
+                    type: string
+                    example: "2"
+                  userId:
+                    type: string
+                    example: "10"
+                  category:
+                    type: string
+                    example: MAINTENANCE
+                  title:
+                    type: string
+                    example: 테스트 공지
+                  writerName:
+                    type: string
+                    example: 테스트관리자
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2026-04-16T06:47:19.943Z"
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: "2026-04-16T06:47:19.943Z"
+                  viewsCount:
+                    type: integer
+                    example: 1
+                  commentsCount:
+                    type: integer
+                    example: 0
+                  isPinned:
+                    type: boolean
+                    example: false
+                  content:
+                    type: string
+                    example: 엘리베이터 점검 예정입니다.
+                  boardName:
+                    type: string
+                    example: NOTICE
+                  comments:
+                    type: array
+                    items:
+                      type: object
+        404:
+          description: "공지사항을 찾을 수 없음"
+
+    patch:
+      tags:
+        - Notices
+      summary: "[관리자] 공지사항 수정"
+      description: "관리자가 공지사항을 수정합니다."
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: noticeId
+          required: true
+          description: 공지사항 ID
+          schema:
+            type: string
+          example: "11"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string
+                  enum:
+                    - MAINTENANCE
+                    - EMERGENCY
+                    - COMMUNITY
+                    - RESIDENT_VOTE
+                    - RESIDENT_COUNCIL
+                    - ETC
+                  example: EMERGENCY
+                title:
+                  type: string
+                  example: 수정된 공지 제목
+                content:
+                  type: string
+                  example: 수정된 공지 내용입니다
+                isPinned:
+                  type: boolean
+                  example: false
+                startDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  example: null
+                endDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  example: null
+      responses:
+        200:
+          description: "공지사항 수정 성공"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  noticeId:
+                    type: string
+                    example: "11"
+                  userId:
+                    type: string
+                    example: "10"
+                  category:
+                    type: string
+                    example: EMERGENCY
+                  title:
+                    type: string
+                    example: 수정된 공지 제목
+                  writerName:
+                    type: string
+                    example: 테스트관리자
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2026-04-23T02:44:39.142Z"
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: "2026-04-23T03:10:00.000Z"
+                  viewsCount:
+                    type: integer
+                    example: 0
+                  commentsCount:
+                    type: integer
+                    example: 0
+                  isPinned:
+                    type: boolean
+                    example: false
+                  content:
+                    type: string
+                    example: 수정된 공지 내용입니다
+                  boardName:
+                    type: string
+                    example: NOTICE
+                  comments:
+                    type: array
+                    items:
+                      type: object
+        400:
+          description: "입력값 오류"
+        401:
+          description: "인증 필요"
+        403:
+          description: "관리자 권한 필요"
+        404:
+          description: "공지사항을 찾을 수 없음"
+
+    delete:
+      tags:
+        - Notices
+      summary: "[관리자] 공지사항 삭제"
+      description: "관리자가 공지사항을 삭제합니다."
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: noticeId
+          required: true
+          description: 공지사항 ID
+          schema:
+            type: string
+          example: "11"
+      responses:
+        200:
+          description: "공지사항 삭제 성공"
+        401:
+          description: "인증 필요"
+        403:
+          description: "관리자 권한 필요"
+        404:
+          description: "공지사항을 찾을 수 없음"
