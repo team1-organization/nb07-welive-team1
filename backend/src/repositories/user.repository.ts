@@ -153,7 +153,6 @@ export async function updateMyProfile(userId: string, data: UpdateProfileDTO) {
             name: data.name,
             contact: data.contact,
             email: data.email,
-            email: data.email,
             profileImage: data.profileImage,
         },
     });
