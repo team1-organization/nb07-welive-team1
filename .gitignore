@@ -9,4 +9,4 @@ backend/build/
 .idea/
 .DS_Store
 node_modules/
-.devcontainer.jso
+.devcontainer.json
