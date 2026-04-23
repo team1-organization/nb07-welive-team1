@@ -7,14 +7,17 @@ import { prisma } from '../../src/lib/prisma';
 import {
     createResident,
     createResidents,
+    createResidentWithUser,
     existsResident,
     findResidents,
     findResidentsForDownload,
     findResidentWithApartment,
+    findUserByIdForResidentCreation,
     updateResident,
 } from '../../src/repositories/resident.repository';
 import {
     createOneResident,
+    createResidentFromUser,
     createResidentsFromFile,
     deleteResidentById,
     downloadResidentsFile,
@@ -28,8 +31,10 @@ jest.mock('../../src/repositories/resident.repository', () => ({
     findResidents: jest.fn(),
     findResidentsForDownload: jest.fn(),
     findResidentWithApartment: jest.fn(),
+    findUserByIdForResidentCreation: jest.fn(),
     existsResident: jest.fn(),
     createResident: jest.fn(),
+    createResidentWithUser: jest.fn(),
     createResidents: jest.fn(),
     updateResident: jest.fn(),
 }));
@@ -43,8 +48,10 @@ jest.mock('../../src/lib/prisma', () => ({
 const mockedFindResidents = findResidents as jest.MockedFunction<typeof findResidents>;
 const mockedFindResidentsForDownload = findResidentsForDownload as jest.MockedFunction<typeof findResidentsForDownload>;
 const mockedFindResidentWithApartment = findResidentWithApartment as jest.MockedFunction<typeof findResidentWithApartment>;
+const mockedFindUserByIdForResidentCreation = findUserByIdForResidentCreation as jest.MockedFunction<typeof findUserByIdForResidentCreation>;
 const mockedExistsResident = existsResident as jest.MockedFunction<typeof existsResident>;
 const mockedCreateResident = createResident as jest.MockedFunction<typeof createResident>;
+const mockedCreateResidentWithUser = createResidentWithUser as jest.MockedFunction<typeof createResidentWithUser>;
 const mockedCreateResidents = createResidents as jest.MockedFunction<typeof createResidents>;
 const mockedUpdateResident = updateResident as jest.MockedFunction<typeof updateResident>;
 const mockedPrisma = prisma as jest.Mocked<typeof prisma>;
@@ -121,8 +128,8 @@ describe('resident.service', () => {
     });
 
     describe('downloadResidentTemplate', () => {
-        it('업로드 템플릿 문자열을 반환한다', async () => {
-            const result = await downloadResidentTemplate();
+        it('업로드 템플릿 문자열을 반환한다', () => {
+            const result = downloadResidentTemplate();
 
             expect(result).toBe('name,contact,building,unitNumber,isHouseholder\n');
         });
@@ -369,6 +376,141 @@ describe('resident.service', () => {
                         name: '이영희',
                         isHouseholder: HouseholdType.HOUSEHOLDER,
                     },
+                }),
+            ).rejects.toThrow(ConflictError);
+        });
+    });
+
+    describe('createResidentFromUser', () => {
+        it('사용자 정보로 입주민 생성에 성공한다', async () => {
+            mockedFindUserByIdForResidentCreation.mockResolvedValue({
+                id: 20n,
+                name: '홍길동',
+                contact: '01012345678',
+                email: 'hong@test.com',
+                building: '101',
+                unitNumber: '1001',
+                apartmentId: 1n,
+                residentId: null,
+            });
+
+            mockedExistsResident.mockResolvedValue(false);
+            mockedCreateResidentWithUser.mockResolvedValue(
+                makeResident({
+                    id: 20n,
+                    building: '101',
+                    unitNumber: '1001',
+                    contact: '01012345678',
+                    name: '홍길동',
+                    user: {
+                        id: 20n,
+                        email: 'hong@test.com',
+                    },
+                    isRegistered: true,
+                    approvalStatus: ApprovalStatus.PENDING,
+                }),
+            );
+
+            const result = await createResidentFromUser({
+                apartmentId: 1n,
+                userId: 20n,
+            });
+
+            expect(mockedFindUserByIdForResidentCreation).toHaveBeenCalledWith(20n, 1n);
+            expect(mockedCreateResidentWithUser).toHaveBeenCalledWith({
+                apartmentId: 1n,
+                userId: 20n,
+                building: '101',
+                unitNumber: '1001',
+                contact: '01012345678',
+                name: '홍길동',
+                isHouseholder: HouseholdType.HOUSEMEMBER,
+            });
+
+            expect(result).toEqual({
+                id: '20',
+                userId: '20',
+                building: '101',
+                unitNumber: '1001',
+                contact: '01012345678',
+                name: '홍길동',
+                email: 'hong@test.com',
+                residenceStatus: ResidenceStatus.RESIDENCE,
+                isHouseholder: HouseholdType.HOUSEHOLDER,
+                isRegistered: true,
+                approvalStatus: ApprovalStatus.PENDING,
+            });
+        });
+
+        it('사용자가 없으면 NotFoundError를 던진다', async () => {
+            mockedFindUserByIdForResidentCreation.mockResolvedValue(null);
+
+            await expect(
+                createResidentFromUser({
+                    apartmentId: 1n,
+                    userId: 20n,
+                }),
+            ).rejects.toThrow(NotFoundError);
+        });
+
+        it('이미 resident와 연결된 사용자면 ConflictError를 던진다', async () => {
+            mockedFindUserByIdForResidentCreation.mockResolvedValue({
+                id: 20n,
+                name: '홍길동',
+                contact: '01012345678',
+                email: 'hong@test.com',
+                building: '101',
+                unitNumber: '1001',
+                apartmentId: 1n,
+                residentId: 99n,
+            });
+
+            await expect(
+                createResidentFromUser({
+                    apartmentId: 1n,
+                    userId: 20n,
+                }),
+            ).rejects.toThrow(ConflictError);
+        });
+
+        it('사용자 정보에 동/호가 없으면 BadRequestError를 던진다', async () => {
+            mockedFindUserByIdForResidentCreation.mockResolvedValue({
+                id: 20n,
+                name: '홍길동',
+                contact: '01012345678',
+                email: 'hong@test.com',
+                building: null,
+                unitNumber: null,
+                apartmentId: 1n,
+                residentId: null,
+            });
+
+            await expect(
+                createResidentFromUser({
+                    apartmentId: 1n,
+                    userId: 20n,
+                }),
+            ).rejects.toThrow(BadRequestError);
+        });
+
+        it('이미 등록된 입주민이면 ConflictError를 던진다', async () => {
+            mockedFindUserByIdForResidentCreation.mockResolvedValue({
+                id: 20n,
+                name: '홍길동',
+                contact: '01012345678',
+                email: 'hong@test.com',
+                building: '101',
+                unitNumber: '1001',
+                apartmentId: 1n,
+                residentId: null,
+            });
+
+            mockedExistsResident.mockResolvedValue(true);
+
+            await expect(
+                createResidentFromUser({
+                    apartmentId: 1n,
+                    userId: 20n,
                 }),
             ).rejects.toThrow(ConflictError);
         });
