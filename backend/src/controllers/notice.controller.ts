@@ -5,11 +5,11 @@ import * as noticeService from '../services/notice.service';
 export const createNotice = async (req: Request, res: Response) => {
     const user = req.user!;
     const body = createNoticeBodySchema.parse(req.body);
-
-    await noticeService.createNotice({ user, body });
+    const result = await noticeService.createNotice({ user, body });
 
     return res.status(201).json({
         message: '정상적으로 등록 처리되었습니다',
+        data: result,
     });
 };
 

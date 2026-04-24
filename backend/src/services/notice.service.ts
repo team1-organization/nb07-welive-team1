@@ -30,6 +30,7 @@ const validateNoticeBoard = async (boardId: bigint) => {
 
     return board;
 };
+
 export const createNotice = async ({ user, body }: { user: User; body: CreateNoticeBodyDto }) => {
     validateAdmin(user);
 
@@ -62,7 +63,20 @@ export const createNotice = async ({ user, body }: { user: User; body: CreateNot
         });
     }
 
-    return notice;
+    return {
+        noticeId: safeString(notice.id),
+        category: notice.category,
+        title: notice.title,
+        content: notice.content,
+        isPinned: notice.isPinned,
+        viewCount: notice.viewCount,
+        startDate: notice.startDate,
+        endDate: notice.endDate,
+        createdAt: notice.createdAt,
+        updatedAt: notice.updatedAt,
+        userId: safeString(notice.userId),
+        boardId: safeString(notice.boardId),
+    };
 };
 
 export const getNoticeList = async (query: GetNoticeListQueryDto & { boardId: bigint }) => {

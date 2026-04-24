@@ -108,8 +108,4 @@ export const deleteComment = async (data: DeleteCommentReqDto) => {
     }
 
     await commentRepository.deleteComment(data.params.commentId);
-
-    return {
-        message: '정상적으로 삭제 처리되었습니다',
-    };
 };
