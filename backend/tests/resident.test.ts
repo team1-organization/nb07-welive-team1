@@ -29,6 +29,14 @@ describe('Resident API 통합 테스트', () => {
                 apartmentName: `테스트아파트_${testIndex}`,
                 apartmentAddress: '서울시 테스트구',
                 apartmentManagementNumber: `12345_${testIndex}`,
+                startComplexNumber: '1',
+                endComplexNumber: '10',
+                startDongNumber: '101',
+                endDongNumber: '110',
+                startFloorNumber: '1',
+                endFloorNumber: '20',
+                startHoNumber: '1',
+                endHoNumber: '4',
             },
         });
 

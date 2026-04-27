@@ -121,15 +121,23 @@ model User {
 
 // 아파트
 model Apartment {
-    id                        BigInt   @id @default(autoincrement())
+    id                        BigInt  @id @default(autoincrement())
     apartmentName             String // 아파트명
     description               String? // 아파트 설명
     apartmentManagementNumber String // 관리소 번호
     apartmentAddress          String // 아파트 주소
-    complexNumber             String?
-    floorNumber               String?
-    createdAt                 DateTime @default(now())
-    updatedAt                 DateTime @updatedAt
+
+    startComplexNumber String
+    endComplexNumber   String
+    startFloorNumber   String
+    endFloorNumber     String
+    startDongNumber    String
+    endDongNumber      String
+    startHoNumber      String
+    endHoNumber        String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     users     User[]
     residents Resident[]
@@ -162,8 +170,8 @@ model Resident {
     id              BigInt          @id @default(autoincrement())
     name            String // 이름
     contact         String // 연락처
-    building        String // 동
-    unitNumber      String // 호
+    building        String? // 동
+    unitNumber      String? // 호
     residenceStatus ResidenceStatus @default(RESIDENCE) // 거주 여부
     isHouseholder   HouseholdType   @default(HOUSEMEMBER) // 세대주 여부
     isRegistered    Boolean         @default(false) // 입주민 회원여부

@@ -18,6 +18,7 @@ import residentRouter from './routers/resident.router';
 import notificationRouter from './routers/notification.router';
 import imageRouter from './routers/image.router';
 import userRouter from './routers/user.router';
+import apartmentRouter from './routers/apartment.router';
 import socket from './lib/socket';
 
 BigInt.prototype.toJSON = function (): string {
@@ -100,6 +101,7 @@ app.use('/api/options', optionRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/users', userRouter);
 app.use('/api/images', imageRouter);
+app.use('/api/apartments', apartmentRouter);
 app.use(errorHandler);
 
 const server = http.createServer(app);

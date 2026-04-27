@@ -35,6 +35,14 @@ describe('User API 통합 테스트', () => {
                 apartmentName: `유저테스트아파트_${testIndex}`,
                 apartmentAddress: '서울시 테스트구',
                 apartmentManagementNumber: `54321_${testIndex}`,
+                startComplexNumber: '1',
+                endComplexNumber: '10',
+                startDongNumber: '101',
+                endDongNumber: '110',
+                startFloorNumber: '1',
+                endFloorNumber: '20',
+                startHoNumber: '1',
+                endHoNumber: '4',
             },
         });
 
@@ -156,6 +164,14 @@ describe('User API 통합 테스트', () => {
                     apartmentName: `다른아파트_${testIndex}`,
                     apartmentAddress: '다른 주소',
                     apartmentManagementNumber: `99999_${testIndex}`,
+                    startComplexNumber: '1',
+                    endComplexNumber: '10',
+                    startDongNumber: '101',
+                    endDongNumber: '110',
+                    startFloorNumber: '1',
+                    endFloorNumber: '20',
+                    startHoNumber: '1',
+                    endHoNumber: '4',
                 },
             });
 
@@ -426,6 +442,14 @@ describe('User API 통합 테스트', () => {
                     apartmentName: `수정다른아파트_${testIndex}`,
                     apartmentAddress: '다른 주소',
                     apartmentManagementNumber: `77777_${testIndex}`,
+                    startComplexNumber: '1',
+                    endComplexNumber: '10',
+                    startDongNumber: '101',
+                    endDongNumber: '110',
+                    startFloorNumber: '1',
+                    endFloorNumber: '20',
+                    startHoNumber: '1',
+                    endHoNumber: '4',
                 },
             });
 
@@ -526,6 +550,14 @@ describe('User API 통합 테스트', () => {
                     apartmentName: `삭제다른아파트_${testIndex}`,
                     apartmentAddress: '다른 주소',
                     apartmentManagementNumber: `88888_${testIndex}`,
+                    startComplexNumber: '1',
+                    endComplexNumber: '10',
+                    startDongNumber: '101',
+                    endDongNumber: '110',
+                    startFloorNumber: '1',
+                    endFloorNumber: '20',
+                    startHoNumber: '1',
+                    endHoNumber: '4',
                 },
             });
 
