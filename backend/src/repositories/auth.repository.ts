@@ -89,7 +89,9 @@ export async function findAdminByAdminId(adminId: string) {
     return prisma.user.findFirst({
         where: {
             id: BigInt(adminId),
-            role: 'ADMIN',
+            role: {
+                in: ['ADMIN', 'SUPER_ADMIN'],
+            },
             isActive: true,
         },
     });

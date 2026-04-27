@@ -151,4 +151,27 @@ export class Apartment {
         if (!data || !Array.isArray(data)) return [];
         return data.map((apartmentData: ApartmentData) => Apartment.fromSummaryEntity(apartmentData));
     }
+
+    static fromPublicEntity(data: ApartmentData) {
+        if (!data) throw new Error('데이터가 없습니다');
+        return {
+            id: safeString(data.id),
+            name: data.apartmentName,
+            address: data.apartmentAddress,
+            startComplexNumber: data.startComplexNumber ?? null,
+            endComplexNumber: data.endComplexNumber ?? null,
+            startDongNumber: data.startDongNumber ?? null,
+            endDongNumber: data.endDongNumber ?? null,
+            startFloorNumber: data.startFloorNumber ?? null,
+            endFloorNumber: data.endFloorNumber ?? null,
+            startHoNumber: data.startHoNumber ?? null,
+            endHoNumber: data.endHoNumber ?? null,
+            dongRange: { start: data.startDongNumber, end: data.endDongNumber },
+            hoRange: { start: data.startHoNumber, end: data.endHoNumber },
+        };
+    }
+    static fromPublicEntityList(data: ApartmentData[]) {
+        if (!data || !Array.isArray(data)) return [];
+        return data.map((apartmentData: ApartmentData) => Apartment.fromPublicEntity(apartmentData));
+    }
 }

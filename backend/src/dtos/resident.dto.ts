@@ -130,9 +130,9 @@ export const uploadResidentsFileReqSchema = z.object({
 export type ResidentResponseDto = {
     id: string;
     userId: string | null;
-    building: string;
-    unitNumber: string;
-    contact: string;
+    building: string | null;
+    unitNumber: string | null;
+    contact: string | null;
     name: string;
     email: string | null;
     residenceStatus: ResidenceStatus;

@@ -82,9 +82,9 @@ const RESIDENT_DOWNLOAD_HEADERS = ['building', 'unitNumber', 'name', 'contact', 
 // 입주민 엔티티를 응답 DTO로 변환
 const toResidentResponseDto = (resident: {
     id: bigint;
-    building: string;
-    unitNumber: string;
-    contact: string;
+    building: string | null;
+    unitNumber: string | null;
+    contact: string | null;
     name: string;
     residenceStatus: ResidenceStatus;
     isHouseholder: HouseholdType;
@@ -98,9 +98,9 @@ const toResidentResponseDto = (resident: {
     return {
         id: resident.id.toString(),
         userId: resident.user?.id.toString() ?? null,
-        building: resident.building,
-        unitNumber: resident.unitNumber,
-        contact: resident.contact,
+        building: resident.building ?? '',
+        unitNumber: resident.unitNumber ?? '',
+        contact: resident.contact ?? '',
         name: resident.name,
         email: resident.user?.email ?? null,
         residenceStatus: resident.residenceStatus,
@@ -284,10 +284,10 @@ export const downloadResidentsFile = async ({ apartmentId, query }: DownloadResi
 
     const rows = residents.map((resident) =>
         [
-            resident.building,
-            resident.unitNumber,
+            resident.building ?? '',
+            resident.unitNumber ?? '',
             resident.name,
-            resident.contact,
+            resident.contact ?? '',
             resident.residenceStatus,
             resident.isHouseholder,
             resident.isRegistered,
@@ -434,9 +434,9 @@ export const updateResidentById = async ({ apartmentId, residentId, body }: Upda
 
     const duplicated = await existsResident({
         apartmentId,
-        building: nextBuilding,
-        unitNumber: nextUnitNumber,
-        contact: nextContact,
+        building: nextBuilding ?? '',
+        unitNumber: nextUnitNumber ?? '',
+        contact: nextContact ?? '',
     });
 
     const isSameResident = resident.building === nextBuilding && resident.unitNumber === nextUnitNumber && resident.contact === nextContact;

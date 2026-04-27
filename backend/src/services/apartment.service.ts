@@ -5,7 +5,6 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { Apartment } from '../types/apartment.type';
 
 export async function getApartmentsForSignup(data: GetPublicApartmentQueryDTO) {
-    // data : { keyword = { address, name}, address : string | undefined , name : string | undefined }
     const { apartmentsData, apartmentsCount } = await apartmentRepository.getApartmentsForSignup(data.keyword, data.address ?? '', data.name ?? '');
     return {
         apartments: Apartment.fromSummaryEntityList(apartmentsData),
@@ -16,7 +15,7 @@ export async function getApartmentBasicInfo(apartmentId: string) {
     const apartment = await apartmentRepository.findByApartmentId(apartmentId);
     if (!apartment) throw new NotFoundError('아파트를 찾을 수 없습니다');
 
-    return Apartment.fromEntity(apartment);
+    return Apartment.fromPublicEntity(apartment);
 }
 export async function getApartmentList(data: GetAdminApartmentQueryDTO, userId: string) {
     const { apartmentsData, apartmentsCount } = await apartmentRepository.getApartmentList();
