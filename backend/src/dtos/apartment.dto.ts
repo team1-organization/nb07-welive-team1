@@ -1,5 +1,35 @@
 import { z } from 'zod';
 
+export const apartmentIdParam = z.object({
+    id: z.string(),
+});
+
+export const getPublicApartmentQuery = z.object({
+    keyword: z.enum(['name', 'address']).default('name'),
+    name: z.string().trim().optional(),
+    address: z.string().trim().optional(),
+});
+
+export const getAdminApartmentQuery = z.object({
+    name: z.string().trim().optional(),
+    address: z.string().trim().optional(),
+    searchKeyword: z.string().trim().optional(),
+    apartmentStatus: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().max(100).default(20),
+});
+
+export const publicApartmentResponse = z.object({
+    apartments: z.array(
+        z.object({
+            id: z.string(),
+            name: z.string(),
+            address: z.string(),
+        }),
+    ),
+    count: z.number(),
+});
+
 const baseApartmentSchema = z.object({
     apartmentName: z.string().trim().min(1, '아파트 이름은 필수입니다'),
     apartmentAddress: z.string().trim().min(1, '아파트 주소는 필수입니다'),
@@ -33,5 +63,8 @@ export const createApartmentBody = baseApartmentSchema.transform((data) => {
 });
 export const updateApartmentBody = baseApartmentSchema.partial();
 
+export type PublicApartmentResponseDTO = z.infer<typeof publicApartmentResponse>;
+export type GetPublicApartmentQueryDTO = z.infer<typeof getPublicApartmentQuery>;
+export type GetAdminApartmentQueryDTO = z.infer<typeof getAdminApartmentQuery>;
 export type CreateApartmentDTO = z.infer<typeof createApartmentBody>;
 export type UpdateApartmentDTO = z.infer<typeof updateApartmentBody>;

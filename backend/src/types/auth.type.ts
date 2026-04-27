@@ -25,8 +25,8 @@ export interface UserData {
     } | null;
     resident?: {
         id: bigint;
-        building: string;
-        unitNumber: string;
+        building: string | null;
+        unitNumber: string | null;
     } | null;
     createdAt: Date;
     updatedAt: Date;

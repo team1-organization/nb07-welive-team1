@@ -85,7 +85,7 @@ export async function findByUserEmail(userEmail: string) {
     });
 }
 
-export async function findAdminByadminId(adminId: string) {
+export async function findAdminByAdminId(adminId: string) {
     return prisma.user.findFirst({
         where: {
             id: BigInt(adminId),
@@ -101,8 +101,8 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>, apart
             where: {
                 apartmentId: apartmentId,
                 name: data.name,
-                building: data.apartmentDong,
-                unitNumber: data.apartmentHo,
+                // building: data.apartmentDong,
+                // unitNumber: data.apartmentHo,
                 contact: data.contact,
             },
         });
@@ -115,6 +115,8 @@ export function createUser(data: Extract<CreateUserDTO, { role: 'USER' }>, apart
                     isRegistered: true,
                     // 입주민 명부에 있는 사용자로 자동 승인
                     approvalStatus: 'APPROVED',
+                    building: data.apartmentDong,
+                    unitNumber: data.apartmentHo,
                 },
             });
         } else {
@@ -166,8 +168,14 @@ export async function createAdmin(data: Extract<CreateUserDTO, { role: 'ADMIN' }
                 apartmentAddress: data.apartmentAddress,
                 apartmentManagementNumber: data.apartmentManagementNumber,
                 description: data.description,
-                complexNumber: data.complexNumber,
-                floorNumber: data.floorNumber,
+                startComplexNumber: data.startComplexNumber,
+                endComplexNumber: data.endComplexNumber,
+                startFloorNumber: data.startFloorNumber,
+                endFloorNumber: data.endFloorNumber,
+                startDongNumber: data.startDongNumber,
+                endDongNumber: data.endDongNumber,
+                startHoNumber: data.startHoNumber,
+                endHoNumber: data.endHoNumber,
             },
         });
 
@@ -184,10 +192,10 @@ export async function createAdmin(data: Extract<CreateUserDTO, { role: 'ADMIN' }
             data: {
                 name: data.name,
                 contact: data.contact,
-                building: data.dongNumber,
-                unitNumber: data.hoNumber,
+                // building: data.dongNumber,
+                // unitNumber: data.hoNumber,
                 apartmentId: apartment.id,
-                residenceStatus: 'RESIDENCE',
+                residenceStatus: 'NO_RESIDENCE',
                 isHouseholder: 'HOUSEHOLDER',
                 isRegistered: true,
                 // 관리자는 입주민 자동등록
@@ -208,6 +216,8 @@ export async function createAdmin(data: Extract<CreateUserDTO, { role: 'ADMIN' }
                 isActive: false,
                 apartmentId: apartment.id,
                 residentId: resident.id,
+                building: null,
+                unitNumber: null,
             },
             include: {
                 resident: true,

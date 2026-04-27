@@ -122,8 +122,8 @@ export const updateResidentAccountBody = z
         name: z.string().min(2).optional(),
         email: z.string().min(4).optional(),
         contact: z.string().optional(),
-        building: z.string().trim().min(1).optional(),
-        unitNumber: z.string().trim().min(1).optional(),
+        building: z.string().trim().min(1).nullable().optional(),
+        unitNumber: z.string().trim().min(1).nullable().optional(),
     })
     .refine((value) => Object.keys(value).length > 0, {
         message: '수정할 정보가 없습니다.',
