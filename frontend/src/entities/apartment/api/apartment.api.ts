@@ -26,12 +26,12 @@ export interface Apartment {
 }
 
 export const getApartments = async (): Promise<Apartment[]> => {
-  const response = await axios.get<{ apartments: Apartment[] }>('/api/apartments');
+  const response = await axios.get<{ apartments: Apartment[] }>('/apartments');
   return response.data.apartments;
 };
 
 export const getPublicApartments = async (): Promise<Apartment[]> => {
-  const response = await axios.get<{ apartments: Apartment[] }>('/api/apartments/public');
+  const response = await axios.get<{ apartments: Apartment[] }>('/apartments/public');
   return response.data.apartments;
 };
 
@@ -53,11 +53,11 @@ export interface ApartmentDetail {
 }
 
 export const getApartmentDetail = async (apartmentId: string): Promise<ApartmentDetail> => {
-  const response = await axios.get(`/api/apartments/${apartmentId}`);
+  const response = await axios.get(`/apartments/${apartmentId}`);
   return response.data;
 };
 
 export const getPublicApartmentDetail = async (apartmentId: string): Promise<ApartmentDetail> => {
-  const response = await axios.get(`/api/apartments/public/${apartmentId}`);
+  const response = await axios.get(`/apartments/public/${apartmentId}`);
   return response.data;
 };

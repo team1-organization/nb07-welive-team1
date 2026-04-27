@@ -22,7 +22,7 @@ export interface CreateVotingRequest {
   options: VotingOption[];
 }
 export const postCreateVoting = async (data: CreateVotingRequest) => {
-  const response = await axios.post('/api/polls', data);
+  const response = await axios.post('/polls', data);
   return response.data;
 };
 
@@ -53,7 +53,7 @@ export const getVotingList = async (
     keyword?: string
   }
 ): Promise<PollListResponse> => {
-  const res = await axios.get('/api/polls', { params });
+  const res = await axios.get('/polls', { params });
 
   return res.data;
 };
@@ -80,25 +80,25 @@ export interface PollDetail {
 }
 
 export const getPollDetail = async (pollId: string): Promise<PollDetail> => {
-  const response = await axios.get(`/api/polls/${pollId}`);
+  const response = await axios.get(`/polls/${pollId}`);
   return response.data;
 };
 
 //주민 투표 기능 API
 export const postVoteOption = async (optionId: string) => {
-  const response = await axios.post(`/api/options/${optionId}/vote`);
+  const response = await axios.post(`/options/${optionId}/vote`);
   return response.data;
 };
 
 //주민 투표 취소 API
 export const deleteVoteOption = async (optionId: string) => {
-  const response = await axios.delete(`/api/options/${optionId}/vote`);
+  const response = await axios.delete(`/options/${optionId}/vote`);
   return response.data;
 };
 
 //주민 투표 삭제 API
 export const deleteVoting = async (pollId: string) => {
-  const res = await axios.delete(`/api/polls/${pollId}`);
+  const res = await axios.delete(`/polls/${pollId}`);
   return res.data;
 };
 
@@ -118,6 +118,6 @@ export interface UpdateVotingRequest {
 }
 
 export const patchUpdateVoting = async (pollId: string, data: UpdateVotingRequest) => {
-  const response = await axios.patch(`/api/polls/${pollId}`, data);
+  const response = await axios.patch(`/polls/${pollId}`, data);
   return response.data;
 };
