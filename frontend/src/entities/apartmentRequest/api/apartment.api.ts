@@ -46,6 +46,6 @@ export const getApartmentRequests = async (
   apartments: ApartmentRequest[],
   totalCount?: number
 }> => {
-  const res = await axios.get<ApartmentRequestListResponse>('/apartments', { params });
+  const res = await axios.get<ApartmentRequestListResponse>('/api/apartments', { params });
   return res.data;
 };

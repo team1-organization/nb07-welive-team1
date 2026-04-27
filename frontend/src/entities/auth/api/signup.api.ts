@@ -10,7 +10,7 @@ export const postResidentSignup = async (data: ResidentSignupPayload) => {
     ...data,
     role: 'USER',
   };
-  return axios.post('/auth/signup', payload);
+  return axios.post('/api/auth/signup', payload);
 };
 
 //관리자 회원가입 API
@@ -19,5 +19,5 @@ export const postAdminSignup = async (data: AdminSignupForm) => {
     ...data,
     role: 'ADMIN',
   };
-  return axios.post('/auth/signup/admin', payload);
+  return axios.post('/api/auth/signup/admin', payload);
 };
