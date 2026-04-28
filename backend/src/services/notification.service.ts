@@ -87,11 +87,13 @@ export async function createRoleNotification(data: Omit<CreateNotificationDTO, '
 
     const notifications = await notificationRepository.createManyNotification(notificationPayloads);
     socket.broadcastToRoom(roomName, {
-        type: data.type,
+        notificationType: data.type,
         content: data.content,
-        referenceId: data.referenceId ? safeString(data.referenceId) : undefined,
-        isRead: false,
-        createdAt: new Date().toISOString(),
+        isChecked: false,
+        notifiedAt: new Date().toISOString(),
+        complaintId: (data.type as string) === 'COMPLAINT' ? safeString(data.referenceId) : undefined,
+        noticeId: (data.type as string) === 'NOTICE' ? safeString(data.referenceId) : undefined,
+        pollId: (data.type as string) === 'POLL' ? safeString(data.referenceId) : undefined,
     });
     return Notification.fromEntityList(notifications);
 }
