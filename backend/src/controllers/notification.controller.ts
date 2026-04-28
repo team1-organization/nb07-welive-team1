@@ -2,10 +2,9 @@ import { Request, Response } from 'express';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { commonIdParam } from '../dtos/common.dto';
 import * as notificationService from '../services/notification.service';
-import { NOTIFICATION_EVENTS, notificationEmitter, NotificationEventPayload } from '../types/notification.type';
 
 // [모든 사용자] 읽지 않은 알림 수신
-export async function getNotifications(req: Request, res: Response) {
+export function getNotifications(req: Request, res: Response) {
     const user = req.user;
     if (!user) throw new UnauthorizedError('인증된 사용자가 아닙니다.');
 
