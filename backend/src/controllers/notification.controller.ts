@@ -17,28 +17,25 @@ export async function getNotifications(req: Request, res: Response) {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const notifications = await notificationService.getNotifications(userId);
-    const initialData = {
-        type: 'alarm',
-        data: notifications,
-    };
-    res.write(`data: ${JSON.stringify(initialData)}\n\n`);
-
-    const listener = (payload: NotificationEventPayload) => {
-        const { room, notification } = payload;
-        const myAllowedRooms = [`USER_${userId}`];
-        if (myAllowedRooms.includes(room)) {
-            const liveData = {
+    const sendMessage = async () => {
+        try {
+            const notifications = await notificationService.getNotifications(userId);
+            const notificationData = {
                 type: 'alarm',
-                data: [notification],
+                data: notifications,
             };
-            res.write(`data: ${JSON.stringify(liveData)}\n\n`);
+            res.write(`data: ${JSON.stringify(notificationData)}\n\n`);
+        } catch (error) {
+            console.error('SSE 전송 에러 : ', error);
         }
     };
-    notificationEmitter.on(NOTIFICATION_EVENTS.NEW_DATA, listener);
+
+    const intervalNotification = setInterval(async () => {
+        await sendMessage();
+    }, 30000);
 
     req.on('close', () => {
-        notificationEmitter.off(NOTIFICATION_EVENTS.NEW_DATA, listener);
+        clearInterval(intervalNotification);
         res.end();
     });
 }
