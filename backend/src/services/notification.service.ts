@@ -11,7 +11,7 @@ import { BadRequestError } from '../errors/BadRequestError';
 
 // [모든 사용자] 읽지 않은 알림 수신
 export async function getNotifications(userId: string) {
-    const findUser = await authRepository.findByUserId(userId);
+    const findUser = await authRepository.findUserById(userId);
     if (!findUser) throw new NotFoundError('사용자를 찾을 수 없습니다');
     const notification = await notificationRepository.getNotifications(userId);
     return Notification.fromEntityList(notification);

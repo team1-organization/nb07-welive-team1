@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { commonIdParam } from '../dtos/common.dto';
 import * as notificationService from '../services/notification.service';
+import { NOTIFICATION_EVENTS, notificationEmitter, NotificationEventPayload } from '../types/notification.type';
 
 // [모든 사용자] 읽지 않은 알림 수신
 export async function getNotifications(req: Request, res: Response) {
@@ -12,11 +13,33 @@ export async function getNotifications(req: Request, res: Response) {
         userId: req.user?.id,
     });
 
-    const notifications = await notificationService.getNotifications(userId);
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
-    res.status(200).json({
-        message: '알림 목록을 성공적으로 불러왔습니다.',
+    const notifications = await notificationService.getNotifications(userId);
+    const initialData = {
+        type: 'alarm',
         data: notifications,
+    };
+    res.write(`data: ${JSON.stringify(initialData)}\n\n`);
+
+    const listener = (payload: NotificationEventPayload) => {
+        const { room, notification } = payload;
+        const myAllowedRooms = [`USER_${userId}`];
+        if (myAllowedRooms.includes(room)) {
+            const liveData = {
+                type: 'alarm',
+                data: [notification],
+            };
+            res.write(`data: ${JSON.stringify(liveData)}\n\n`);
+        }
+    };
+    notificationEmitter.on(NOTIFICATION_EVENTS.NEW_DATA, listener);
+
+    req.on('close', () => {
+        notificationEmitter.off(NOTIFICATION_EVENTS.NEW_DATA, listener);
+        res.end();
     });
 }
 // [모든 사용자] 알림 읽음 처리(단건)

@@ -1,9 +1,15 @@
 import { default as LocalDateTime } from 'dayjs';
 import { safeString } from '../utils/string.util';
 import { DATE_FORMAT } from '../dtos/common.dto';
-
+import { EventEmitter } from 'events';
 type NotificationType = 'ADMIN_SIGNUP' | 'USER_SIGNUP' | 'POLL' | 'COMPLAINT' | 'NOTICE';
 
+export interface NotificationEventPayload {
+    room: string;
+    notification: Notification; // 발송할 알림 객체
+}
+export const NOTIFICATION_EVENTS = { NEW_DATA: 'NEW_NOTIFICATION' } as const;
+export const notificationEmitter = new EventEmitter();
 export interface NotificationData {
     id: bigint;
     content: string;
@@ -17,47 +23,52 @@ export interface NotificationData {
 
 // 2. 생성자 및 변환에 사용할 파라미터 타입
 export interface NotificationParam {
-    id: string;
+    notificationId: string;
     content: string;
-    isRead: boolean;
-    createdAt: string;
-    updatedAt: string;
-    userId: string;
-    referenceId?: string | null;
-    type: NotificationType;
+    notificationType: NotificationType;
+    notifiedAt: string;
+    isChecked: boolean;
+    complaintId?: string | null;
+    noticeId?: string | null;
+    pollId?: string | null;
 }
 
 export class Notification {
-    readonly id: string;
+    readonly notificationId: string;
     readonly content: string;
-    readonly isRead: boolean;
-    readonly createdAt: string;
-    readonly updatedAt: string;
-    readonly userId: string;
-    readonly referenceId?: string | null;
-    readonly type: NotificationType;
+    readonly notificationType: NotificationType;
+    readonly isChecked: boolean;
+    readonly notifiedAt: string;
+
+    readonly complaintId?: string | null;
+    readonly noticeId?: string | null;
+    readonly pollId?: string | null;
 
     constructor(params: NotificationParam) {
-        this.id = params.id;
+        this.notificationId = params.notificationId;
         this.content = params.content;
-        this.isRead = params.isRead;
-        this.createdAt = params.createdAt;
-        this.updatedAt = params.updatedAt;
-        this.userId = params.userId;
-        this.referenceId = params.referenceId;
-        this.type = params.type;
+        this.notificationType = params.notificationType;
+        this.notifiedAt = params.notifiedAt;
+        this.isChecked = params.isChecked;
+
+        this.complaintId = params.complaintId;
+        this.noticeId = params.noticeId;
+        this.pollId = params.pollId;
     }
     static fromEntity(data: NotificationData): Notification {
         if (!data) throw new Error('알림 데이터가 없습니다');
+
+        const referenceId = data.referenceId ? safeString(data.referenceId) : null;
+
         return new Notification({
-            id: safeString(data.id),
+            notificationId: safeString(data.id),
             content: safeString(data.content),
-            isRead: data.isRead,
-            userId: safeString(data.userId),
-            referenceId: data.referenceId ? safeString(data.referenceId) : undefined,
-            createdAt: LocalDateTime(data.createdAt).format(DATE_FORMAT),
-            updatedAt: LocalDateTime(data.updatedAt).format(DATE_FORMAT),
-            type: data.type,
+            notificationType: data.type,
+            notifiedAt: LocalDateTime(data.createdAt).format(DATE_FORMAT),
+            isChecked: data.isRead,
+            complaintId: data.type === 'COMPLAINT' ? referenceId : undefined,
+            noticeId: data.type === 'NOTICE' ? referenceId : undefined,
+            pollId: data.type === 'POLL' ? referenceId : undefined,
         });
     }
     static fromEntityList(data: NotificationData[]): Notification[] {
