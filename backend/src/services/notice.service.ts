@@ -55,11 +55,11 @@ export const createNotice = async ({ user, body }: { user: User; body: CreateNot
         await notificationRepository.createManyNotification(notificationPayloads);
 
         socket.broadcastToRoom(`A:${board.apartmentId.toString()}:USER`, {
-            type: 'NOTICE',
+            notificationType: 'NOTICE',
             content,
-            referenceId: safeString(notice.id),
-            isRead: false,
-            createdAt: new Date().toISOString(),
+            noticeId: safeString(notice.id),
+            isChecked: false,
+            notifiedAt: new Date().toISOString(),
         });
     }
 
