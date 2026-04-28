@@ -4,6 +4,7 @@ import { clearTokenCookies, generateTokens, setTokenCookies } from '../lib/token
 import * as authService from '../services/auth.service';
 import { createUserBody, statusSchema, updateAdminBody } from '../dtos/auth.dto';
 import { commonIdParam } from '../dtos/common.dto';
+import { User } from '../types/auth.type';
 
 // [유저] 회원가입
 export async function registerUser(req: Request, res: Response) {
@@ -32,6 +33,7 @@ export function login(req: Request, res: Response) {
     const { accessToken, refreshToken } = authService.login(user.id);
     setTokenCookies(res, accessToken, refreshToken);
     return res.status(200).json({
+        ...user,
         accessToken,
         refreshToken,
     });
