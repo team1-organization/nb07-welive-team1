@@ -66,11 +66,11 @@ export class User {
     readonly isActive: boolean;
     readonly joinStatus: JoinStatus;
 
-    readonly apartmentId: string | null;
-    readonly apartmentName: string | null;
-    readonly residentDong: string | null;
-    readonly residentHo: string | null;
-    readonly boardIds: {
+    readonly apartmentId?: string | null;
+    readonly apartmentName?: string | null;
+    readonly residentDong?: string | null;
+    readonly residentHo?: string | null;
+    readonly boardIds?: {
         COMPLAINT: string | null;
         NOTICE: string | null;
         POLL: string | null;
@@ -89,15 +89,26 @@ export class User {
         this.role = params.role;
         this.isActive = params.isActive;
         this.joinStatus = params.joinStatus;
-
-        this.apartmentId = params.apartmentId ?? null;
-        this.apartmentName = params.apartmentName ?? null;
-        this.residentDong = params.residentDong ?? null;
-        this.residentHo = params.residentHo ?? null;
-        this.boardIds = params.boardIds ?? null;
-
+        if (params.role !== 'SUPER_ADMIN') {
+            this.apartmentId = params.apartmentId ?? null;
+            this.apartmentName = params.apartmentName ?? null;
+            this.residentDong = params.residentDong ?? null;
+            this.residentHo = params.residentHo ?? null;
+            this.boardIds = params.boardIds ?? null;
+        }
         this.createdAt = params.createdAt;
         this.updatedAt = params.updatedAt;
+    }
+
+    static fromEntityJoin(data: UserData) {
+        return {
+            id: safeString(data.id),
+            name: safeString(data.name),
+            email: safeString(data.email),
+            joinStatus: data.joinStatus,
+            isActive: data.isActive,
+            role: data.role,
+        };
     }
 
     static fromEntity(data: UserData): User {
