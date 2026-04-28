@@ -4,7 +4,7 @@ import { commonIdParam } from '../dtos/common.dto';
 import * as notificationService from '../services/notification.service';
 
 // [모든 사용자] 읽지 않은 알림 수신
-export async function getNotifications(req: Request, res: Response) {
+export function getNotifications(req: Request, res: Response) {
     const user = req.user;
     if (!user) throw new UnauthorizedError('인증된 사용자가 아닙니다.');
 
@@ -12,11 +12,30 @@ export async function getNotifications(req: Request, res: Response) {
         userId: req.user?.id,
     });
 
-    const notifications = await notificationService.getNotifications(userId);
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
-    res.status(200).json({
-        message: '알림 목록을 성공적으로 불러왔습니다.',
-        data: notifications,
+    const sendMessage = async () => {
+        try {
+            const notifications = await notificationService.getNotifications(userId);
+            const notificationData = {
+                type: 'alarm',
+                data: notifications,
+            };
+            res.write(`data: ${JSON.stringify(notificationData)}\n\n`);
+        } catch (error) {
+            console.error('SSE 전송 에러 : ', error);
+        }
+    };
+
+    const intervalNotification = setInterval(async () => {
+        await sendMessage();
+    }, 30000);
+
+    req.on('close', () => {
+        clearInterval(intervalNotification);
+        res.end();
     });
 }
 // [모든 사용자] 알림 읽음 처리(단건)

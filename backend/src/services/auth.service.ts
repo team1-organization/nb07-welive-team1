@@ -19,10 +19,9 @@ export function login(userId: string) {
 
 // 회원가입
 export async function register(data: CreateUserDTO) {
-    const existedUserId = await authRepository.findUserByUserId(data.username);
-    if (existedUserId) throw new BadRequestError('이미 사용중인 아이디입니다.');
-    const existedUserEmail = await authRepository.findUserByEmail(data.email);
-    if (existedUserEmail) throw new BadRequestError('이미 가입된 이메일입니다.');
+    const [existedId, existedEmail] = await Promise.all([authRepository.findUserByUserId(data.username), authRepository.findUserByEmail(data.email)]);
+    if (existedId) throw new BadRequestError('이미 사용중인 아이디입니다.');
+    if (existedEmail) throw new BadRequestError('이미 가입된 이메일입니다.');
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
