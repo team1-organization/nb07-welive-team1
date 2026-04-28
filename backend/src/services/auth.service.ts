@@ -74,7 +74,7 @@ export async function register(data: CreateUserDTO) {
     } catch (error) {
         console.error('알림 발송을 실패했습니다', error);
     }
-    return User.fromEntity(newUser);
+    return User.fromEntityJoin(newUser);
 }
 // [슈퍼관리자] 관리자 가입 상태 변경(단건)
 export async function updateAdminStatus({
