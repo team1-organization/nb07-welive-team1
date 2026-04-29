@@ -28,7 +28,7 @@ export const createNoticeBodySchema = z
         category: noticeCategorySchema,
         title: z.string().trim().min(1, '제목은 필수입니다').max(100, '제목은 100자 이하입니다'),
         content: z.string().trim().min(1, '내용은 필수입니다').max(5000, '내용은 5000자 이하입니다'),
-        boardId: bigIntSchema,
+        boardId: bigIntSchema.optional(),
         isPinned: z.boolean().default(false),
         startDate: isoDateSchema.optional().nullable(),
         endDate: isoDateSchema.optional().nullable(),
@@ -42,7 +42,7 @@ export const createNoticeBodySchema = z
 export const getNoticeListQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(10),
-    boardId: z.coerce.bigint().positive('올바른 게시판 ID 형식이어야 합니다'),
+    boardId: z.coerce.bigint().positive('올바른 게시판 ID 형식이어야 합니다').optional(),
     category: noticeCategorySchema.optional(),
     search: z.string().trim().max(100).optional(),
 });

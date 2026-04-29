@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { createNoticeBodySchema, getNoticeListQuerySchema, noticeIdParamSchema, updateNoticeBodySchema } from '../dtos/notice.dto';
 import * as noticeService from '../services/notice.service';
+import { safeString } from '../utils/string.util';
 
 export const createNotice = async (req: Request, res: Response) => {
     const user = req.user!;
@@ -14,8 +15,9 @@ export const createNotice = async (req: Request, res: Response) => {
 };
 
 export const getNoticeList = async (req: Request, res: Response) => {
+    const user = req.user!;
     const query = getNoticeListQuerySchema.parse(req.query);
-    const result = await noticeService.getNoticeList(query);
+    const result = await noticeService.getNoticeList(query, safeString(user.id));
 
     return res.status(200).json(result);
 };
