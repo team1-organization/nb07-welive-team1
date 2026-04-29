@@ -32,11 +32,19 @@ const validateNoticeBoard = async (boardId: bigint) => {
 };
 
 export const createNotice = async ({ user, body }: { user: User; body: CreateNoticeBodyDto }) => {
+    let targetBoardId = body.boardId;
     validateAdmin(user);
-
-    const board = await validateNoticeBoard(body.boardId);
+    if (!targetBoardId) {
+        const noticeBoard = await noticeRepository.findNoticeBoardByUserId(safeString(user.id));
+        if (!noticeBoard) {
+            throw new NotFoundError('소속된 아파트의 공지사항 게시판을 찾을 수 없습니다.');
+        }
+        targetBoardId = noticeBoard.id;
+    }
+    const board = await validateNoticeBoard(targetBoardId);
     const notice = await noticeRepository.createNotice({
         ...body,
+        boardId: targetBoardId,
         userId: BigInt(user.id),
     });
 

@@ -28,7 +28,7 @@ export const createNoticeBodySchema = z
         category: noticeCategorySchema,
         title: z.string().trim().min(1, '제목은 필수입니다').max(100, '제목은 100자 이하입니다'),
         content: z.string().trim().min(1, '내용은 필수입니다').max(5000, '내용은 5000자 이하입니다'),
-        boardId: bigIntSchema,
+        boardId: bigIntSchema.optional(),
         isPinned: z.boolean().default(false),
         startDate: isoDateSchema.optional().nullable(),
         endDate: isoDateSchema.optional().nullable(),
