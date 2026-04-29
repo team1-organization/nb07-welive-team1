@@ -177,3 +177,18 @@ export const deleteNotice = async (noticeId: bigint) => {
         where: { id: noticeId },
     });
 };
+
+export async function findNoticeBoardByUserId(userId: string) {
+    return prisma.board.findFirst({
+        where: {
+            type: 'NOTICE',
+            apartment: {
+                users: {
+                    some: {
+                        id: BigInt(userId),
+                    },
+                },
+            },
+        },
+    });
+}
