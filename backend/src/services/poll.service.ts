@@ -27,9 +27,21 @@ export class PollService {
             userBuildingNumber = parseInt(user.residentDong, 10);
         }
 
-        return await this.pollRepository.findAll(filter, aptId, userBuildingNumber);
-    }
+        const polls = await this.pollRepository.findAll(filter, aptId, userBuildingNumber);
 
+        return polls.map((poll) => ({
+            ...poll,
+            pollId: poll.id.toString(),
+            id: poll.id.toString(),
+            boardId: poll.boardId.toString(),
+            userId: poll.userId.toString(),
+            options: poll.pollOptions.map((option) => ({
+                id: option.id.toString(),
+                title: option.title,
+                voteCount: option._count?.votes || 0,
+            })),
+        }));
+    }
     async getPollDetail(user: AuthUser, pollId: bigint) {
         const poll = await this.pollRepository.findById(pollId);
         if (!poll) throw new Error('투표를 찾을 수 없습니다.');
@@ -46,7 +58,24 @@ export class PollService {
         const isClosed = poll.status === PollStatus.CLOSED || new Date() > poll.endDate;
         const showResults = user.role !== 'USER' || isClosed;
 
-        return { ...poll, showResults };
+        return {
+            ...poll,
+            pollId: poll.id.toString(),
+            id: poll.id.toString(),
+            boardId: poll.boardId.toString(),
+            userId: poll.userId.toString(),
+            showResults,
+            options: poll.pollOptions.map((option) => ({
+                id: option.id.toString(),
+                title: option.title,
+                voteCount: option._count?.votes || 0,
+            })),
+            board: {
+                ...poll.board,
+                id: poll.board.id.toString(),
+                apartmentId: poll.board.apartmentId.toString(),
+            },
+        };
     }
 
     async vote(user: AuthUser, optionId: bigint) {

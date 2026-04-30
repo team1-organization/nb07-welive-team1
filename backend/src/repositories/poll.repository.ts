@@ -55,7 +55,11 @@ export class PollRepository {
             where,
             include: {
                 user: { select: { name: true } },
-                pollOptions: true,
+                pollOptions: {
+                    include: {
+                        _count: { select: { votes: true } },
+                    },
+                },
             },
             orderBy: { createdAt: 'desc' },
         });
