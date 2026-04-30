@@ -1,22 +1,22 @@
+import { getApartmentDetail } from '@/entities/apartment/api/apartment.api';
+import { patchUpdateVoting, PollStatus, postCreateVoting } from '@/entities/voting/api/voting.api';
+import { votingFormSchema } from '@/entities/voting/schema/voting.schema';
+import { VotingDetail } from '@/entities/voting/type';
+import Button from '@/shared/Button';
 import Checkbox from '@/shared/Checkbox';
 import Input from '@/shared/Input';
 import Select from '@/shared/Select';
+import { useAuthStore } from '@/shared/store/auth.store';
+import Textarea from '@/shared/Textarea';
+import Title from '@/shared/Title';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { AxiosError } from 'axios';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { z } from 'zod';
 import VotingFormDate from './VotingFormDate';
 import VotingFormItem from './VotingFormItem';
-import Textarea from '@/shared/Textarea';
-import Button from '@/shared/Button';
-import Title from '@/shared/Title';
-import { VotingDetail } from '@/entities/voting/type';
-import { postCreateVoting, patchUpdateVoting, PollStatus } from '@/entities/voting/api/voting.api';
-import { useAuthStore } from '@/shared/store/auth.store';
-import { useRouter } from 'next/router';
-import { getApartmentDetail } from '@/entities/apartment/api/apartment.api';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { votingFormSchema } from '@/entities/voting/schema/voting.schema';
-import { z } from 'zod';
-import { AxiosError } from 'axios';
 
 const titleStyle = 'w-[50px] text-[14px] font-semibold mr-[30px]';
 
@@ -29,7 +29,7 @@ type VotingFormType = z.infer<typeof votingFormSchema>;
 
 export default function VotingFormPage({ isEdit = false, initialData }: Props) {
   const userId = useAuthStore((state) => state.user?.id);
-  const boardId = useAuthStore((state) => state.user?.boardIds.POLL);
+  const boardId = useAuthStore((state) => state.user?.boardIds?.POLL);
   const apartmentId = useAuthStore((state) => state.user?.apartmentId);
   const router = useRouter();
 

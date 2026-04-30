@@ -1,6 +1,6 @@
 import { default as LocalDateTime } from 'dayjs';
-import { safeString } from '../utils/string.util';
 import { DATE_FORMAT } from '../dtos/common.dto';
+import { safeString } from '../utils/string.util';
 
 type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'USER';
 type JoinStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -108,6 +108,8 @@ export class User {
             joinStatus: data.joinStatus,
             isActive: data.isActive,
             role: data.role,
+            apartmentId: data.apartmentId ? safeString(data.apartmentId) : null,
+            boardIds: this.mapBoardIds(data.apartment),
         };
     }
 

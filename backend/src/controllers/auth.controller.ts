@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
+import { createUserBody, statusSchema, updateAdminBody } from '../dtos/auth.dto';
+import { commonIdParam } from '../dtos/common.dto';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { clearTokenCookies, generateTokens, setTokenCookies } from '../lib/token';
 import * as authService from '../services/auth.service';
-import { createUserBody, statusSchema, updateAdminBody } from '../dtos/auth.dto';
-import { commonIdParam } from '../dtos/common.dto';
 
 // [유저] 회원가입
 export async function registerUser(req: Request, res: Response) {
@@ -26,10 +26,10 @@ export async function registerSuperAdmin(req: Request, res: Response) {
     return res.status(201).json(createdUser);
 }
 // [모든 사용자] 로그인
-export function login(req: Request, res: Response) {
-    const user = req.user;
-    if (!user) throw new UnauthorizedError('인증된 사용자가 아닙니다.');
-    const { accessToken, refreshToken } = authService.login(user.id);
+export async function login(req: Request, res: Response) {
+    const authUser = req.user;
+    if (!authUser) throw new UnauthorizedError('인증된 사용자가 아닙니다.');
+    const { accessToken, refreshToken, user } = await authService.login(authUser.id);
     setTokenCookies(res, accessToken, refreshToken);
     return res.status(200).json({
         ...user,
