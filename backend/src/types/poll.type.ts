@@ -16,7 +16,7 @@ export interface CreatePollData {
     buildingPermission: number;
     startDate: string;
     endDate: string;
-    options: string[];
+    options: { title: string }[];
     boardId: bigint;
 }
 

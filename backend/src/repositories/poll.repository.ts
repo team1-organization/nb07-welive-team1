@@ -15,8 +15,8 @@ export class PollRepository {
                 boardId: data.boardId,
                 userId: userId,
                 pollOptions: {
-                    create: data.options.map((title, index) => ({
-                        title,
+                    create: data.options.map((opt, index) => ({
+                        title: opt.title,
                         order: index,
                     })),
                 },

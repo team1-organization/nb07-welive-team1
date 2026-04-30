@@ -12,6 +12,10 @@ export class PollController {
             const user = req.user as unknown as AuthUser;
 
             const body = req.body;
+            const targetBoardId = body.boardId || body.apartmentId;
+            if (!targetBoardId) {
+                return res.status(400).json({ message: 'boardId를 찾을 수 없습니다' });
+            }
             const data: CreatePollData = {
                 title: body.title,
                 content: body.content,
@@ -19,7 +23,7 @@ export class PollController {
                 startDate: body.startDate,
                 endDate: body.endDate,
                 options: body.options,
-                boardId: BigInt(body.apartmentId),
+                boardId: BigInt(targetBoardId),
             };
 
             const result = await this.pollService.createPoll(user, data);
