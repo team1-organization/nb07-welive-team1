@@ -1,4 +1,5 @@
 export const formatPhoneNum = (phone: string): string => {
+  if (!phone) return '';
   const cleaned = phone.replace(/[^0-9]/g, '');
 
   // 02 지역번호
