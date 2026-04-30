@@ -31,6 +31,7 @@ export class PollService {
 
         return polls.map((poll) => ({
             ...poll,
+            status: this.getComputedStatus(poll.status, poll.startDate, poll.endDate),
             pollId: poll.id.toString(),
             id: poll.id.toString(),
             boardId: poll.boardId.toString(),
@@ -54,12 +55,13 @@ export class PollService {
                 }
             }
         }
-
-        const isClosed = poll.status === PollStatus.CLOSED || new Date() > poll.endDate;
+        const computedStatus = this.getComputedStatus(poll.status, poll.startDate, poll.endDate);
+        const isClosed = computedStatus === PollStatus.CLOSED;
         const showResults = user.role !== 'USER' || isClosed;
 
         return {
             ...poll,
+            status: computedStatus,
             pollId: poll.id.toString(),
             id: poll.id.toString(),
             boardId: poll.boardId.toString(),
@@ -188,5 +190,14 @@ export class PollService {
                 });
             }
         });
+    }
+    private getComputedStatus(status: PollStatus, startDate: Date, endDate: Date): PollStatus {
+        if (status === PollStatus.CLOSED) return PollStatus.CLOSED;
+
+        const now = new Date();
+
+        if (now < startDate) return PollStatus.PENDING;
+        if (now >= startDate && now <= endDate) return PollStatus.IN_PROGRESS;
+        return PollStatus.CLOSED;
     }
 }
