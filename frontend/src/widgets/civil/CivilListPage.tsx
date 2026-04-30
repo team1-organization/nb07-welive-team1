@@ -1,12 +1,12 @@
-import { useRouter } from 'next/router';
 import { useCivilList } from '@/entities/civil/model/useCivilList';
+import axios from '@/shared/lib/axios';
+import Pagination from '@/shared/Pagination';
+import { useAuthStore } from '@/shared/store/auth.store';
+import Title from '@/shared/Title';
+import { useRouter } from 'next/router';
+import { useMemo, useState } from 'react';
 import { AdminCivilListFilter, ResidentCivilListFilter, statusOptions } from './CivilListFilter';
 import CivilListTable from './CivilListTable';
-import Pagination from '@/shared/Pagination';
-import Title from '@/shared/Title';
-import { useState, useMemo } from 'react';
-import axios from '@/shared/lib/axios';
-import { useAuthStore } from '@/shared/store/auth.store';
 
 const ITEMS_PER_PAGE = 11;
 
@@ -50,7 +50,7 @@ export default function CivilListPage() {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const dongOptions = useMemo(() => {
-    const dongs = new Set(complaints.map((item) => item.dong));
+    const dongs = new Set(complaints?.map((item) => item.dong) || []);
     return Array.from(dongs).map((dong) => ({ value: dong, label: `${dong}동` }));
   }, [complaints]);
 

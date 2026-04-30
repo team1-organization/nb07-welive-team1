@@ -1,8 +1,8 @@
-import { useRouter } from 'next/router';
-import StatusChip from '@/entities/civil/ui/StatusChip';
 import { CivilListType } from '@/entities/civil/type';
-import Link from 'next/link';
+import StatusChip from '@/entities/civil/ui/StatusChip';
 import Select from '@/shared/Select';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { statusOptions } from './CivilListFilter';
 
 type Props = {
@@ -28,7 +28,7 @@ export default function CivilListTable({
   const { pathname } = useRouter();
   const isAdmin = pathname.includes('/admin');
 
-  const filteredData = data;
+  const filteredData = data || [];;
 
   return (
     <>
