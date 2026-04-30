@@ -20,6 +20,12 @@ const localStrategy = new LocalStrategy(
                 userId: data.username,
                 joinStatus: 'APPROVED', // 승인상태만 로그인 가능
             },
+            include: {
+                resident: true,
+                apartment: {
+                    include: { board: true },
+                },
+            },
         });
         if (!user || !user.password) {
             return done(null, false, { message: '존재하지 않거나 비밀번호가 일치하지 않습니다' });

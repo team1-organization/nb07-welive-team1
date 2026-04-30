@@ -168,6 +168,6 @@ export async function authenticate(accessToken: string) {
     if (!accessToken) throw new UnauthorizedError('인증이 필요합니다');
     const { userId } = verifyAccessToken(accessToken);
     const user = await authRepository.findUserById(userId);
-    if (!user) throw new UnauthorizedError('Unauthorized');
+    if (!user) throw new UnauthorizedError('사용자를 찾을 수 없습니다.');
     return User.fromEntity(user);
 }
