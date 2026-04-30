@@ -1,13 +1,13 @@
 // [모든 사용자] 읽지 않은 알림 실시간 수신 (SSE)
-import { NotFoundError } from '../errors/NotFoundError';
-import { safeString } from '../utils/string.util';
-import { ForbiddenError } from '../errors/ForbiddenError';
-import * as notificationRepository from '../repositories/notification.repository';
-import * as authRepository from '../repositories/auth.repository';
-import { Notification } from '../types/notification.type';
 import { CreateNotificationDTO } from '../dtos/notification.dto';
-import socket from '../lib/socket';
 import { BadRequestError } from '../errors/BadRequestError';
+import { ForbiddenError } from '../errors/ForbiddenError';
+import { NotFoundError } from '../errors/NotFoundError';
+import socket from '../lib/socket';
+import * as authRepository from '../repositories/auth.repository';
+import * as notificationRepository from '../repositories/notification.repository';
+import { Notification } from '../types/notification.type';
+import { safeString } from '../utils/string.util';
 
 // [모든 사용자] 읽지 않은 알림 수신
 export async function getNotifications(userId: string) {
@@ -41,7 +41,7 @@ export async function readAllNotifications(userId: string) {
 
 // [모든 사용자] 알림 생성
 export async function createNotification(data: CreateNotificationDTO) {
-    const findUser = await authRepository.findByUserId(data.userId);
+    const findUser = await authRepository.findUserById(data.userId);
     if (!findUser) throw new NotFoundError('사용자를 찾을 수 없습니다');
 
     const createdNotification = await notificationRepository.createNotification({
