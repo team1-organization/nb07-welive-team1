@@ -47,7 +47,7 @@ export default function Navibar() {
   async function handleLogout() {
     try {
       const res = await axiosInstance.post('/auth/logout');
-      if (res.status === 200 || res.status === 201) {
+      if (res.status === 200 || res.status === 201 || res.status === 204) {
         clearUser();
         router.replace('/');
       } else {
