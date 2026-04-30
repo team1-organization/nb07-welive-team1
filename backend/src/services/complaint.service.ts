@@ -21,10 +21,11 @@ export class ComplaintService {
     // 민원 등록
     async createComplaint(user: CreateComplaintReqDto['user'], body: CreateComplaintReqDto['body']) {
         return prisma.$transaction(async (tx) => {
+            const userApartmentId = BigInt(user.apartmentId);
             const board = await tx.board.findUnique({
                 where: {
                     apartmentId_type: {
-                        apartmentId: BigInt(body.apartmentId),
+                        apartmentId: userApartmentId,
                         type: 'COMPLAINT',
                     },
                 },
@@ -36,7 +37,7 @@ export class ComplaintService {
                 data: {
                     title: body.title,
                     content: body.content,
-                    isPrivate: body.isPrivate,
+                    isPrivate: body.isPrivate ?? false,
                     status: 'PENDING',
                     userId: BigInt(user.id),
                     boardId: board.id,
@@ -45,7 +46,7 @@ export class ComplaintService {
 
             const admins = await tx.user.findMany({
                 where: {
-                    apartmentId: BigInt(body.apartmentId),
+                    apartmentId: userApartmentId,
                     role: { in: ['ADMIN', 'SUPER_ADMIN'] },
                 },
                 select: { id: true },
