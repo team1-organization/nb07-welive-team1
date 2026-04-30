@@ -55,7 +55,7 @@ export default function CivilListPage() {
   }, [complaints]);
 
   const hoOptions = useMemo(() => {
-    const hos = new Set(complaints.map((item) => item.ho));
+    const hos = new Set(complaints?.map((item) => item.ho) || []);
     return Array.from(hos).map((ho) => ({ value: ho, label: `${ho}호` }));
   }, [complaints]);
 
