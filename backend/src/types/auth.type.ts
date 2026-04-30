@@ -149,8 +149,8 @@ export class User {
     }
 
     private static mapBoardIds(apartment: UserData['apartment']) {
-        if (!apartment) return null;
-        const boards = apartment.board || [];
+        const boards = apartment?.board || [];
+
         const findId = (type: 'NOTICE' | 'COMPLAINT' | 'POLL') => {
             const board = boards.find((b) => b.type === type);
             return board ? safeString(board.id) : null;
