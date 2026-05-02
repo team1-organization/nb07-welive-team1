@@ -16,12 +16,24 @@ export class ComplaintRepository {
         });
     }
 
-    async findMany(apartmentId: bigint, skip: number, take: number, status?: ComplaintStatus, keyword?: string) {
+    async findMany(
+        apartmentId: bigint,
+        skip: number,
+        take: number,
+        status?: ComplaintStatus,
+        keyword?: string,
+        dong?: string,
+        ho?: string,
+        isPublic?: boolean,
+    ) {
         const where: Prisma.ComplaintWhereInput = {
             board: {
                 apartmentId,
             },
             ...(status && { status }),
+            ...(isPublic !== undefined && { isPrivate: !isPublic }),
+            ...(dong && { user: { building: dong } }),
+            ...(ho && { user: { unitNumber: ho } }),
             ...(keyword && {
                 OR: [{ title: { contains: keyword } }, { content: { contains: keyword } }],
             }),

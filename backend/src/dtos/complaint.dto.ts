@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { ComplaintStatus } from '../../generated/prisma';
 
 // 관리자 전용 유저 검증
 const adminUserSchema = z.object({
     id: z.string(),
     role: z.enum(['ADMIN', 'SUPER_ADMIN']),
-    apartmentId: z.string(),
+    apartmentId: z.string().nullable().optional(),
 });
 
 // 일반 입주민 전용 유저 검증
@@ -13,6 +14,13 @@ const residentUserSchema = z.object({
     role: z.literal('USER'),
     apartmentId: z.string(),
 });
+
+const statusMap: Record<string, ComplaintStatus> = {
+    PENDING: 'PENDING',
+    IN_PROGRESS: 'PROCESSING',
+    RESOLVED: 'COMPLETED',
+    REJECTED: 'REJECTED',
+};
 
 // 민원 등록 요청 DTO
 export const createComplaintReqSchema = z.object({
@@ -35,8 +43,15 @@ export const getComplaintListReqSchema = z.object({
     query: z.object({
         page: z.coerce.number().int().positive().default(1),
         limit: z.coerce.number().int().positive().default(10),
-        status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED']).optional(),
+        status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'IN_PROGRESS', 'RESOLVED', 'REJECTED']).optional(),
         keyword: z.string().optional(),
+        dong: z.string().optional(),
+        ho: z.string().optional(),
+        isPublic: z.preprocess((val) => {
+            if (val === 'true') return true;
+            if (val === 'false') return false;
+            return undefined;
+        }, z.boolean().optional()),
     }),
 });
 
@@ -72,7 +87,11 @@ export const updateComplaintStatusReqSchema = z.object({
         complaintId: z.string(),
     }),
     body: z.object({
-        status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED']),
+        status: z.preprocess((val) => {
+            if (typeof val !== 'string') return val;
+            const upperVal = val.toUpperCase();
+            return statusMap[upperVal] || upperVal;
+        }, z.nativeEnum(ComplaintStatus)),
     }),
 });
 

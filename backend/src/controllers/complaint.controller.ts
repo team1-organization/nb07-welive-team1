@@ -42,12 +42,26 @@ export const updateComplaint = withAsync(async (req: Request, res: Response) => 
 });
 
 export const updateComplaintStatus = withAsync(async (req: Request, res: Response) => {
-    const validated = updateComplaintStatusReqSchema.parse({ user: req.user, params: req.params, body: req.body });
+    const user = req.user as { id: string; role: string; apartmentId?: string | null };
+
+    const userPayload = {
+        ...user,
+        apartmentId: user.apartmentId || '',
+    };
+
+    const validated = updateComplaintStatusReqSchema.parse({
+        user: userPayload,
+        params: req.params,
+        body: req.body,
+    });
+
     const result = await complaintService.updateComplaintStatus(validated.params.complaintId, validated.user, validated.body.status);
 
-    res.status(200).json({ message: '상태가 변경되었습니다.', data: serializeBigInt(result) });
+    res.status(200).json({
+        message: '상태가 변경되었습니다.',
+        data: serializeBigInt(result),
+    });
 });
-
 export const deleteComplaint = withAsync(async (req: Request, res: Response) => {
     const validated = deleteComplaintReqSchema.parse({ user: req.user, params: req.params });
     await complaintService.deleteComplaint(validated.params.complaintId, validated.user);
