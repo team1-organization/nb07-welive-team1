@@ -1,7 +1,7 @@
-import * as apartmentRepository from '../repositories/apartment.repository';
-import * as authRepository from '../repositories/auth.repository';
 import { GetAdminApartmentQueryDTO, GetPublicApartmentQueryDTO } from '../dtos/apartment.dto';
 import { NotFoundError } from '../errors/NotFoundError';
+import * as apartmentRepository from '../repositories/apartment.repository';
+import * as authRepository from '../repositories/auth.repository';
 import { Apartment } from '../types/apartment.type';
 
 export async function getApartmentsForSignup(data: GetPublicApartmentQueryDTO) {
@@ -25,8 +25,8 @@ export async function getApartmentList(data: GetAdminApartmentQueryDTO, userId: 
     };
 }
 export async function getApartmentDetails(apartmentId: string, userId: string) {
-    const admin = await authRepository.findAdminByAdminId(userId);
-    if (!admin) throw new NotFoundError('관리자를 찾을 수 없습니다');
+    const user = await authRepository.findUserById(userId);
+    if (!user) throw new NotFoundError('사용자를 찾을 수 없습니다');
     const apartment = await apartmentRepository.getApartmentDetails(apartmentId);
     if (!apartment) throw new NotFoundError('아파트를 찾을 수 없습니다');
     return Apartment.fromEntity(apartment);
