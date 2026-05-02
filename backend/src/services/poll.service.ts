@@ -91,8 +91,9 @@ export class PollService {
         if (!option) throw new Error('해당 투표 선택지를 찾을 수 없습니다.');
         const poll = option.poll;
 
-        const now = new Date();
-        if (poll.status !== PollStatus.IN_PROGRESS || now < poll.startDate || now > poll.endDate) {
+        const currentStatus = this.getComputedStatus(poll.status, poll.startDate, poll.endDate);
+
+        if (currentStatus !== PollStatus.IN_PROGRESS) {
             throw new Error('현재 투표 기간이 아닙니다.');
         }
 
@@ -103,7 +104,17 @@ export class PollService {
             }
         }
 
-        return await this.pollRepository.createVote(BigInt(user.id), optionId);
+        const newVote = await this.pollRepository.createVote(BigInt(user.id), optionId);
+
+        return {
+            ...newVote,
+            id: newVote.id.toString(),
+            userId: newVote.userId.toString(),
+            optionId: newVote.optionId.toString(),
+            updatedOption: {
+                title: option?.title || '알 수 없는 항목',
+            },
+        };
     }
 
     async cancelVote(user: AuthUser, optionId: bigint) {
@@ -117,8 +128,9 @@ export class PollService {
         if (!option) throw new Error('해당 투표 선택지를 찾을 수 없습니다.');
         const poll = option.poll;
 
-        const now = new Date();
-        if (poll.status !== PollStatus.IN_PROGRESS || now < poll.startDate || now > poll.endDate) {
+        const currentStatus = this.getComputedStatus(poll.status, poll.startDate, poll.endDate);
+
+        if (currentStatus !== PollStatus.IN_PROGRESS) {
             throw new Error('종료된 투표는 취소할 수 없습니다.');
         }
 
