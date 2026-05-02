@@ -13,7 +13,8 @@ export interface AuthUser {
 export interface CreatePollData {
     title: string;
     content: string;
-    buildingPermission: number;
+    buildingPermission?: number;
+    building?: number;
     startDate: string;
     endDate: string;
     options: { title: string }[];

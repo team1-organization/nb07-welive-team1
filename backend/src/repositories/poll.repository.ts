@@ -27,8 +27,15 @@ export class PollRepository {
 
     async findAll(filter: PollFilterQuery, apartmentId: bigint, userBuildingNumber?: number) {
         const andConditions: Prisma.PollWhereInput[] = [];
+        const now = new Date();
 
-        if (userBuildingNumber !== undefined) {
+        andConditions.push({ board: { apartmentId: apartmentId } });
+
+        if (filter.buildingPermission !== undefined) {
+            if (Number(filter.buildingPermission) !== 0) {
+                andConditions.push({ buildingPermission: filter.buildingPermission });
+            }
+        } else if (userBuildingNumber !== undefined) {
             andConditions.push({
                 OR: [{ buildingPermission: 0 }, { buildingPermission: userBuildingNumber }],
             });
@@ -40,31 +47,36 @@ export class PollRepository {
             });
         }
 
-        const where: Prisma.PollWhereInput = {
-            board: { apartmentId: apartmentId },
-        };
-
-        if (andConditions.length > 0) {
-            where.AND = andConditions;
+        if (filter.status) {
+            if (filter.status === 'PENDING') {
+                andConditions.push({
+                    status: { not: 'CLOSED' },
+                    startDate: { gt: now },
+                });
+            } else if (filter.status === 'IN_PROGRESS') {
+                andConditions.push({
+                    status: { not: 'CLOSED' },
+                    startDate: { lte: now },
+                    endDate: { gte: now },
+                });
+            } else if (filter.status === 'CLOSED') {
+                andConditions.push({
+                    OR: [{ status: 'CLOSED' }, { endDate: { lt: now } }],
+                });
+            }
         }
 
-        if (filter.status) where.status = filter.status;
-        if (filter.buildingPermission !== undefined) where.buildingPermission = filter.buildingPermission;
-
         return await prisma.poll.findMany({
-            where,
+            where: { AND: andConditions },
             include: {
                 user: { select: { name: true } },
                 pollOptions: {
-                    include: {
-                        _count: { select: { votes: true } },
-                    },
+                    include: { _count: { select: { votes: true } } },
                 },
             },
             orderBy: { createdAt: 'desc' },
         });
     }
-
     async findById(pollId: bigint) {
         return await prisma.poll.findUnique({
             where: { id: pollId },

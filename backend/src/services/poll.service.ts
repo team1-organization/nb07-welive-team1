@@ -13,8 +13,14 @@ export class PollService {
         if (new Date(data.startDate) >= new Date(data.endDate)) {
             throw new Error('종료일은 시작일보다 늦어야 합니다.');
         }
+        const finalBuildingPermission = data.buildingPermission ?? (data.building ? Number(data.building) : 0);
 
-        return await this.pollRepository.create(BigInt(user.id), data);
+        const createData: CreatePollData = {
+            ...data,
+            buildingPermission: finalBuildingPermission,
+        };
+
+        return await this.pollRepository.create(BigInt(user.id), createData);
     }
 
     async getPolls(user: AuthUser, filter: PollFilterQuery) {
@@ -34,6 +40,7 @@ export class PollService {
             status: this.getComputedStatus(poll.status, poll.startDate, poll.endDate),
             pollId: poll.id.toString(),
             id: poll.id.toString(),
+            buildingPermission: poll.buildingPermission,
             boardId: poll.boardId.toString(),
             userId: poll.userId.toString(),
             options: poll.pollOptions.map((option) => ({

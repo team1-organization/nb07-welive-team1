@@ -16,18 +16,37 @@ export class PollController {
             if (!targetBoardId) {
                 return res.status(400).json({ message: 'boardId를 찾을 수 없습니다' });
             }
+            const rawBuilding = body.building ?? body.buildingPermission;
+            const buildingNum = rawBuilding !== undefined && rawBuilding !== null && rawBuilding !== '' ? Number(rawBuilding) : 0;
+
+            const parsedOptions = Array.isArray(body.options)
+                ? body.options.map((opt: unknown) => {
+                      if (typeof opt === 'string') {
+                          return { title: opt };
+                      }
+                      if (typeof opt === 'object' && opt !== null && 'title' in opt) {
+                          return { title: String((opt as Record<string, unknown>).title) };
+                      }
+                      return { title: String(opt) };
+                  })
+                : [];
+
             const data: CreatePollData = {
                 title: body.title,
                 content: body.content,
-                buildingPermission: body.building || 0,
+                buildingPermission: buildingNum,
                 startDate: body.startDate,
                 endDate: body.endDate,
-                options: body.options,
-                boardId: BigInt(targetBoardId),
+                options: parsedOptions,
+                boardId: BigInt(String(targetBoardId)),
             };
 
             const result = await this.pollService.createPoll(user, data);
-            res.status(201).json({ message: '투표가 등록되었습니다.', data: result });
+
+            res.status(201).json({
+                message: '투표가 등록되었습니다.',
+                data: JSON.parse(JSON.stringify(result, (_, v) => (typeof v === 'bigint' ? v.toString() : v))),
+            });
         } catch (error) {
             next(error);
         }
@@ -38,9 +57,11 @@ export class PollController {
             if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
             const user = req.user as unknown as AuthUser;
 
+            const rawBuilding = req.query.building || req.query.buildingPermission;
+
             const query: PollFilterQuery = {
                 status: typeof req.query.status === 'string' ? (req.query.status as PollStatus) : undefined,
-                buildingPermission: typeof req.query.building === 'string' ? parseInt(req.query.building, 10) : undefined,
+                buildingPermission: typeof rawBuilding === 'string' ? parseInt(rawBuilding, 10) : undefined,
                 searchKeyword: typeof req.query.searchKeyword === 'string' ? req.query.searchKeyword : undefined,
             };
 
