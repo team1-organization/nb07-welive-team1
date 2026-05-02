@@ -92,9 +92,36 @@ export class PollRepository {
     }
 
     async update(pollId: bigint, data: UpdatePollData) {
-        return await prisma.poll.update({
-            where: { id: pollId },
-            data,
+        const { options, ...updateData } = data;
+
+        return await prisma.$transaction(async (tx) => {
+            const updatedPoll = await tx.poll.update({
+                where: { id: pollId },
+                data: {
+                    title: updateData.title,
+                    content: updateData.content,
+                    status: updateData.status,
+                    startDate: updateData.startDate,
+                    endDate: updateData.endDate,
+                    buildingPermission: updateData.buildingPermission,
+                },
+            });
+
+            if (options && options.length > 0) {
+                await tx.pollOption.deleteMany({
+                    where: { pollId: pollId },
+                });
+
+                await tx.pollOption.createMany({
+                    data: options.map((opt, index) => ({
+                        pollId: pollId,
+                        title: opt.title,
+                        order: index,
+                    })),
+                });
+            }
+
+            return updatedPoll;
         });
     }
 

@@ -117,17 +117,35 @@ export class PollController {
             const user = req.user as unknown as AuthUser;
             const pollId = BigInt(String(req.params.pollId));
 
+            const body = req.body;
+
+            const rawBuilding = body.buildingPermission ?? body.building;
+
+            const parsedOptions = Array.isArray(body.options)
+                ? body.options.map((opt: unknown) => {
+                      if (typeof opt === 'object' && opt !== null && 'title' in opt) {
+                          return { title: String((opt as Record<string, unknown>).title) };
+                      }
+                      return { title: String(opt) };
+                  })
+                : undefined;
+
             const data: UpdatePollData = {
-                title: req.body.title,
-                content: req.body.content,
-                status: req.body.status,
-                startDate: req.body.startDate,
-                endDate: req.body.endDate,
-                buildingPermission: req.body.building,
+                title: body.title,
+                content: body.content,
+                status: body.status,
+                startDate: body.startDate,
+                endDate: body.endDate,
+                buildingPermission: rawBuilding !== undefined && rawBuilding !== null ? Number(rawBuilding) : undefined,
+                options: parsedOptions,
             };
 
             const result = await this.pollService.updatePoll(user, pollId, data);
-            res.status(200).json({ message: '투표가 수정되었습니다.', data: result });
+
+            res.status(200).json({
+                message: '투표가 수정되었습니다.',
+                data: JSON.parse(JSON.stringify(result, (_, v) => (typeof v === 'bigint' ? v.toString() : v))),
+            });
         } catch (error) {
             next(error);
         }

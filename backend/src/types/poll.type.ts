@@ -28,6 +28,7 @@ export interface UpdatePollData {
     startDate?: string;
     endDate?: string;
     buildingPermission?: number;
+    options?: { title: string }[];
 }
 
 export interface PollFilterQuery {

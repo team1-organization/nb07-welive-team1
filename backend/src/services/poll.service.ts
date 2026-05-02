@@ -152,8 +152,8 @@ export class PollService {
         const poll = await this.pollRepository.findById(pollId);
         if (!poll) throw new Error('투표를 찾을 수 없습니다.');
 
-        if (poll.startDate <= new Date() && (data.title || data.content)) {
-            throw new Error('시작된 투표의 내용은 수정할 수 없습니다.');
+        if (poll.startDate <= new Date() && (data.title || data.content || data.options)) {
+            throw new Error('시작된 투표의 내용이나 항목은 수정할 수 없습니다.');
         }
 
         if (data.status === PollStatus.CLOSED && poll.status !== PollStatus.CLOSED) {
