@@ -10,7 +10,8 @@ export class ComplaintRepository {
         return await prisma.complaint.findUnique({
             where: { id },
             include: {
-                user: { select: { id: true, name: true, role: true } },
+                user: { select: { id: true, name: true, role: true, building: true, unitNumber: true } },
+                comments: { orderBy: { createdAt: 'asc' }, include: { User: { select: { name: true, profileImage: true } } } },
             },
         });
     }
@@ -18,7 +19,7 @@ export class ComplaintRepository {
     async findMany(apartmentId: bigint, skip: number, take: number, status?: ComplaintStatus, keyword?: string) {
         const where: Prisma.ComplaintWhereInput = {
             board: {
-                apartmentId, // 스키마 변경으로 board에서 참조하게 수정
+                apartmentId,
             },
             ...(status && { status }),
             ...(keyword && {
@@ -33,7 +34,14 @@ export class ComplaintRepository {
                 skip,
                 take,
                 orderBy: { createdAt: 'desc' },
-                include: { user: { select: { name: true } } },
+                include: {
+                    user: { select: { name: true, building: true, unitNumber: true } },
+                    _count: {
+                        select: {
+                            comments: true,
+                        },
+                    },
+                },
             }),
         ]);
 

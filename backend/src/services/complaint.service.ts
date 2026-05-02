@@ -70,7 +70,24 @@ export class ComplaintService {
     // 민원 목록 조회
     async getComplaintList(user: GetComplaintListReqDto['user'], query: GetComplaintListReqDto['query']) {
         const skip = (query.page - 1) * query.limit;
-        return await this.complaintRepo.findMany(BigInt(user.apartmentId), skip, query.limit, query.status, query.keyword);
+        const { total, list } = await this.complaintRepo.findMany(BigInt(user.apartmentId), skip, query.limit, query.status, query.keyword);
+
+        const mappedList = list.map((item) => ({
+            complaintId: safeString(item.id),
+            title: item.title,
+            content: item.content,
+            writerName: item.user.name,
+            dong: item.user.building ?? '0',
+            ho: item.user.unitNumber ?? '0',
+            createdAt: item.createdAt.toISOString().split('T')[0],
+            isPublic: !item.isPrivate,
+            viewsCount: 0,
+            commentsCount: item._count.comments,
+            status: item.status,
+            userId: safeString(item.userId),
+        }));
+
+        return { total, list: mappedList };
     }
 
     // 민원 상세 조회
@@ -85,7 +102,21 @@ export class ComplaintService {
             }
         }
 
-        return complaint;
+        return {
+            ...complaint,
+            complaintId: safeString(complaint.id),
+            userId: safeString(complaint.userId),
+            isPublic: !complaint.isPrivate,
+            writerName: complaint.user.name,
+            dong: complaint.user.building ?? '0',
+            ho: complaint.user.unitNumber ?? '0',
+            comments:
+                complaint.comments.map((comment) => ({
+                    ...comment,
+                    id: safeString(comment.id),
+                    userId: safeString(comment.userId),
+                })) || [],
+        };
     }
     // 민원 수정
     async updateComplaint(complaintId: string, user: UpdateComplaintReqDto['user'], body: UpdateComplaintReqDto['body']) {
