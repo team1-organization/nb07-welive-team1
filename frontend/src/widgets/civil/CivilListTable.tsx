@@ -1,10 +1,16 @@
-import { useRouter } from 'next/router';
-import StatusChip from '@/entities/civil/ui/StatusChip';
 import { CivilListType } from '@/entities/civil/type';
-import Link from 'next/link';
+import StatusChip from '@/entities/civil/ui/StatusChip';
 import Select from '@/shared/Select';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { statusOptions } from './CivilListFilter';
 
+const statusLabelMap: Record<string, string> = {
+  PENDING: '접수전',
+  IN_PROGRESS: '처리중',
+  RESOLVED: '처리완료',
+  REJECTED: '처리불가',
+};
 type Props = {
   data: CivilListType[];
   currentPage: number;
@@ -28,7 +34,7 @@ export default function CivilListTable({
   const { pathname } = useRouter();
   const isAdmin = pathname.includes('/admin');
 
-  const filteredData = data;
+  const filteredData = data || [];;
 
   return (
     <>
@@ -141,13 +147,7 @@ export default function CivilListTable({
                         <div className='line-clamp-1'>
                           <StatusChip
                             type='process'
-                            status={
-                              item.status === 'PENDING'
-                                ? '접수전'
-                                : item.status === 'IN_PROGRESS'
-                                  ? '처리중'
-                                  : '처리완료'
-                            }
+                            status={statusLabelMap[item.status] || '처리완료'} 
                           />
                         </div>
                       </td>

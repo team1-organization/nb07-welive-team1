@@ -1,11 +1,11 @@
-import { useRouter } from 'next/router';
-import Input from '@/shared/Input';
-import Textarea from '@/shared/Textarea';
 import Button from '@/shared/Button';
+import Input from '@/shared/Input';
 import Select from '@/shared/Select';
+import Textarea from '@/shared/Textarea';
 import axios from '@/shared/lib/axios';
-import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/shared/store/auth.store';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 type Props = {
   isEdit?: boolean;
@@ -20,7 +20,6 @@ export default function CivilWriteForm({ isEdit = false }: Props) {
   const [isPublic, setIsPublic] = useState(true);
 
   const user = useAuthStore((state) => state.user);
-  const boardId = user?.boardIds.COMPLAINT;
 
   useEffect(() => {
     if (isEdit && id && typeof id === 'string') {
@@ -36,21 +35,23 @@ export default function CivilWriteForm({ isEdit = false }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const requestBody = {
+      title,
+      content,
+      isPrivate: !isPublic,
+      apartmentId: user?.apartmentId?.toString() || '',
+    };
+    
     try {
       if (isEdit && id && typeof id === 'string') {
         await axios.patch(`/complaints/${id}`, {
-          title,
-          content,
-          isPublic,
+          title: requestBody.title,
+        content: requestBody.content,
+        isPrivate: requestBody.isPrivate,
         });
         alert('민원이 수정되었습니다.');
       } else {
-        await axios.post('/complaints', {
-          title,
-          content,
-          isPublic,
-          boardId,
-        });
+        await axios.post('/complaints', requestBody);
         alert('민원이 등록되었습니다.');
       }
       router.push('/resident/civil');

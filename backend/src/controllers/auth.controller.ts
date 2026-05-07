@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
+import { createUserBody, statusSchema, updateAdminBody } from '../dtos/auth.dto';
+import { commonIdParam } from '../dtos/common.dto';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 import { clearTokenCookies, generateTokens, setTokenCookies } from '../lib/token';
 import * as authService from '../services/auth.service';
-import { createUserBody, statusSchema, updateAdminBody } from '../dtos/auth.dto';
-import { commonIdParam } from '../dtos/common.dto';
 
 // [유저] 회원가입
 export async function registerUser(req: Request, res: Response) {

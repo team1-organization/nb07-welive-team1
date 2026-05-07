@@ -1,3 +1,4 @@
+import { ComplaintStatus } from 'generated/prisma';
 import {
     CreateComplaintReqDto,
     DeleteComplaintReqDto,
@@ -11,20 +12,42 @@ import { ForbiddenError } from '../errors/ForbiddenError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { prisma } from '../lib/prisma';
 import { ComplaintRepository } from '../repositories/complaint.repository';
-import { compact } from '../utils/object.util';
 import * as notificationService from '../services/notification.service';
+import { compact } from '../utils/object.util';
 import { safeString } from '../utils/string.util';
 
 export class ComplaintService {
     private complaintRepo = new ComplaintRepository();
 
+    private readonly statusNotificationLabels: Record<ComplaintStatus, string> = {
+        PENDING: '접수전',
+        PROCESSING: '처리중',
+        COMPLETED: '처리완료',
+        REJECTED: '처리불가',
+    };
+
+    private readonly reverseStatusMap: Record<string, string> = {
+        PENDING: 'PENDING',
+        PROCESSING: 'IN_PROGRESS',
+        COMPLETED: 'RESOLVED',
+        REJECTED: 'REJECTED',
+    };
+
+    private readonly frontToDbStatusMap: Record<string, ComplaintStatus> = {
+        PENDING: 'PENDING',
+        IN_PROGRESS: 'PROCESSING',
+        RESOLVED: 'COMPLETED',
+        REJECTED: 'REJECTED',
+    };
+
     // 민원 등록
     async createComplaint(user: CreateComplaintReqDto['user'], body: CreateComplaintReqDto['body']) {
         return prisma.$transaction(async (tx) => {
+            const userApartmentId = BigInt(user.apartmentId);
             const board = await tx.board.findUnique({
                 where: {
                     apartmentId_type: {
-                        apartmentId: BigInt(body.apartmentId),
+                        apartmentId: userApartmentId,
                         type: 'COMPLAINT',
                     },
                 },
@@ -36,7 +59,7 @@ export class ComplaintService {
                 data: {
                     title: body.title,
                     content: body.content,
-                    isPrivate: body.isPrivate,
+                    isPrivate: body.isPrivate ?? false,
                     status: 'PENDING',
                     userId: BigInt(user.id),
                     boardId: board.id,
@@ -45,7 +68,7 @@ export class ComplaintService {
 
             const admins = await tx.user.findMany({
                 where: {
-                    apartmentId: BigInt(body.apartmentId),
+                    apartmentId: userApartmentId,
                     role: { in: ['ADMIN', 'SUPER_ADMIN'] },
                 },
                 select: { id: true },
@@ -69,7 +92,33 @@ export class ComplaintService {
     // 민원 목록 조회
     async getComplaintList(user: GetComplaintListReqDto['user'], query: GetComplaintListReqDto['query']) {
         const skip = (query.page - 1) * query.limit;
-        return await this.complaintRepo.findMany(BigInt(user.apartmentId), skip, query.limit, query.status, query.keyword);
+        const dbStatus = query.status ? (this.frontToDbStatusMap[query.status] as ComplaintStatus) : undefined;
+        const { total, list } = await this.complaintRepo.findMany(
+            BigInt(user.apartmentId),
+            skip,
+            query.limit,
+            dbStatus,
+            query.keyword,
+            query.dong,
+            query.ho,
+            query.isPublic,
+        );
+        const mappedList = list.map((item) => ({
+            complaintId: safeString(item.id),
+            title: item.title,
+            content: item.content,
+            writerName: item.user.name,
+            dong: item.user.building ?? '0',
+            ho: item.user.unitNumber ?? '0',
+            createdAt: item.createdAt.toISOString().split('T')[0],
+            isPublic: !item.isPrivate,
+            viewsCount: 0,
+            commentsCount: item._count.comments,
+            status: this.reverseStatusMap[item.status] || item.status,
+            userId: safeString(item.userId),
+        }));
+
+        return { total, list: mappedList };
     }
 
     // 민원 상세 조회
@@ -84,9 +133,22 @@ export class ComplaintService {
             }
         }
 
-        return complaint;
+        return {
+            ...complaint,
+            complaintId: safeString(complaint.id),
+            userId: safeString(complaint.userId),
+            isPublic: !complaint.isPrivate,
+            writerName: complaint.user.name,
+            dong: complaint.user.building ?? '0',
+            ho: complaint.user.unitNumber ?? '0',
+            comments:
+                complaint.comments.map((comment) => ({
+                    ...comment,
+                    id: safeString(comment.id),
+                    userId: safeString(comment.userId),
+                })) || [],
+        };
     }
-
     // 민원 수정
     async updateComplaint(complaintId: string, user: UpdateComplaintReqDto['user'], body: UpdateComplaintReqDto['body']) {
         const complaint = await this.complaintRepo.findById(BigInt(complaintId));
@@ -128,8 +190,9 @@ export class ComplaintService {
             await tx.notification.create({
                 data: {
                     userId: complaint.userId,
-                    content: `작성하신 민원의 상태가 [${status}](으)로 변경되었습니다.`,
+                    content: `작성하신 민원의 상태가 [${this.statusNotificationLabels[status]}] 상태로 변경되었습니다.`,
                     type: 'COMPLAINT',
+                    referenceId: BigInt(complaintId),
                 },
             });
 

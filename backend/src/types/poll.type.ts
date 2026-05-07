@@ -13,10 +13,11 @@ export interface AuthUser {
 export interface CreatePollData {
     title: string;
     content: string;
-    buildingPermission: number;
+    buildingPermission?: number;
+    building?: number;
     startDate: string;
     endDate: string;
-    options: string[];
+    options: { title: string }[];
     boardId: bigint;
 }
 
@@ -27,6 +28,7 @@ export interface UpdatePollData {
     startDate?: string;
     endDate?: string;
     buildingPermission?: number;
+    options?: { title: string }[];
 }
 
 export interface PollFilterQuery {
