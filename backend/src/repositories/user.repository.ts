@@ -1,3 +1,4 @@
+import { Prisma } from 'generated/prisma';
 import { GetResidentAccountListQueryDTO, UpdateProfileDTO, UpdateResidentAccountDTO } from '../dtos/auth.dto';
 import { prisma } from '../lib/prisma';
 
@@ -147,14 +148,16 @@ export async function findResidentAccountById(userId: string, apartmentId: bigin
 }
 
 export async function updateMyProfile(userId: string, data: UpdateProfileDTO) {
+    const updateData: Prisma.UserUpdateInput = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.contact !== undefined) updateData.contact = data.contact;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.profileImage !== undefined) updateData.profileImage = data.profileImage;
+    if (data.newPassword) updateData.password = data.newPassword;
+
     return prisma.user.update({
         where: { id: BigInt(userId) },
-        data: {
-            name: data.name,
-            contact: data.contact,
-            email: data.email,
-            profileImage: data.profileImage,
-        },
+        data: updateData,
     });
 }
 
