@@ -21,8 +21,8 @@ export const createPollReqSchema = z
         body: z.object({
             title: z.string().min(1),
             content: z.string().min(1),
-            startDate: z.string().datetime(),
-            endDate: z.string().datetime(),
+            startDate: z.coerce.date(),
+            endDate: z.coerce.date(),
             apartmentId: z.string(),
             building: z.number().int().nullable().optional(),
             options: z.array(z.string().min(1)).min(2),

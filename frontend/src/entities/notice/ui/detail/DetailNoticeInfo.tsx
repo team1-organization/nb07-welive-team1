@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import { NoticeDetailProps } from '@/entities/notice/model/notice.types';
 import { translateCategory } from '@/shared/lib/translateCategory';
+import Image from 'next/image';
 
 interface DetailNoticeInfoProps {
   data: NoticeDetailProps | null;
@@ -16,6 +16,10 @@ export default function DetailNoticeInfo({
   commentsCount,
 }: DetailNoticeInfoProps) {
   if (!data) return null;
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? dateString : date.toLocaleDateString();
+  };
   return (
     <div className='border-b border-gray-200'>
       <div className='mb-5 text-sm text-gray-500'>공지사항</div>
@@ -24,7 +28,7 @@ export default function DetailNoticeInfo({
         <ul className='flex gap-4 text-[14px] text-gray-400'>
           <li className='text-main'>{translateCategory(data.category)}</li>
           <li className='text-gray-200'>|</li>
-          <li className='text-gray-500'>{data.createdAt}</li>
+          <li className='text-gray-500'>{formatDate(data.createdAt)}</li>
           <li className='text-gray-200'>|</li>
           <li>조회수 {data.viewsCount}</li>
           <li className='text-gray-200'>|</li>

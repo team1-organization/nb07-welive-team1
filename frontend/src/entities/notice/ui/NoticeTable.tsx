@@ -1,11 +1,10 @@
 import { AdminNoticeTypes, AdminTableProps } from '../model/notice.types';
 
-import { AdminNoticeCOLUMNS } from '../model/constants';
 import EditDeleteBtn from '@/shared/EditDeleteBtn';
-import Link from 'next/link';
 import Pagination from '@/shared/Pagination';
-import { formatDateToKST } from '@/shared/lib/formatDateToKST';
 import { translateCategory } from '@/shared/lib/translateCategory';
+import Link from 'next/link';
+import { AdminNoticeCOLUMNS } from '../model/constants';
 
 export default function NoticeTable({
   data,
@@ -90,7 +89,7 @@ export default function NoticeTable({
                             deleteClick={() => deleteClick(row)}
                           />
                         ) : col.key === 'createdAt' ? (
-                          <div>{formatDateToKST(row[col.key] as string)}</div>
+                         <div>{new Date(row[col.key] as string).toLocaleDateString()}</div>
                         ) : (
                           translateCategory(row[col.key])
                         )}

@@ -9,6 +9,7 @@ import swaggerUi from 'swagger-ui-express';
 import { errorHandler } from './errors/errorHandler';
 import passport from './lib/passport';
 import socket from './lib/socket';
+import { PollRepository } from './repositories/poll.repository';
 import apartmentRouter from './routers/apartment.router';
 import authRouter from './routers/auth.router';
 import commentRouter from './routers/comment.router';
@@ -20,6 +21,8 @@ import optionRouter from './routers/option.router';
 import pollRouter from './routers/poll.router';
 import residentRouter from './routers/resident.router';
 import userRouter from './routers/user.router';
+import { PollService } from './services/poll.service';
+import { initializeScheduler } from './utils/scheduler';
 
 BigInt.prototype.toJSON = function (): string {
     return this.toString();
@@ -106,5 +109,10 @@ app.use(errorHandler);
 
 const server = http.createServer(app);
 socket.initialize(server);
+
+const pollRepository = new PollRepository();
+const pollService = new PollService(pollRepository);
+
+initializeScheduler(pollService);
 
 export default server;
