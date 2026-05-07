@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 import { fetchResidentNoticeDetail } from '@/entities/notice/api/noticeApi';
-import CommentSection from '@/shared/comments/ui/CommentSection';
 import { BoardType } from '@/shared/comments/api/comment.api';
+import CommentSection from '@/shared/comments/ui/CommentSection';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 type NoticeDetail = {
   title: string;
@@ -13,6 +13,12 @@ type NoticeDetail = {
   isPinned: boolean;
   content: string;
   boardName: string;
+  pollResult?: {
+    id: string;
+    title: string;
+    options: { id: string; title: string; voteCount: number }[];
+    totalVotes: number;
+  } | null;
   comments: {
     id: string;
     userId: string;
@@ -36,6 +42,11 @@ export default function DetailResidentNoticePage() {
   const router = useRouter();
   const { id: noticeId } = router.query;
   const [notice, setNotice] = useState<NoticeDetail | null>(null);
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? dateString : date.toLocaleDateString();
+  };
 
   useEffect(() => {
     if (!noticeId || typeof noticeId !== 'string') return;
@@ -67,7 +78,7 @@ export default function DetailResidentNoticePage() {
               {CATEGORY_LABEL_MAP[notice.category as keyof typeof CATEGORY_LABEL_MAP]}
             </li>
             <li className='text-gray-200'>|</li>
-            <li className='text-gray-500'>{notice.createdAt}</li>
+            <li className='text-gray-500'>{formatDate(notice.createdAt)}</li>
             <li className='text-gray-200'>|</li>
             <li>조회수&nbsp;&nbsp;{notice.viewsCount}</li>
             <li className='text-gray-200'>|</li>
@@ -79,6 +90,37 @@ export default function DetailResidentNoticePage() {
       <div className='mt-[40px] mb-[90px] text-lg leading-relaxed whitespace-pre-wrap'>
         {notice.content}
       </div>
+      {notice.pollResult && (
+        <div className='mb-[90px] rounded-xl border border-gray-200 bg-gray-50 p-8'>
+          <div className='mb-6 flex items-center justify-between'>
+            <h3 className='text-xl font-bold text-main'>📊 투표 결과 안내</h3>
+            <span className='text-sm text-gray-500'>총 {notice.pollResult.totalVotes}명 참여</span>
+          </div>
+          
+          <div className='flex flex-col gap-5'>
+            {notice.pollResult.options.map((option) => {
+              const percentage = notice.pollResult!.totalVotes > 0 
+                ? Math.round((option.voteCount / notice.pollResult!.totalVotes) * 100) 
+                : 0;
+
+              return (
+                <div key={option.id} className='flex flex-col gap-2'>
+                  <div className='flex justify-between font-medium'>
+                    <span>{option.title}</span>
+                    <span>{option.voteCount}표 ({percentage}%)</span>
+                  </div>
+                  <div className='h-3 w-full overflow-hidden rounded-full bg-gray-200'>
+                    <div 
+                      className='bg-main h-full transition-all duration-500' 
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <CommentSection
         initialComments={notice.comments}
         boardId={noticeId as string}

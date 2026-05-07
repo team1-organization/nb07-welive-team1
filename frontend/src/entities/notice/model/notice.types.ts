@@ -158,4 +158,10 @@ export interface NoticeDetailProps {
   comments: Comment[];
   createdAt: string;
   date?: string;
+  pollResult?: {
+    id: string;
+    title: string;
+    options: { id: string; title: string; voteCount: number }[];
+    totalVotes: number;
+  } | null;
 }

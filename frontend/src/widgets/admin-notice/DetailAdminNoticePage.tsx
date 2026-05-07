@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
-import DeleteModal from '@/shared/DeleteModal';
+import { NoticeDetailProps } from '@/entities/notice/model/notice.types';
 import DetailNoticeCommentForm from '@/entities/notice/ui/detail/DetailNoticeCommentForm';
 import DetailNoticeCommentList from '@/entities/notice/ui/detail/DetailNoticeCommentList';
 import DetailNoticeInfo from '@/entities/notice/ui/detail/DetailNoticeInfo';
-import { NoticeDetailProps } from '@/entities/notice/model/notice.types';
+import DeleteModal from '@/shared/DeleteModal';
 import axiosInstance from '@/shared/lib/axios';
 import { useAuthStore } from '@/shared/store/auth.store';
 import { useRouter } from 'next/router';
@@ -139,9 +139,41 @@ export default function DetailAdminNoticePage() {
             commentsCount={comments.length}
           />
 
-          <div className='mt-[40px] mb-[90px] text-lg leading-relaxed whitespace-pre-wrap'>
+          <div className='mt-[40px] mb-[40px] text-lg leading-relaxed whitespace-pre-wrap'>
             {data.content}
           </div>
+
+          {data.pollResult && (
+            <div className='mb-[90px] rounded-xl border border-gray-200 bg-gray-50 p-8'>
+              <div className='mb-6 flex items-center justify-between'>
+                <h3 className='text-xl font-bold text-main'>📊 투표 결과 안내</h3>
+                <span className='text-sm text-gray-500'>총 {data.pollResult.totalVotes}명 참여</span>
+              </div>
+              
+              <div className='flex flex-col gap-5'>
+                {data.pollResult.options.map((option) => {
+                  const percentage = data.pollResult!.totalVotes > 0 
+                    ? Math.round((option.voteCount / data.pollResult!.totalVotes) * 100) 
+                    : 0;
+
+                  return (
+                    <div key={option.id} className='flex flex-col gap-2'>
+                      <div className='flex justify-between font-medium'>
+                        <span>{option.title}</span>
+                        <span>{option.voteCount}표 ({percentage}%)</span>
+                      </div>
+                      <div className='h-3 w-full overflow-hidden rounded-full bg-gray-200'>
+                        <div 
+                          className='bg-main h-full transition-all duration-500' 
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </>
       )}
 

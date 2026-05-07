@@ -4,7 +4,10 @@ import { PollRepository } from '../repositories/poll.repository';
 import { AuthUser, CreatePollData, PollFilterQuery, UpdatePollData } from '../types/poll.type';
 
 export class PollService {
-    private pollRepository = new PollRepository();
+    private pollRepository: PollRepository;
+    constructor(pollRepository?: PollRepository) {
+        this.pollRepository = pollRepository || new PollRepository();
+    }
 
     async createPoll(user: AuthUser, data: CreatePollData) {
         if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
@@ -157,7 +160,7 @@ export class PollService {
         }
 
         if (data.status === PollStatus.CLOSED && poll.status !== PollStatus.CLOSED) {
-            await this.closeAndCreateNotice(pollId, BigInt(user.id));
+            await this.closeAndCreateNotice(pollId);
         }
 
         return await this.pollRepository.update(pollId, data);
@@ -178,7 +181,27 @@ export class PollService {
         return await this.pollRepository.delete(pollId);
     }
 
-    private async closeAndCreateNotice(pollId: bigint, adminId: bigint) {
+    public async autoCloseExpiredPolls(): Promise<void> {
+        const now = new Date();
+
+        const expiredPolls = await prisma.poll.findMany({
+            where: {
+                endDate: { lte: now },
+                status: { not: PollStatus.CLOSED },
+            },
+            select: { id: true },
+        });
+
+        for (const poll of expiredPolls) {
+            try {
+                await this.closeAndCreateNotice(poll.id);
+            } catch (error) {
+                console.error(`[PollService] Failed to auto-close poll ID ${poll.id.toString()}:`, error);
+            }
+        }
+    }
+
+    private async closeAndCreateNotice(pollId: bigint): Promise<void> {
         const poll = await this.pollRepository.findById(pollId);
         if (!poll) return;
 
@@ -202,13 +225,33 @@ export class PollService {
                     data: {
                         category: 'RESIDENT_VOTE',
                         title: `[투표 결과 안내] ${poll.title}`,
-                        content: `해당 주민 투표가 종료되었습니다. 결과를 확인해 주세요.`,
-                        userId: adminId,
+                        content: `해당 주민 투표가 종료되었습니다. 하단의 투표 결과를 확인해 주세요.`,
+                        userId: poll.userId,
                         boardId: noticeBoard.id,
+                        referenceId: pollId,
                     },
                 });
             }
         });
+    }
+
+    public async getPollDetailForNotice(pollId: bigint) {
+        const poll = await this.pollRepository.findById(pollId);
+
+        if (!poll) return null;
+
+        return {
+            id: poll.id.toString(),
+            title: poll.title,
+            startDate: poll.startDate.toISOString(),
+            endDate: poll.endDate.toISOString(),
+            options: poll.pollOptions.map((option) => ({
+                id: option.id.toString(),
+                title: option.title,
+                voteCount: option._count?.votes || 0,
+            })),
+            totalVotes: poll.pollOptions.reduce((acc, cur) => acc + (cur._count?.votes || 0), 0),
+        };
     }
     private getComputedStatus(status: PollStatus, startDate: Date, endDate: Date): PollStatus {
         if (status === PollStatus.CLOSED) return PollStatus.CLOSED;
