@@ -12,11 +12,9 @@ import { User, UserData } from '../types/auth.type';
 import { safeString } from '../utils/string.util';
 
 // [모든 사용자] 로그인
-export async function login(userId: string) {
-    const userEntity = await authRepository.findUserById(userId);
-    if (!userEntity) throw new UnauthorizedError('Unauthorized');
+export function login(userId: string) {
     const { accessToken, refreshToken } = generateTokens(userId);
-    return { accessToken, refreshToken, user: User.fromEntity(userEntity) };
+    return { accessToken, refreshToken };
 }
 
 // 회원가입
