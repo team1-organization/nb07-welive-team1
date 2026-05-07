@@ -81,6 +81,11 @@ export const updateProfileBody = baseUserSchema
         profileImage: true,
         email: true,
     })
+    .extend({
+        // 비밀번호 변경 필드 추가
+        currentPassword: z.string().optional(),
+        newPassword: z.string().optional(),
+    })
     .partial()
     .refine((value) => Object.keys(value).length > 0, {
         message: '수정할 정보가 없습니다.',

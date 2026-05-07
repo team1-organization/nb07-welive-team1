@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import { UnauthorizedError } from 'src/errors/UnauthorizedError';
 import { ChangePasswordDTO, GetResidentAccountListQueryDTO, UpdateProfileDTO, UpdateResidentAccountDTO } from '../dtos/auth.dto';
 import { BadRequestError } from '../errors/BadRequestError';
 import { ForbiddenError } from '../errors/ForbiddenError';
@@ -18,6 +19,12 @@ export async function getMyProfile(userId: string) {
 export async function updateMyProfile(userId: string, data: UpdateProfileDTO) {
     const user = await userRepository.findUserById(userId);
     if (!user) throw new NotFoundError('사용자를 찾을 수 없습니다.');
+
+    if (data.currentPassword && data.newPassword) {
+        const isMatch = await bcrypt.compare(data.currentPassword, user.password);
+        if (!isMatch) throw new UnauthorizedError('현재 비밀번호가 일치하지 않습니다.');
+        data.newPassword = await bcrypt.hash(data.newPassword, 10);
+    }
 
     const updatedUser = await userRepository.updateMyProfile(userId, data);
     return {

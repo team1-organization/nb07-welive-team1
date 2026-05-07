@@ -41,7 +41,7 @@ export const createNoticeBodySchema = z
 // GET /api/notices 전체조회
 export const getNoticeListQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
-    limit: z.coerce.number().int().min(1).max(100).default(10),
+    limit: z.coerce.number().int().min(1).max(1000).default(10),
     boardId: z.coerce.bigint().positive('올바른 게시판 ID 형식이어야 합니다').optional(),
     category: noticeCategorySchema.optional(),
     search: z.string().trim().max(100).optional(),
