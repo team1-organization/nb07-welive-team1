@@ -5,6 +5,7 @@ import { useAuthStore } from '@/shared/store/auth.store';
 import Title from '@/shared/Title';
 import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
+<<<<<<< Updated upstream
 import { AdminCivilListFilter, ResidentCivilListFilter } from './CivilListFilter';
 import CivilListTable from './CivilListTable';
 
@@ -16,6 +17,10 @@ const statusDisplayMap: Record<ComplaintStatus, string> = {
   RESOLVED: '처리완료',
   REJECTED: '처리불가',
 };
+=======
+import { AdminCivilListFilter, ResidentCivilListFilter, statusOptions } from './CivilListFilter';
+import CivilListTable from './CivilListTable';
+>>>>>>> Stashed changes
 
 const ITEMS_PER_PAGE = 11;
 
@@ -55,12 +60,20 @@ export default function CivilListPage() {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const dongOptions = useMemo(() => {
+<<<<<<< Updated upstream
     const dongs = new Set(complaints?.map((item) => item.dong) || []);
+=======
+    const dongs = new Set(complaints?.map((item) => item.dong));
+>>>>>>> Stashed changes
     return Array.from(dongs).map((dong) => ({ value: dong, label: `${dong}동` }));
   }, [complaints]);
 
   const hoOptions = useMemo(() => {
+<<<<<<< Updated upstream
     const hos = new Set(complaints?.map((item) => item.ho) || []);
+=======
+    const hos = new Set(complaints?.map((item) => item.ho));
+>>>>>>> Stashed changes
     return Array.from(hos).map((ho) => ({ value: ho, label: `${ho}호` }));
   }, [complaints]);
 

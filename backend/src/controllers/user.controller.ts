@@ -19,7 +19,12 @@ export async function getMyProfile(req: Request, res: Response) {
 export async function updateMyProfile(req: Request, res: Response) {
     const user = getAuthenticatedUser(req);
 
-    const data = updateProfileBody.parse(req.body);
+    const file = req.file as Express.MulterS3File | undefined;
+
+    const data = updateProfileBody.parse({
+        ...req.body,
+        profileImage: file?.location,
+    });
 
     const updatedProfile = await userService.updateMyProfile(user.id, data);
 

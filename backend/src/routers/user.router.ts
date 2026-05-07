@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { s3Util } from 'src/utils/s3.util';
 import * as userController from '../controllers/user.controller';
 import passport from '../lib/passport';
 import { withAsync } from '../lib/withAsync';
@@ -10,7 +11,7 @@ router.use(passport.authenticate('accessToken', { session: false, failWithError:
 // [모든 사용자] 개인정보 조회
 router.get('/me', withAsync(userController.getMyProfile));
 // [모든 사용자] 개인정보 수정
-router.patch('/me', withAsync(userController.updateMyProfile));
+router.patch('/me', s3Util.single('file'), withAsync(userController.updateMyProfile));
 // [모든 사용자] 비밀번호 변경
 router.patch('/password', withAsync(userController.updatePassword));
 

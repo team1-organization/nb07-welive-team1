@@ -69,14 +69,14 @@ export default function CivilListTable({
                   데이터 로딩 중...
                 </td>
               </tr>
-            ) : filteredData.length === 0 ? (
+            ) : filteredData?.length === 0 ? (
               <tr>
                 <td colSpan={8} className='p-10 text-center text-gray-400'>
                   아직 작성된 민원이 없습니다.
                 </td>
               </tr>
             ) : (
-              filteredData.map((item, index) => {
+              filteredData?.map((item, index) => {
                 const no = (currentPage - 1) * itemsPerPage + index + 1;
                 const isOwn = item.userId === currentUserId;
 

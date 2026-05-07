@@ -1,14 +1,20 @@
 import type { User as UserType } from './auth.type';
-import { MulterS3File } from 'multer-s3';
 
 declare global {
     namespace Express {
         interface User extends UserType {}
 
+        interface MulterS3File extends Multer.File {
+            location: string;
+            bucket: string;
+            key: string;
+            acl: string;
+        }
+
         interface Request {
             user?: User;
-            file?: Multer.File | MulterS3File;
-            files?: Multer.File[] | { [fieldName: string]: Multer.File[] } | MulterS3File[];
+            file?: MulterS3File;
+            files?: MulterS3File[] | { [fieldName: string]: MulterS3File[] } | MulterS3File[];
         }
     }
 
