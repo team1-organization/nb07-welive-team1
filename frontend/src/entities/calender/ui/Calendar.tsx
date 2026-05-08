@@ -1,10 +1,10 @@
-import { DAY_LABELS, MONTH_LABELS, getMonthMatrix, toYMDHM } from '../model/calendar.utils';
 import { useEffect, useState } from 'react';
+import { DAY_LABELS, MONTH_LABELS, getMonthMatrix, toYMDHM } from '../model/calendar.utils';
 
-import { EventsProps } from '../model/calendar.types';
-import Image from 'next/image';
 import axiosInstance from '@/shared/lib/axios';
 import { useAuthStore } from '@/shared/store/auth.store';
+import Image from 'next/image';
+import { EventsProps } from '../model/calendar.types';
 
 // KST
 function toKST(date: Date | string): Date {
@@ -32,8 +32,9 @@ function isDateInRange(cellDate: Date, start: string, end: string): boolean {
 }
 
 export default function Calendar() {
-  const [year, setYear] = useState<number>(2025);
-  const [month, setMonth] = useState<number>(5);
+  const now = new Date();
+  const [year, setYear] = useState<number>(now.getFullYear());
+  const [month, setMonth] = useState<number>(now.getMonth());
   const [updateEvents, setUpdateEvents] = useState<EventsProps[]>([]);
   const user = useAuthStore((state) => state.user);
 
