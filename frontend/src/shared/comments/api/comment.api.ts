@@ -15,7 +15,18 @@ export interface IComment {
   writerName: string;
 }
 
-// 댓글 등록
+
+interface CreateCommentResponse {
+  message: string; 
+  data: {        
+    comment: IComment;
+    board: {
+      id: string;
+      boardType: BoardType;
+    };
+  };
+}
+
 export const createComment = async ({
   boardId,
   boardType,
@@ -24,16 +35,15 @@ export const createComment = async ({
   boardId: string;
   boardType: BoardType;
   content: string;
-}) => {
-  const res = await axios.post('/comments', {
+}): Promise<IComment> => {
+  const res = await axios.post<CreateCommentResponse>('/comments', {
     boardId,
     boardType,
     content,
   });
 
-  return res.data.comment;
+  return res.data.data.comment; 
 };
-
 // 댓글 수정
 export const updateComment = async ({
   commentId,
