@@ -72,7 +72,7 @@ export class Apartment {
     readonly adminId?: string;
     readonly adminContact?: string;
     readonly adminEmail?: string;
-
+    readonly adminName?: string;
     readonly createdAt?: string;
     readonly updatedAt?: string;
 
@@ -95,6 +95,7 @@ export class Apartment {
         this.endHoNumber = params.endHoNumber;
         this.apartmentStatus = params.apartmentStatus;
         this.adminId = params.adminId ?? undefined;
+        this.adminName = params.adminName ?? undefined;
         this.adminContact = params.adminContact ?? undefined;
         this.adminEmail = params.adminEmail ?? undefined;
 
@@ -124,7 +125,8 @@ export class Apartment {
             endHoNumber: data.endHoNumber ?? null,
             // 관리자 도메인 로직에 따른 상태값 매핑
             apartmentStatus: admin?.joinStatus,
-            adminId: admin?.id.toString(),
+            adminId: safeString(admin?.id),
+            adminName: safeString(admin?.name),
             adminContact: admin?.contact,
             adminEmail: admin?.email,
 

@@ -310,9 +310,12 @@ export async function createSuperAdmin(data: Extract<CreateUserDTO, { role: 'SUP
     });
 }
 
-export async function updateAdminStatus({ adminId, status }: { adminId: string; status: 'PENDING' | 'APPROVED' | 'REJECTED' }) {
+export async function updateAdminStatus({ adminId, status }: { adminId: string; status: 'APPROVED' | 'REJECTED' }) {
     return prisma.user.update({
-        where: { id: BigInt(adminId) },
+        where: {
+            id: BigInt(adminId),
+            joinStatus: 'PENDING',
+        },
         data: {
             joinStatus: status,
             isActive: status === 'APPROVED',
@@ -326,18 +329,19 @@ export async function updateAdminStatus({ adminId, status }: { adminId: string; 
     });
 }
 
-export async function updateManyAdminStatus(status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+export async function updateManyAdminStatus(status: 'APPROVED' | 'REJECTED') {
     return prisma.user.updateMany({
         where: {
             role: 'ADMIN',
+            joinStatus: 'PENDING', // 대기중 상태인 경우만 적용
         },
         data: {
-            joinStatus: status,
+            joinStatus: status, // APPROVED, REJECTED
             isActive: status === 'APPROVED',
         },
     });
 }
-export async function updateResidentStatus(residentId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+export async function updateResidentStatus(residentId: string, status: 'APPROVED' | 'REJECTED') {
     return prisma.resident.update({
         where: {
             id: BigInt(residentId),
@@ -353,7 +357,7 @@ export async function updateResidentStatus(residentId: string, status: 'PENDING'
         },
     });
 }
-export async function updateManyResidentStatus(apartmentId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+export async function updateManyResidentStatus(apartmentId: string, status: 'APPROVED' | 'REJECTED') {
     return prisma.$transaction(async (tx) => {
         // 해당 아파트의 "가입된 사용자 계정"만 조회 (residentId 있는 경우만)
         const users = await tx.user.findMany({

@@ -16,7 +16,7 @@ const getLogOptions = (): (Prisma.LogLevel | Prisma.LogDefinition)[] => {
         return ['error'] as const;
     } else {
         // 개발 환경
-        return ['query', 'info', 'warn', 'error'] as const;
+        return ['info', 'warn', 'error'] as const;
     }
 };
 export const prisma = new PrismaClient({

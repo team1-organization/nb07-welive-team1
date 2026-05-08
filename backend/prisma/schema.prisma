@@ -105,9 +105,9 @@ model User {
     unitNumber String?
 
     apartmentId BigInt?
-    apartment   Apartment? @relation(fields: [apartmentId], references: [id], onDelete: NoAction)
+    apartment   Apartment? @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
     residentId  BigInt?    @unique
-    resident    Resident?  @relation(fields: [residentId], references: [id], onDelete: NoAction)
+    resident    Resident?  @relation(fields: [residentId], references: [id], onDelete: Cascade)
 
     comments      Comment[]
     votes         Vote[]

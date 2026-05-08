@@ -3,6 +3,8 @@ import { NotFoundError } from '../errors/NotFoundError';
 import * as apartmentRepository from '../repositories/apartment.repository';
 import * as authRepository from '../repositories/auth.repository';
 import { Apartment } from '../types/apartment.type';
+import { BadRequestError } from '../errors/BadRequestError';
+import { UnauthorizedError } from '../errors/UnauthorizedError';
 
 export async function getApartmentsForSignup(data: GetPublicApartmentQueryDTO) {
     const { apartmentsData, apartmentsCount } = await apartmentRepository.getApartmentsForSignup(data.keyword, data.address ?? '', data.name ?? '');
@@ -18,7 +20,10 @@ export async function getApartmentBasicInfo(apartmentId: string) {
     return Apartment.fromPublicEntity(apartment);
 }
 export async function getApartmentList(data: GetAdminApartmentQueryDTO, userId: string) {
-    const { apartmentsData, apartmentsCount } = await apartmentRepository.getApartmentList();
+    const admin = await authRepository.findSuperAdminByUserId(userId);
+    if (!admin) throw new UnauthorizedError('관리자 권한이 없습니다.');
+
+    const { apartmentsData, apartmentsCount } = await apartmentRepository.getApartmentList(data);
     return {
         apartments: Apartment.fromEntityList(apartmentsData),
         totalCount: apartmentsCount,

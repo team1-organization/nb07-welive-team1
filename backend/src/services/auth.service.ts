@@ -76,15 +76,7 @@ export async function register(data: CreateUserDTO) {
     return User.fromEntityJoin(newUser);
 }
 // [슈퍼관리자] 관리자 가입 상태 변경(단건)
-export async function updateAdminStatus({
-    adminId,
-    userId,
-    status,
-}: {
-    adminId: string;
-    userId: string;
-    status: 'PENDING' | 'APPROVED' | 'REJECTED';
-}) {
+export async function updateAdminStatus({ adminId, userId, status }: { adminId: string; userId: string; status: 'APPROVED' | 'REJECTED' }) {
     const superAdmin = await authRepository.findSuperAdminByUserId(userId);
     if (!superAdmin) throw new ForbiddenError('슈퍼 관리자만 변경 가능합니다');
     const admin = await authRepository.findUserByAdminId(adminId);
@@ -93,14 +85,14 @@ export async function updateAdminStatus({
     return User.fromEntity(updatedData);
 }
 // [슈퍼관리자] 관리자 가입 상태 일괄 변경
-export async function updateManyAdminStatus(userId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+export async function updateManyAdminStatus(userId: string, status: 'APPROVED' | 'REJECTED') {
     const superAdmin = await authRepository.findSuperAdminByUserId(userId);
     if (!superAdmin) throw new ForbiddenError('슈퍼 관리자만 변경 가능합니다');
     await authRepository.updateManyAdminStatus(status);
     return { message: '관리자 가입 상태 일괄 변경이 완료되었습니다' };
 }
 // [관리자] 주민 가입 상태 변경(단건)
-export async function updateResidentStatus(residentId: string, userId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+export async function updateResidentStatus(residentId: string, userId: string, status: 'APPROVED' | 'REJECTED') {
     const admin = await authRepository.findUserById(userId);
     if (!admin || admin.role !== 'ADMIN') throw new ForbiddenError('관리자만 변경 가능합니다');
 
@@ -120,7 +112,7 @@ export async function updateResidentStatus(residentId: string, userId: string, s
     return { message: '입주민 가입 상태 변경이 완료되었습니다' };
 }
 // [관리자] 주민 가입 상태 일괄 변경
-export async function updateManyResidentStatus(userId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+export async function updateManyResidentStatus(userId: string, status: 'APPROVED' | 'REJECTED') {
     const admin = await authRepository.findUserById(userId);
     if (!admin || admin.role !== 'ADMIN') throw new ForbiddenError('관리자만 변경 가능합니다');
     if (!admin.apartmentId) throw new BadRequestError('아파트 정보가 없습니다');

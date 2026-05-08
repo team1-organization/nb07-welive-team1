@@ -113,6 +113,7 @@ export async function updateAdminInfo(req: Request, res: Response) {
     });
 
     const data = updateAdminBody.parse(req.body);
+
     const result = await authService.updateAdminInfo(adminId, userId, data);
 
     return res.status(200).json(result);
