@@ -430,11 +430,8 @@ export async function updateAdminInfo(adminId: string, data: UpdateAdminDTO) {
 }
 
 export async function deleteAdmin(adminId: string) {
-    return prisma.user.update({
+    return prisma.user.delete({
         where: { id: BigInt(adminId) },
-        data: {
-            isActive: false,
-        },
     });
 }
 
