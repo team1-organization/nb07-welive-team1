@@ -310,9 +310,12 @@ export async function createSuperAdmin(data: Extract<CreateUserDTO, { role: 'SUP
     });
 }
 
-export async function updateAdminStatus({ adminId, status }: { adminId: string; status: 'PENDING' | 'APPROVED' | 'REJECTED' }) {
+export async function updateAdminStatus({ adminId, status }: { adminId: string; status: 'APPROVED' | 'REJECTED' }) {
     return prisma.user.update({
-        where: { id: BigInt(adminId) },
+        where: {
+            id: BigInt(adminId),
+            joinStatus: 'PENDING',
+        },
         data: {
             joinStatus: status,
             isActive: status === 'APPROVED',
@@ -330,6 +333,7 @@ export async function updateManyAdminStatus(status: 'PENDING' | 'APPROVED' | 'RE
     return prisma.user.updateMany({
         where: {
             role: 'ADMIN',
+            joinStatus: 'PENDING',
         },
         data: {
             joinStatus: status,
@@ -341,6 +345,9 @@ export async function updateResidentStatus(residentId: string, status: 'PENDING'
     return prisma.resident.update({
         where: {
             id: BigInt(residentId),
+            user: {
+                joinStatus: 'PENDING',
+            },
         },
         data: {
             approvalStatus: status,
@@ -426,11 +433,8 @@ export async function updateAdminInfo(adminId: string, data: UpdateAdminDTO) {
 }
 
 export async function deleteAdmin(adminId: string) {
-    return prisma.user.update({
+    return prisma.user.delete({
         where: { id: BigInt(adminId) },
-        data: {
-            isActive: false,
-        },
     });
 }
 
