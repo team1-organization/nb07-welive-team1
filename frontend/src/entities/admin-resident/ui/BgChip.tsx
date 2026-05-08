@@ -20,7 +20,7 @@ const statusStyleMap: Record<string, { bg: string; text: string }> = {
 export default function BgChip({ children, className, ...props }: ChipProps) {
   const statusKoMap: Record<string, string> = {
     HOUSEHOLDER: '세대주',
-    MEMBER: '세대원',
+    HOUSEMEMBER: '세대원',
     isRegistered: '가입',
     PENDING: '대기',
     APPROVED: '승인',
