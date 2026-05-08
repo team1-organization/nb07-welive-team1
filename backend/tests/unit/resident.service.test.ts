@@ -825,6 +825,12 @@ describe('resident.service', () => {
                 },
             });
 
+            expect(tx.user.delete).toHaveBeenCalledWith({
+                where: {
+                    id: 10n,
+                },
+            });
+
             expect(tx.resident.delete).toHaveBeenCalledWith({
                 where: {
                     id: 6n,
@@ -836,12 +842,6 @@ describe('resident.service', () => {
                             email: true,
                         },
                     },
-                },
-            });
-
-            expect(tx.user.delete).toHaveBeenCalledWith({
-                where: {
-                    id: 10n,
                 },
             });
 

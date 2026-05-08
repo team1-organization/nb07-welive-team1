@@ -100,6 +100,7 @@ export async function updateManyResidentStatus(req: Request, res: Response) {
         userId: req.user?.id,
     });
     const { status } = statusSchema.parse(req.body);
+    if (status === 'PENDING') throw new UnauthorizedError('일괄 변경은 승인 또는 거절만 가능합니다.');
     const result = await authService.updateManyResidentStatus(userId, status);
     return res.status(200).json(result);
 }
