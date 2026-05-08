@@ -1,15 +1,15 @@
-import Button from '@/shared/Button';
-import Image from 'next/image';
-import Modal from '@/shared/Modal';
-import { useEffect, useState } from 'react';
-import Input from '@/shared/Input';
-import Select from '@/shared/Select';
-import StatusChip from '@/entities/resident-info/ui/StatusChip';
-import axios from '@/shared/lib/axios';
-import { residentInfoType } from '@/entities/resident-info/type';
-import { useApartmentOptions } from '@/entities/civil/model/useApartmentOptions';
 import { updateResidentApprovalStatus } from '@/entities/auth/api/resident.api';
 import { ApprovalStatus } from '@/entities/auth/api/type';
+import { useApartmentOptions } from '@/entities/civil/model/useApartmentOptions';
+import { residentInfoType } from '@/entities/resident-info/type';
+import StatusChip from '@/entities/resident-info/ui/StatusChip';
+import Button from '@/shared/Button';
+import Input from '@/shared/Input';
+import axios from '@/shared/lib/axios';
+import Modal from '@/shared/Modal';
+import Select from '@/shared/Select';
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 type Props = {
   data: residentInfoType[];
@@ -156,7 +156,7 @@ export default function ResidentInfoTable({ data, totalCount, currentPage, items
               <Select
                 options={[
                   { value: 'HOUSEHOLDER', label: '세대주' },
-                  { value: 'MEMBER', label: '세대원' },
+                  { value: 'HOUSEMEMBER', label: '세대원' },
                 ]}
                 label='세대 구분'
                 width='100%'

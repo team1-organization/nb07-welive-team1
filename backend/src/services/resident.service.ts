@@ -488,6 +488,15 @@ export const deleteResidentById = async ({ apartmentId, residentId }: DeleteResi
             });
         }
 
+        // 연결된 유저 삭제
+        if (linkedUserId) {
+            await tx.user.delete({
+                where: {
+                    id: linkedUserId,
+                },
+            });
+        }
+
         // 입주민 명부 삭제
         const removedResident = await tx.resident.delete({
             where: {
@@ -502,15 +511,6 @@ export const deleteResidentById = async ({ apartmentId, residentId }: DeleteResi
                 },
             },
         });
-
-        if (linkedUserId) {
-            // 연결된 유저 삭제
-            await tx.user.delete({
-                where: {
-                    id: linkedUserId,
-                },
-            });
-        }
 
         return removedResident;
     });

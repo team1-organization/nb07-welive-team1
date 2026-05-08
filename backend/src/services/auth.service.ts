@@ -120,7 +120,7 @@ export async function updateResidentStatus(residentId: string, userId: string, s
     return { message: '입주민 가입 상태 변경이 완료되었습니다' };
 }
 // [관리자] 주민 가입 상태 일괄 변경
-export async function updateManyResidentStatus(userId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+export async function updateManyResidentStatus(userId: string, status: 'APPROVED' | 'REJECTED') {
     const admin = await authRepository.findUserById(userId);
     if (!admin || admin.role !== 'ADMIN') throw new ForbiddenError('관리자만 변경 가능합니다');
     if (!admin.apartmentId) throw new BadRequestError('아파트 정보가 없습니다');

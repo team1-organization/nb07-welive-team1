@@ -353,13 +353,14 @@ export async function updateResidentStatus(residentId: string, status: 'PENDING'
         },
     });
 }
-export async function updateManyResidentStatus(apartmentId: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
+export async function updateManyResidentStatus(apartmentId: string, status: 'APPROVED' | 'REJECTED') {
     return prisma.$transaction(async (tx) => {
         // 해당 아파트의 "가입된 사용자 계정"만 조회 (residentId 있는 경우만)
         const users = await tx.user.findMany({
             where: {
                 apartmentId: BigInt(apartmentId),
                 role: 'USER',
+                joinStatus: 'PENDING',
                 residentId: { not: null },
             },
             select: {
@@ -386,6 +387,7 @@ export async function updateManyResidentStatus(apartmentId: string, status: 'PEN
             where: {
                 apartmentId: BigInt(apartmentId),
                 role: 'USER',
+                joinStatus: 'PENDING',
                 residentId: { not: null },
             },
             data: {
