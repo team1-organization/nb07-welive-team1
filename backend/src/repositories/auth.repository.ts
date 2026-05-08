@@ -364,6 +364,7 @@ export async function updateManyResidentStatus(apartmentId: string, status: 'APP
             where: {
                 apartmentId: BigInt(apartmentId),
                 role: 'USER',
+                joinStatus: 'PENDING',
                 residentId: { not: null },
             },
             select: {
@@ -390,6 +391,7 @@ export async function updateManyResidentStatus(apartmentId: string, status: 'APP
             where: {
                 apartmentId: BigInt(apartmentId),
                 role: 'USER',
+                joinStatus: 'PENDING',
                 residentId: { not: null },
             },
             data: {

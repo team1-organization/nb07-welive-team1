@@ -13,19 +13,19 @@ import {
 } from '@/entities/admin-resident/model/residentOptions';
 import { useEffect, useMemo, useState } from 'react';
 
+import { AdminResidentCOLUMNS } from '@/entities/admin-resident/model/constants';
+import { useAdminResidents } from '@/entities/admin-resident/model/useAdminResidents';
+import { useModal } from '@/entities/admin-resident/model/useModal';
 import AddFileModal from '@/entities/admin-resident/ui/AddFileModal';
 import AdminButton from '@/entities/admin-resident/ui/AdminButton';
-import { AdminResidentCOLUMNS } from '@/entities/admin-resident/model/constants';
-import DeleteModal from '@/shared/DeleteModal';
 import EditResidentModal from '@/entities/admin-resident/ui/EditResidentModal';
-import Pagination from '@/shared/Pagination';
 import RegisterSingleModal from '@/entities/admin-resident/ui/RegisterSingleModal';
 import ResidentTable from '@/entities/admin-resident/ui/ResidentTable';
 import SearchBar from '@/entities/admin-resident/ui/SearchBar';
 import SelectFilters from '@/entities/admin-resident/ui/SelectFilters';
+import DeleteModal from '@/shared/DeleteModal';
 import axiosInstance from '@/shared/lib/axios';
-import { useAdminResidents } from '@/entities/admin-resident/model/useAdminResidents';
-import { useModal } from '@/entities/admin-resident/model/useModal';
+import Pagination from '@/shared/Pagination';
 
 export default function AdminResidentPage() {
   const [data, setData] = useState<ResidentsResponse | null>(null);
@@ -86,7 +86,7 @@ export default function AdminResidentPage() {
 
   const isHouseholderLabelMap: Record<string, string> = {
     HOUSEHOLDER: '세대주',
-    MEMBER: '세대원',
+    HOUSEMEMBER: '세대원',
     NON_HOUSEHOLDER: '비세대주',
   };
 
