@@ -10,6 +10,7 @@ import * as noticeRepository from '../repositories/notice.repository';
 import * as notificationRepository from '../repositories/notification.repository';
 import { User } from '../types/auth.type';
 import { safeString } from '../utils/string.util';
+import * as eventService from './event.service';
 import { PollService } from './poll.service';
 
 const pollService = new PollService();
@@ -50,6 +51,15 @@ export const createNotice = async ({ user, body }: { user: User; body: CreateNot
         boardId: targetBoardId,
         userId: BigInt(user.id),
     });
+
+    if (notice.startDate && notice.endDate) {
+        await eventService.upsertEvent({
+            boardType: 'NOTICE',
+            boardId: notice.id,
+            startDate: notice.startDate.toISOString(),
+            endDate: notice.endDate.toISOString(),
+        });
+    }
 
     const users = await authRepository.findUsersByRole('USER', board.apartmentId.toString());
 
@@ -182,6 +192,18 @@ export const updateNotice = async ({ user, noticeId, body }: { user: User; notic
         noticeId,
         data: body,
     });
+
+    if (updated.startDate && updated.endDate) {
+        await eventService.upsertEvent({
+            boardType: 'NOTICE',
+            boardId: updated.id,
+            startDate: updated.startDate.toISOString(),
+            endDate: updated.endDate.toISOString(),
+        });
+    } else if (updated.startDate === null || updated.endDate === null) {
+        await eventService.deleteEventByBoardId('NOTICE', updated.id);
+    }
+
     return {
         noticeId: updated.id.toString(),
         userId: updated.userId.toString(),

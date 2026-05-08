@@ -14,6 +14,7 @@ import apartmentRouter from './routers/apartment.router';
 import authRouter from './routers/auth.router';
 import commentRouter from './routers/comment.router';
 import complaintRouter from './routers/complaint.router';
+import eventRouter from './routers/event.router';
 import imageRouter from './routers/image.router';
 import noticeRouter from './routers/notice.router';
 import notificationRouter from './routers/notification.router';
@@ -105,6 +106,7 @@ app.use('/api/notifications', notificationRouter);
 app.use('/api/users', userRouter);
 app.use('/api/images', imageRouter);
 app.use('/api/apartments', apartmentRouter);
+app.use('/api/event', eventRouter);
 app.use(errorHandler);
 
 const server = http.createServer(app);

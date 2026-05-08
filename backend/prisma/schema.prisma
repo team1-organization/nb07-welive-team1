@@ -143,6 +143,7 @@ model Apartment {
     users     User[]
     residents Resident[]
     board     Board[]
+    events   Event[]
 
     @@index([apartmentName])
 }
@@ -212,6 +213,8 @@ model Notice {
 
     referenceId BigInt?
 
+    event Event?
+
     @@index([boardId, isPinned, createdAt(sort: Desc)])
     @@index([userId])
 }
@@ -235,6 +238,7 @@ model Poll {
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     pollOptions PollOption[]
+    event       Event?
 
     @@index([boardId, status])
     @@index([userId])
@@ -324,4 +328,26 @@ model Notification {
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@index([userId, isRead])
+}
+
+model Event {
+    id          BigInt    @id @default(autoincrement())
+    title       String    
+    category    String?   
+    boardType   BoardType
+    startDate   DateTime
+    endDate     DateTime
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    apartmentId BigInt
+    apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+
+    noticeId    BigInt?   @unique
+    notice      Notice?   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+    pollId      BigInt?   @unique
+    poll        Poll?     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+    @@index([apartmentId, startDate])
 }
