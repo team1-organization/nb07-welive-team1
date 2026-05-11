@@ -15,6 +15,25 @@ export async function findUserById(userId: string) {
     });
 }
 
+export async function findAnyAdminById(userId: string) {
+    return prisma.user.findFirst({
+        where: {
+            id: BigInt(userId),
+            role: {
+                in: ['ADMIN', 'SUPER_ADMIN'],
+            },
+        },
+        include: {
+            resident: true,
+            apartment: {
+                include: {
+                    board: true,
+                },
+            },
+        },
+    });
+}
+
 export async function findUserByUserId(username: string) {
     return prisma.user.findUnique({
         where: { userId: username, isActive: true },

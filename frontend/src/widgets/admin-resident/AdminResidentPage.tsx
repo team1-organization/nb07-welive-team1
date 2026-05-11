@@ -11,7 +11,7 @@ import {
   getIsRegisteredOptions,
   getUnitNumberOptions,
 } from '@/entities/admin-resident/model/residentOptions';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AdminResidentCOLUMNS } from '@/entities/admin-resident/model/constants';
 import { useAdminResidents } from '@/entities/admin-resident/model/useAdminResidents';
@@ -59,7 +59,21 @@ export default function AdminResidentPage() {
   }, [keyword, filters, currentPage, limit]);
 
   // 입주민 명부
-  const fetchData = async () => {
+  // const fetchData = async () => {
+  //   try {
+  //     const response = await axiosInstance.get('/residents', { params: queryParams });
+  //     console.log('입주민 데이터:', response.data);
+  //     setData(response.data);
+  //   } catch (error) {
+  //     console.error('입주민 데이터 패칭 실패:', error);
+  //   }
+  // };
+  //
+  // useEffect(() => {
+  //   fetchData();
+  // }, [queryParams]);
+
+  const fetchData = useCallback(async () => {
     try {
       const response = await axiosInstance.get('/residents', { params: queryParams });
       console.log('입주민 데이터:', response.data);
@@ -67,11 +81,12 @@ export default function AdminResidentPage() {
     } catch (error) {
       console.error('입주민 데이터 패칭 실패:', error);
     }
-  };
+  }, [queryParams]);
 
   useEffect(() => {
     fetchData();
-  }, [queryParams]);
+  }, [fetchData]);
+
 
   const { registerResident, deleteResident, downloadResidentsFile } = useAdminResidents();
   const { openModal, handleModalOpen, handleModalClose } = useModal<

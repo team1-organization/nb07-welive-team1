@@ -1,7 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { GetAdminApartmentQueryDTO } from '../dtos/apartment.dto';
-import { $Enums, Prisma } from 'generated/prisma';
-import UserRole = $Enums.UserRole;
+import { Prisma } from 'generated/prisma';
 
 export async function findByApartmentName(apartmentName: string) {
     return prisma.apartment.findFirst({
@@ -37,18 +36,6 @@ export async function getApartmentsForSignup(keyword: string, address: string, n
                 id: true,
                 apartmentName: true,
                 apartmentAddress: true,
-                // apartmentManagementNumber: true,
-                // description: true,
-                // startComplexNumber: true,
-                // endComplexNumber: true,
-                // startFloorNumber: true,
-                // endFloorNumber: true,
-                // startDongNumber: true,
-                // endDongNumber: true,
-                // startHoNumber: true,
-                // endHoNumber: true,
-                // createdAt: true,
-                // updatedAt: true,
             },
             orderBy: { createdAt: 'desc' },
         }),
@@ -70,7 +57,9 @@ export async function getApartmentList(data: GetAdminApartmentQueryDTO) {
         ...(apartmentStatus && {
             users: {
                 some: {
-                    role: UserRole.ADMIN,
+                    role: {
+                        in: ['ADMIN', 'SUPER_ADMIN'],
+                    },
                     joinStatus: apartmentStatus,
                 },
             },
@@ -83,7 +72,14 @@ export async function getApartmentList(data: GetAdminApartmentQueryDTO) {
             skip: (page - 1) * limit,
             take: limit,
             include: {
-                users: { where: { role: 'ADMIN' }, take: 1 },
+                users: {
+                    where: {
+                        role: {
+                            in: ['ADMIN', 'SUPER_ADMIN'],
+                        },
+                    },
+                    take: 1,
+                },
             },
             orderBy: { createdAt: 'desc' },
         }),

@@ -5,7 +5,7 @@ import { GetServerSideProps } from 'next';
 import Image from 'next/image';
 import Input from '@/shared/Input';
 import Link from 'next/link';
-import cookie from 'cookie';
+import * as cookie from 'cookie';
 import { isAxiosError, AxiosError } from 'axios';
 import jwt from 'jsonwebtoken';
 import { postLogin } from '@/entities/auth/api/login.api';
