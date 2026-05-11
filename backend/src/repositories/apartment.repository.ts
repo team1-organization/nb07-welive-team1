@@ -1,4 +1,7 @@
 import { prisma } from '../lib/prisma';
+import { GetAdminApartmentQueryDTO } from '../dtos/apartment.dto';
+import { $Enums, Prisma } from 'generated/prisma';
+import UserRole = $Enums.UserRole;
 
 export async function findByApartmentName(apartmentName: string) {
     return prisma.apartment.findFirst({
@@ -55,15 +58,36 @@ export async function getApartmentsForSignup(keyword: string, address: string, n
     ]);
     return { apartmentsData, apartmentsCount };
 }
-export async function getApartmentList() {
+export async function getApartmentList(data: GetAdminApartmentQueryDTO) {
+    const { searchKeyword, apartmentStatus, page, limit } = data;
+    const where: Prisma.ApartmentWhereInput = {
+        ...(searchKeyword?.trim() && {
+            OR: [
+                { apartmentName: { contains: searchKeyword, mode: 'insensitive' as const } },
+                { apartmentAddress: { contains: searchKeyword, mode: 'insensitive' as const } },
+            ],
+        }),
+        ...(apartmentStatus && {
+            users: {
+                some: {
+                    role: UserRole.ADMIN,
+                    joinStatus: apartmentStatus,
+                },
+            },
+        }),
+    };
+
     const [apartmentsData, apartmentsCount] = await Promise.all([
         prisma.apartment.findMany({
+            where,
+            skip: (page - 1) * limit,
+            take: limit,
             include: {
                 users: { where: { role: 'ADMIN' }, take: 1 },
             },
             orderBy: { createdAt: 'desc' },
         }),
-        prisma.apartment.count(),
+        prisma.apartment.count({ where }),
     ]);
     return { apartmentsData, apartmentsCount };
 }

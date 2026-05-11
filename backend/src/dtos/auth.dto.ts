@@ -102,7 +102,7 @@ export const loginUserBody = z.object({
 });
 
 export const statusSchema = z.object({
-    status: z.enum(['PENDING', 'APPROVED', 'REJECTED']),
+    status: z.enum(['APPROVED', 'REJECTED']),
 });
 
 export const updateAdminBody = baseUserSchema.partial().extend({
@@ -110,6 +110,9 @@ export const updateAdminBody = baseUserSchema.partial().extend({
     apartmentName: z.string().optional(),
     apartmentAddress: z.string().optional(),
     apartmentManagementNumber: z.string().optional(),
+    email: z.string().optional(),
+    name: z.string().optional(),
+    contact: z.string().optional(),
 });
 
 // 입주민 계정 신청 목록 조회 query
