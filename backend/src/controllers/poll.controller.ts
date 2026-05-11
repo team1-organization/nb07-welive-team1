@@ -1,0 +1,166 @@
+import { NextFunction, Request, Response } from 'express';
+import { PollStatus } from '../../generated/prisma';
+import { PollService } from '../services/poll.service';
+import { AuthUser, CreatePollData, PollFilterQuery, UpdatePollData } from '../types/poll.type';
+
+export class PollController {
+    private pollService = new PollService();
+
+    createPoll = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
+            const user = req.user as unknown as AuthUser;
+
+            const body = req.body;
+            const targetBoardId = body.boardId || body.apartmentId;
+            if (!targetBoardId) {
+                return res.status(400).json({ message: 'boardId를 찾을 수 없습니다' });
+            }
+            const rawBuilding = body.building ?? body.buildingPermission;
+            const buildingNum = rawBuilding !== undefined && rawBuilding !== null && rawBuilding !== '' ? Number(rawBuilding) : 0;
+
+            const parsedOptions = Array.isArray(body.options)
+                ? body.options.map((opt: unknown) => {
+                      if (typeof opt === 'string') {
+                          return { title: opt };
+                      }
+                      if (typeof opt === 'object' && opt !== null && 'title' in opt) {
+                          return { title: String((opt as Record<string, unknown>).title) };
+                      }
+                      return { title: String(opt) };
+                  })
+                : [];
+
+            const data: CreatePollData = {
+                title: body.title,
+                content: body.content,
+                buildingPermission: buildingNum,
+                startDate: body.startDate,
+                endDate: body.endDate,
+                options: parsedOptions,
+                boardId: BigInt(String(targetBoardId)),
+            };
+
+            const result = await this.pollService.createPoll(user, data);
+
+            res.status(201).json({
+                message: '투표가 등록되었습니다.',
+                data: JSON.parse(JSON.stringify(result, (_, v) => (typeof v === 'bigint' ? v.toString() : v))),
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getPolls = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
+            const user = req.user as unknown as AuthUser;
+
+            const rawBuilding = req.query.building || req.query.buildingPermission;
+
+            const query: PollFilterQuery = {
+                status: typeof req.query.status === 'string' ? (req.query.status as PollStatus) : undefined,
+                buildingPermission: typeof rawBuilding === 'string' ? parseInt(rawBuilding, 10) : undefined,
+                searchKeyword: typeof req.query.searchKeyword === 'string' ? req.query.searchKeyword : undefined,
+            };
+
+            const result = await this.pollService.getPolls(user, query);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getPollDetail = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
+            const user = req.user as unknown as AuthUser;
+            const pollId = BigInt(String(req.params.pollId));
+
+            const result = await this.pollService.getPollDetail(user, pollId);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    vote = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
+            const user = req.user as unknown as AuthUser;
+            const optionId = BigInt(String(req.params.optionId));
+
+            const result = await this.pollService.vote(user, optionId);
+            res.status(201).json({ message: '투표가 완료되었습니다.', data: result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    cancelVote = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
+            const user = req.user as unknown as AuthUser;
+            const optionId = BigInt(String(req.params.optionId));
+
+            await this.pollService.cancelVote(user, optionId);
+            res.status(200).json({ message: '투표가 취소되었습니다.' });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    updatePoll = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
+            const user = req.user as unknown as AuthUser;
+            const pollId = BigInt(String(req.params.pollId));
+
+            const body = req.body;
+
+            const rawBuilding = body.buildingPermission ?? body.building;
+
+            const parsedOptions = Array.isArray(body.options)
+                ? body.options.map((opt: unknown) => {
+                      if (typeof opt === 'object' && opt !== null && 'title' in opt) {
+                          return { title: String((opt as Record<string, unknown>).title) };
+                      }
+                      return { title: String(opt) };
+                  })
+                : undefined;
+
+            const data: UpdatePollData = {
+                title: body.title,
+                content: body.content,
+                status: body.status,
+                startDate: body.startDate,
+                endDate: body.endDate,
+                buildingPermission: rawBuilding !== undefined && rawBuilding !== null ? Number(rawBuilding) : undefined,
+                options: parsedOptions,
+            };
+
+            const result = await this.pollService.updatePoll(user, pollId, data);
+
+            res.status(200).json({
+                message: '투표가 수정되었습니다.',
+                data: JSON.parse(JSON.stringify(result, (_, v) => (typeof v === 'bigint' ? v.toString() : v))),
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    deletePoll = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.user) throw new Error('인증되지 않은 사용자입니다.');
+            const user = req.user as unknown as AuthUser;
+            const pollId = BigInt(String(req.params.pollId));
+
+            await this.pollService.deletePoll(user, pollId);
+            res.status(200).json({ message: '투표가 삭제되었습니다.' });
+        } catch (error) {
+            next(error);
+        }
+    };
+}

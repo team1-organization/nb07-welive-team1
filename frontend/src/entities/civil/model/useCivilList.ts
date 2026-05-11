@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import axios from '@/shared/lib/axios';
+import { useEffect, useState } from 'react';
 import { CivilListType } from '../type';
 
 type Params = {
@@ -22,13 +22,13 @@ export function useCivilList({ page, limit, status, isPublic, dong, ho, keyword 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
-  //filter undefined params
-  const filteredParams = Object.fromEntries(
-    Object.entries({ status, isPublic, dong, ho, keyword }).filter(([, v]) => v !== undefined),
-  );
+  
 
   useEffect(() => {
     const fetchData = async () => {
+      const filteredParams = Object.fromEntries(
+    Object.entries({ status, isPublic, dong, ho, keyword }).filter(([, v]) => v !== undefined),
+  );
       try {
         setLoading(true);
         setError(null);
@@ -40,7 +40,12 @@ export function useCivilList({ page, limit, status, isPublic, dong, ho, keyword 
           },
         });
 
-        setData(res.data || { complaints: [], totalCount: 0 });
+        if (res.data) {
+          setData({
+            complaints: res.data.list ?? [],
+            totalCount: res.data.total ?? 0,
+          });
+        }
       } catch (err) {
         console.error('민원 데이터 불러오기 실패:', err);
         setError(err);

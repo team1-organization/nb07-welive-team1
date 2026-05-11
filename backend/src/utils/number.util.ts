@@ -5,9 +5,9 @@
  * @returns {boolean} 유효한 숫자이면 true
  */
 export function isNumeric(value: unknown): value is number {
-  // Number.isFinite NaN, Infinity, undefined, null 등을 모두 false로 처리합니다.
-  // 문자열이 들어올 경우 강제 형변환하여 처리합니다.
-  return typeof value === 'number' && Number.isFinite(value);
+    // Number.isFinite NaN, Infinity, undefined, null 등을 모두 false로 처리합니다.
+    // 문자열이 들어올 경우 강제 형변환하여 처리합니다.
+    return typeof value === 'number' && Number.isFinite(value);
 }
 
 /**
@@ -18,9 +18,9 @@ export function isNumeric(value: unknown): value is number {
  * @returns {number} 변환된 숫자 또는 기본값
  */
 export function safeNumber(value: unknown, defaultVal: number = 0): number {
-  if (!isNumeric(value)) return defaultVal;
+    if (!isNumeric(value)) return defaultVal;
 
-  return isNumeric(value) ? value : defaultVal;
+    return isNumeric(value) ? value : defaultVal;
 }
 
 /**
@@ -30,8 +30,8 @@ export function safeNumber(value: unknown, defaultVal: number = 0): number {
  * @returns {boolean} 양수이면 true
  */
 export function isPositive(value: unknown): boolean {
-  // 기본값을 -1로 하여 유효하지 않은 값은 false가 되도록 유도
-  return safeNumber(value, NaN) > 0;
+    // 기본값을 -1로 하여 유효하지 않은 값은 false가 되도록 유도
+    return safeNumber(value, NaN) > 0;
 }
 
 /**
@@ -40,7 +40,7 @@ export function isPositive(value: unknown): boolean {
  * @returns {boolean} 정수이면 true
  */
 export function isInteger(value: unknown): boolean {
-  return Number.isInteger(safeNumber(value, NaN));
+    return Number.isInteger(safeNumber(value, NaN));
 }
 
 /**
@@ -50,19 +50,15 @@ export function isInteger(value: unknown): boolean {
  * @param {string} style - 포맷 스타일 ('decimal', 'currency', 'percent')
  * @returns {string} 포맷된 문자열
  */
-export function formatNumber(
-  value: unknown,
-  locale: string = 'ko-KR',
-  style: Intl.NumberFormatOptions = { style: 'decimal' },
-): string {
-  const num = safeNumber(value, 0);
-  try {
-    return new Intl.NumberFormat(locale, style).format(num);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('숫자 포맷 오류:', error);
-    return String(num); // 원본 숫자 문자열 반환
-  }
+export function formatNumber(value: unknown, locale: string = 'ko-KR', style: Intl.NumberFormatOptions = { style: 'decimal' }): string {
+    const num = safeNumber(value, 0);
+    try {
+        return new Intl.NumberFormat(locale, style).format(num);
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('숫자 포맷 오류:', error);
+        return String(num); // 원본 숫자 문자열 반환
+    }
 }
 
 /**
@@ -71,9 +67,9 @@ export function formatNumber(
  * @returns {string} 예: "1,234,567원"
  */
 export function formatCurrency(value: unknown): string {
-  const formatted = formatNumber(value, 'ko-KR', {
-    style: 'decimal',
-    maximumFractionDigits: 0,
-  });
-  return `${formatted}원`;
+    const formatted = formatNumber(value, 'ko-KR', {
+        style: 'decimal',
+        maximumFractionDigits: 0,
+    });
+    return `${formatted}원`;
 }

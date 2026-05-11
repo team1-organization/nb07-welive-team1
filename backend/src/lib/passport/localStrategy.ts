@@ -2,33 +2,40 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
 import { prisma } from '../prisma';
 import { NotFoundError } from '../../errors/NotFoundError';
-import { loginUserBody, loginUserDTO } from '../../dtos/user.dto';
+import { loginUserBody, LoginUserDTO } from '../../dtos/auth.dto';
+import { User } from '../../types/auth.type';
 
 const localStrategy = new LocalStrategy(
-  {
-    usernameField: 'email',
-    passwordField: 'password',
-  },
-  async (email: string, password: string, done) => {
-    const data: loginUserDTO = loginUserBody.parse({ email, password });
-    if (!email || !password) {
-      return done(new NotFoundError('잘못된 요청입니다'), false);
-    }
-    const user = await prisma.user.findUnique({
-      where: {
-        email: data.email,
-      },
-    });
-    if (!user || !user.password) {
-      return done(null, false, { message: '존재하지 않거나 비밀번호가 일치하지 않습니다' });
-    }
+    {
+        usernameField: 'username',
+        passwordField: 'password',
+    },
+    async (username: string, password: string, done) => {
+        const data: LoginUserDTO = loginUserBody.parse({ username, password });
+        if (!username || !password) {
+            return done(new NotFoundError('잘못된 요청입니다'), false);
+        }
+        const user = await prisma.user.findUnique({
+            where: {
+                userId: data.username,
+                joinStatus: 'APPROVED', // 승인상태만 로그인 가능
+            },
+            include: {
+                resident: true,
+                apartment: {
+                    include: { board: true },
+                },
+            },
+        });
+        if (!user || !user.password) {
+            return done(null, false, { message: '존재하지 않거나 비밀번호가 일치하지 않습니다' });
+        }
 
-    const isPasswordValid = await bcrypt.compare(data.password, user.password);
-    if (!isPasswordValid) {
-      //return done(null, false, { message: '이메일 또는 비밀번호가 일치하지 않습니다.' });
-      return done(new NotFoundError('존재하지 않거나 비밀번호가 일치하지 않습니다'), false);
-    }
-    return done(null, user);
-  },
+        const isPasswordValid = await bcrypt.compare(data.password, user.password);
+        if (!isPasswordValid) {
+            return done(new NotFoundError('존재하지 않거나 비밀번호가 일치하지 않습니다'), false);
+        }
+        return done(null, User.fromEntity(user));
+    },
 );
 export default localStrategy;

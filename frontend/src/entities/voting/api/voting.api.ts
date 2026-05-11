@@ -46,13 +46,14 @@ export interface PollListResponse {
 
 export const getVotingList = async (
   params: {
+    boardId: string,
     page: number,
     limit: number,
     buildingPermission?: number,
     status?: PollStatus,
     keyword?: string
   }
-): Promise<PollListResponse> => {
+): Promise<PollListItem[]> => {
   const res = await axios.get('/polls', { params });
 
   return res.data;

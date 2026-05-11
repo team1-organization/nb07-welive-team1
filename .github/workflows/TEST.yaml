@@ -1,0 +1,42 @@
+name: WeliveTest
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  pull_request:
+    branches: ["main", "develop"]
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: 1. 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: 2. Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 3. 의존성 설치
+        run: npm ci
+
+      - name: 4. 프리즈마 클라이언트 생성
+        run: npx prisma generate
+
+      - name: 5. 코드 스타일 검사
+        run: npm run lint
+
+      - name: 6. 타입 체크
+        run: npx tsc --noEmit
+
+      - name: 7. 빌드 확인
+        run: npm run build

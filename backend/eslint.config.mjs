@@ -11,7 +11,7 @@ export default tseslint.config(
      ...tseslint.configs.recommended,
     {
         //files: ["src/**/*.ts", "tests/**/*.ts"],
-        files: ["src/**/*.ts"],
+        files: ["src/**/*.ts", "prisma/**/*.prisma"],
         languageOptions: {
             parser: tsParser,
             parserOptions: {
@@ -27,11 +27,12 @@ export default tseslint.config(
         },
         rules: {
             "prettier/prettier": "error",
-            "no-console": "warn",
+            //"no-console": "warn",
             "@typescript-eslint/no-explicit-any": "warn",
             "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern : "^_"}],
             "@typescript-eslint/require-await": "error",
             "@typescript-eslint/no-floating-promises" : "error",
+            "@typescript-eslint/no-empty-object-type": "off",
             ...prettierConfig.rules,
         },
     }

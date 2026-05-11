@@ -1,6 +1,7 @@
+import { useAuthStore } from '@/shared/store/auth.store';
 import { useEffect, useState } from 'react';
-import { VotingList } from '../type';
 import { getVotingList, PollListItem, PollStatus } from '../api/voting.api';
+import { VotingList } from '../type';
 
 export function useVoting() {
   const [data, setData] = useState<VotingList[]>([]);
@@ -9,18 +10,21 @@ export function useVoting() {
   const [statusFilter, setStatusFilter] = useState<PollStatus | undefined>();
   const [keyword, setKeyword] = useState<string | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
+  const boardId = useAuthStore((state) => state.user?.boardIds?.POLL);
 
   useEffect(() => {
+    if (!boardId) return;
     const fetchData = async () => {
       try {
         const res = await getVotingList({
+          boardId,
           page: currentPage,
           limit: 11,
           buildingPermission: dongFilter,
           status: statusFilter,
           keyword: keyword?.trim()
         });
-        const parsed: VotingList[] = res.polls.map((item: PollListItem) => ({
+        const parsed: VotingList[] = res.map((item: PollListItem) => ({
           pollId: item.pollId,
           userId: item.userId,
           title: item.title,
@@ -31,7 +35,7 @@ export function useVoting() {
           endDate: item.endDate,
           status: item.status,
         }));
-        setTotalCount(res.totalCount);
+        setTotalCount(res.length);
 
         const sorted = parsed.sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -44,7 +48,7 @@ export function useVoting() {
     };
 
     fetchData();
-  }, [dongFilter, statusFilter, keyword, currentPage]);
+  }, [boardId, dongFilter, statusFilter, keyword, currentPage]);
 
   return {
     data, totalCount,

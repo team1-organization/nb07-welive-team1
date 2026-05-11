@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import Textarea from '@/shared/Textarea';
 import Button from '@/shared/Button';
 import { useComments } from '@/shared/comments/hooks/useComments';
 import { formatDate } from '@/shared/lib/formDate';
-import Image from 'next/image';
 import { useAuthStore } from '@/shared/store/auth.store';
+import Textarea from '@/shared/Textarea';
+import Image from 'next/image';
+import { useState } from 'react';
 import { BoardType, IComment } from '../api/comment.api';
 
 interface CommentProps {
@@ -36,18 +36,15 @@ export default function CommentSection({
     await handleCreate(input.trim());
     setInput('');
     setCount((prev) => prev + 1);
-    window.location.reload();
   };
 
   const onUpdate = async (id: string, content: string) => {
     await handleUpdate(id, content);
-    window.location.reload();
   };
 
   const onDelete = async (id: string) => {
     await handleDelete(id);
     setCount((prev) => prev - 1);
-    window.location.reload();
   };
 
   return (
@@ -81,7 +78,9 @@ export default function CommentSection({
           </div>
         ) : (
           comments.map((comment) => {
-            const isOwner = String(comment.userId) === String(currentUserId);
+            const isOwner = comment?.userId && currentUserId 
+                ? String(comment.userId) === String(currentUserId) 
+                : false;
             return (
               <li key={comment.id} className='border-b border-gray-100 py-5'>
                 <div className='mb-4 flex items-center gap-4'>

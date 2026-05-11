@@ -1,0 +1,184 @@
+  paths:
+    /api/comments:
+      post:
+        tags:
+          - Comments
+        summary: 댓글 생성
+        description: 댓글을 생성합니다.
+        security:
+          - bearerAuth: []
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateCommentRequest"
+        responses:
+          201:
+            description: 댓글 생성 성공
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/CreateCommentResponse"
+          400:
+            description: 입력값 오류
+          401:
+            description: 인증 필요
+
+    /api/comments/{commentId}:
+      patch:
+        tags:
+          - Comments
+        summary: 댓글 수정
+        description: 댓글을 수정합니다.
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: commentId
+            required: true
+            schema:
+              type: string
+            example: "10"
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateCommentRequest"
+        responses:
+          200:
+            description: 댓글 수정 성공
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/CommentResponse"
+          403:
+            description: 권한 없음
+          404:
+            description: 댓글 없음
+
+      delete:
+        tags:
+          - Comments
+        summary: 댓글 삭제
+        description: 댓글을 삭제합니다.
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: commentId
+            required: true
+            schema:
+              type: string
+            example: "10"
+        responses:
+          200:
+            description: 댓글 삭제 성공
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/DeleteCommentResponse"
+          403:
+            description: 권한 없음
+          404:
+            description: 댓글 없음
+            
+  components:
+    schemas:
+      BoardType:
+        type: string
+        enum:
+          - NOTICE
+          - COMPLAINT
+
+      CreateCommentRequest:
+        type: object
+        required:
+          - boardType
+          - boardId
+          - content
+        properties:
+          boardType:
+            $ref: "#/components/schemas/BoardType"
+          boardId:
+            type: string
+            example: "1"
+          content:
+            type: string
+            example: 댓글 내용입니다.
+
+      UpdateCommentRequest:
+        type: object
+        required:
+          - content
+        properties:
+          content:
+            type: string
+            example: 수정된 댓글입니다.
+
+      Comment:
+        type: object
+        properties:
+          id:
+            type: string
+            example: "10"
+          userId:
+            type: string
+            example: "user-uuid"
+          content:
+            type: string
+            example: 댓글 내용입니다.
+          createdAt:
+            type: string
+            format: date-time
+          updatedAt:
+            type: string
+            format: date-time
+          writerName:
+            type: string
+            example: 김세대
+
+      CommentBoard:
+        type: object
+        properties:
+          id:
+            type: string
+            example: "1"
+          boardType:
+            $ref: "#/components/schemas/BoardType"
+
+      CreateCommentResponse:
+        type: object
+        properties:
+          message:
+            type: string
+            example: 댓글이 등록되었습니다.
+          data:
+            type: object
+            properties:
+              comment:
+                $ref: "#/components/schemas/Comment"
+              board:
+                $ref: "#/components/schemas/CommentBoard"
+
+      CommentResponse:
+        type: object
+        properties:
+          message:
+            type: string
+            example: 댓글이 수정되었습니다.
+          data:
+            type: object
+            properties:
+              comment:
+                $ref: "#/components/schemas/Comment"
+              board:
+                $ref: "#/components/schemas/CommentBoard"
+
+      DeleteCommentResponse:
+        type: object
+        properties:
+          message:
+            type: string
+            example: 댓글이 삭제되었습니다.

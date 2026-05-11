@@ -1,0 +1,72 @@
+/api/notifications/sse:
+  get:
+    security:
+      - bearerAuth: []
+    tags:
+      - "Notifications"
+    summary: "읽지 않은 알림 실시간 수신(SSE)"
+    description: "로그인한 사용자는 이 SSE(EventSource) 연결을 통해 30초마다 읽지 않은 알림을 실시간으로 스트리밍 방식으로 수신합니다. 서버는 text/event-stream 형식으로 응답하며, 클라이언트는 이 스트림을 통해 새 알림을 받을 수 있습니다."
+    responses:
+      200:
+        description: "text/event-stream 형식의 스트리밍 응답"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+      400:
+        description:
+
+/api/notifications/{notificationId}/read:
+  patch:
+    security:
+      - bearerAuth: []
+    tags:
+      - "Notifications"
+    summary: "특정 알림을 읽음 상태로 변경합니다."
+    parameters:
+      - name: notificationId
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: "읽음 처리된 알림 반환"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schema:
+    NotificationStream:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "alarm"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationItem'
+    NotificationItem:
+      type: object
+      properties:
+        notificationId:
+          type: string
+          example: "1"
+        content:
+          type: string
+          example: "민원 처리가 완료되었습니다."
+        notificationType:
+          type: string
+          enum: ['COMPLAINT', 'POLL', 'NOTICE', 'ADMIN_SIGN', 'USER_SIGN']
+          example: 'NOTICE'
+        createdAt:
+          type: string
+          example: "2025-06-13 12:34:00"
+        isRead:
+          type: boolean
+          example: false

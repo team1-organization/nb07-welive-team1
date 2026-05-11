@@ -4,8 +4,8 @@
  * @param value
  */
 export function isValidDate(value: unknown): value is Date {
-  // date가 Date 인스턴스이고, getTime() 결과가 NaN이 아니어야 합니다.
-  return value instanceof Date && !Number.isNaN(value.getTime());
+    // date가 Date 인스턴스이고, getTime() 결과가 NaN이 아니어야 합니다.
+    return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 /**
@@ -16,14 +16,14 @@ export function isValidDate(value: unknown): value is Date {
  */
 
 export function safeDate(value: unknown): Date | null {
-  if (value === null || value === undefined) return null;
-  if (typeof value === 'string' && value.trim().length === 0) return null;
-  if (!(value instanceof Date) && typeof value !== 'string' && typeof value !== 'number') {
-    return null;
-  }
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'string' && value.trim().length === 0) return null;
+    if (!(value instanceof Date) && typeof value !== 'string' && typeof value !== 'number') {
+        return null;
+    }
 
-  const date = value instanceof Date ? value : new Date(value);
-  return isValidDate(date) ? date : null;
+    const date = value instanceof Date ? value : new Date(value);
+    return isValidDate(date) ? date : null;
 }
 
 /**
@@ -31,7 +31,7 @@ export function safeDate(value: unknown): Date | null {
  * @returns {string} ISO 8601 형식의 현재 시간 문자열
  */
 export function getNowISOString(): string {
-  return new Date().toISOString();
+    return new Date().toISOString();
 }
 
 /**
@@ -40,15 +40,15 @@ export function getNowISOString(): string {
  * @returns {string | null} 포맷된 문자열 (유효하지 않으면 null)
  */
 export function formatDate(value: unknown): string | null {
-  const date = safeDate(value);
-  if (!date) return null;
+    const date = safeDate(value);
+    if (!date) return null;
 
-  const year = date.getFullYear();
-  // 월과 일은 두 자리로 맞춥니다 (padStart 사용).
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    // 월과 일은 두 자리로 맞춥니다 (padStart 사용).
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
 
-  return `${year}-${month}-${day}`;
+    return `${year}-${month}-${day}`;
 }
 
 /**
@@ -57,17 +57,17 @@ export function formatDate(value: unknown): string | null {
  * @returns {string | null} 포맷된 문자열 (유효하지 않으면 null)
  */
 export function formatDateTime(value: unknown): string | null {
-  const date = safeDate(value);
-  if (!date) return null;
+    const date = safeDate(value);
+    if (!date) return null;
 
-  const datePart = formatDate(date);
+    const datePart = formatDate(date);
 
-  // 시, 분, 초를 두 자리로 맞춥니다.
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
+    // 시, 분, 초를 두 자리로 맞춥니다.
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
 
-  return `${datePart} ${hours}:${minutes}:${seconds}`;
+    return `${datePart} ${hours}:${minutes}:${seconds}`;
 }
 
 /**
@@ -77,17 +77,17 @@ export function formatDateTime(value: unknown): string | null {
  * @returns {number | null} 두 날짜 사이의 일 수 (종료일 - 시작일), 유효하지 않으면 null
  */
 export function diffInDays(startDate: unknown, endDate: unknown): number | null {
-  const start = safeDate(startDate);
-  const end = safeDate(endDate);
+    const start = safeDate(startDate);
+    const end = safeDate(endDate);
 
-  if (!start || !end) return null;
+    if (!start || !end) return null;
 
-  // getTime()은 밀리초 단위 타임스탬프를 반환합니다.
-  const timeDifference = end.getTime() - start.getTime();
+    // getTime()은 밀리초 단위 타임스탬프를 반환합니다.
+    const timeDifference = end.getTime() - start.getTime();
 
-  // 밀리초를 일(Day)로 변환합니다. (1000ms * 60s * 60min * 24hr)
-  const oneDay = 1000 * 60 * 60 * 24;
+    // 밀리초를 일(Day)로 변환합니다. (1000ms * 60s * 60min * 24hr)
+    const oneDay = 1000 * 60 * 60 * 24;
 
-  // 반올림을 사용하여 정확한 일 수를 얻습니다.
-  return Math.round(timeDifference / oneDay);
+    // 반올림을 사용하여 정확한 일 수를 얻습니다.
+    return Math.round(timeDifference / oneDay);
 }

@@ -7,9 +7,7 @@
  * const updated = compact({ title: '수정됨', content: null }); // { title: '수정됨' }
  */
 export function compact<T extends object>(obj: T): Partial<T> {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([_, v]) => v !== null && v !== undefined),
-  ) as Partial<T>;
+    return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== null && v !== undefined)) as Partial<T>;
 }
 
 /**
@@ -20,11 +18,11 @@ export function compact<T extends object>(obj: T): Partial<T> {
  * const summary = pick(task, ['id', 'title']); // { id: '1', title: '숙제' }
  */
 export function pick<T extends object, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> {
-  const result = {} as Pick<T, K>;
-  keys.forEach((key) => {
-    if (key in obj) result[key] = obj[key];
-  });
-  return result;
+    const result = {} as Pick<T, K>;
+    keys.forEach((key) => {
+        if (key in obj) result[key] = obj[key];
+    });
+    return result;
 }
 
 /**
@@ -36,11 +34,11 @@ export function pick<T extends object, K extends keyof T>(obj: T, keys: K[]): Pi
  * const publicInfo = omit(user, ['password']);
  */
 export function omit<T extends object, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
-  const result = { ...obj };
-  keys.forEach((key) => {
-    delete result[key];
-  });
-  return result as Omit<T, K>;
+    const result = { ...obj };
+    keys.forEach((key) => {
+        delete result[key];
+    });
+    return result as Omit<T, K>;
 }
 
 /**
@@ -50,7 +48,7 @@ export function omit<T extends object, K extends keyof T>(obj: T, keys: K[]): Om
  * isEmptyObject({}); // true
  */
 export function isEmptyObject(obj: object): boolean {
-  return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
+    return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
 }
 
 /**
@@ -61,7 +59,7 @@ export function isEmptyObject(obj: object): boolean {
  * const safeData = serializeBigInt(prismaResult);
  */
 export function serializeBigInt(obj: any): any {
-  return JSON.parse(JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v)));
+    return JSON.parse(JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v)));
 }
 
 /**
@@ -69,6 +67,6 @@ export function serializeBigInt(obj: any): any {
  * @param obj 복사할 객체
  */
 export function deepClone<T>(obj: T): T {
-  if (obj === null || typeof obj !== 'object') return obj;
-  return JSON.parse(JSON.stringify(obj));
+    if (obj === null || typeof obj !== 'object') return obj;
+    return JSON.parse(JSON.stringify(obj));
 }

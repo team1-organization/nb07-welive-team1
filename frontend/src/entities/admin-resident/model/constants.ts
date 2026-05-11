@@ -31,7 +31,7 @@ export const SELECT_MAP = ['동', '호수', '거주', '위리브 가입'];
 
 export const RESIDENCE_OPTIONS: Option[] = [
   { value: 'HOUSEHOLDER', label: '세대주' },
-  { value: 'MEMBER', label: '세대원' },
+  { value: 'HOUSEMEMBER', label: '세대원' },
 ];
 export const SIGNUP_OPTIONS: Option[] = [
   { value: 'registered', label: '가입' },

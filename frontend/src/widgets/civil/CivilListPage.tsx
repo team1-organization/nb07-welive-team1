@@ -1,18 +1,23 @@
-import { useRouter } from 'next/router';
 import { useCivilList } from '@/entities/civil/model/useCivilList';
-import { AdminCivilListFilter, ResidentCivilListFilter, statusOptions } from './CivilListFilter';
-import CivilListTable from './CivilListTable';
-import Pagination from '@/shared/Pagination';
-import Title from '@/shared/Title';
-import { useState, useMemo } from 'react';
 import axios from '@/shared/lib/axios';
+import Pagination from '@/shared/Pagination';
 import { useAuthStore } from '@/shared/store/auth.store';
+import Title from '@/shared/Title';
+import { useRouter } from 'next/router';
+import { useMemo, useState } from 'react';
+import { AdminCivilListFilter, ResidentCivilListFilter } from './CivilListFilter';
+import CivilListTable from './CivilListTable';
+
+type ComplaintStatus = 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
+
+const statusDisplayMap: Record<ComplaintStatus, string> = {
+  PENDING: '접수전',
+  IN_PROGRESS: '처리중',
+  RESOLVED: '처리완료',
+  REJECTED: '처리불가',
+};
 
 const ITEMS_PER_PAGE = 11;
-
-const statusMap: Record<string, string> = Object.fromEntries(
-  statusOptions.map((opt) => [opt.value, opt.label]),
-);
 
 export default function CivilListPage() {
   const [page, setPage] = useState(1);
@@ -50,36 +55,49 @@ export default function CivilListPage() {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const dongOptions = useMemo(() => {
-    const dongs = new Set(complaints.map((item) => item.dong));
+    const dongs = new Set(complaints?.map((item) => item.dong) || []);
     return Array.from(dongs).map((dong) => ({ value: dong, label: `${dong}동` }));
   }, [complaints]);
 
   const hoOptions = useMemo(() => {
-    const hos = new Set(complaints.map((item) => item.ho));
+    const hos = new Set(complaints?.map((item) => item.ho) || []);
     return Array.from(hos).map((ho) => ({ value: ho, label: `${ho}호` }));
   }, [complaints]);
 
   const handleStatusChange = async (complaintId: string, newStatus: string) => {
-    try {
-      const { data } = await axios.get(`/complaints/${complaintId}`);
+  try {
+    const { data } = await axios.get(`/complaints/${complaintId}`);
+    
+    const backToFrontMap: Record<string, ComplaintStatus> = {
+      PENDING: 'PENDING',
+      PROCESSING: 'IN_PROGRESS',
+      COMPLETED: 'RESOLVED',
+      REJECTED: 'REJECTED',
+    };
 
-      const confirmed = window.confirm(`"${statusMap[newStatus]}" 상태로 변경하시겠습니까?`);
-      if (!confirmed) return;
+    const currentStatus = backToFrontMap[data.status] || (data.status as ComplaintStatus);
+    const oldStatusLabel = statusDisplayMap[currentStatus] || data.status;
 
-      await axios.patch(`/complaints/${complaintId}/status`, {
-        status: newStatus,
-      });
+    const targetStatus = newStatus as ComplaintStatus;
+    const targetStatusLabel = statusDisplayMap[targetStatus] || newStatus;
 
-      window.alert(
-        `상태가 "${statusMap[data.status]}"에서 "${statusMap[newStatus]}"(으)로 변경되었습니다.`,
-      );
+    const confirmed = window.confirm(`"${targetStatusLabel}" 상태로 변경하시겠습니까?`);
+    if (!confirmed) return;
 
-      setPage(1);
-    } catch (error) {
-      console.error('처리 상태 업데이트 실패:', error);
-      window.alert('상태 변경에 실패했습니다.');
-    }
-  };
+    await axios.patch(`/complaints/${complaintId}/status`, {
+      status: newStatus,
+    });
+
+    window.alert(
+      `상태가 "${oldStatusLabel}"에서 "${targetStatusLabel}"(으)로 변경되었습니다.`,
+    );
+
+    setPage(1);
+  } catch (error) {
+    console.error('처리 상태 업데이트 실패:', error);
+    window.alert('상태 변경에 실패했습니다.');
+  }
+};
 
   return (
     <div>

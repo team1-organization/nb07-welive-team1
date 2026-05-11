@@ -7,7 +7,7 @@
  * if (isEmpty(name)) { throw new Error("이름을 입력하세요."); }
  */
 export function isEmpty(value: string | null | undefined): value is null | undefined | '' {
-  return value === null || value === undefined || value.trim().length === 0;
+    return value === null || value === undefined || value.trim().length === 0;
 }
 
 /**
@@ -21,7 +21,7 @@ export function isEmpty(value: string | null | undefined): value is null | undef
  * const empty = normalizeString("   "); // null
  */
 export function normalizeString(value: string | null | undefined): string | null {
-  return isEmpty(value) ? null : value.trim();
+    return isEmpty(value) ? null : value.trim();
 }
 
 /**
@@ -34,7 +34,7 @@ export function normalizeString(value: string | null | undefined): string | null
  * const displayName = fallback(user.nickname, user.username);
  */
 export function fallback(a: string | null | undefined, b: string): string {
-  return isEmpty(a) ? b : a;
+    return isEmpty(a) ? b : a;
 }
 
 /**
@@ -47,7 +47,7 @@ export function fallback(a: string | null | undefined, b: string): string {
  * const limit = defaultValue(params.limit, 10);
  */
 export function defaultValue<T>(value: T | null | undefined, defaultVal: T): T {
-  return value === null || value === undefined ? defaultVal : value;
+    return value === null || value === undefined ? defaultVal : value;
 }
 
 /**
@@ -61,6 +61,6 @@ export function defaultValue<T>(value: T | null | undefined, defaultVal: T): T {
  * safeString(123);  // "123"
  */
 export function safeString(value: unknown): string {
-  if (value === null || value === undefined) return '';
-  return String(value);
+    if (value === null || value === undefined) return '';
+    return String(value);
 }

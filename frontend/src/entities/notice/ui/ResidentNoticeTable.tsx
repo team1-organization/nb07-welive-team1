@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ResidentNoticeTypes } from '../model/notice.types';
-import { fetchResidentNotices } from '../api/noticeApi';
 import { cn } from '@/shared/lib/helper';
 import Pagination from '@/shared/Pagination';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import { fetchResidentNotices } from '../api/noticeApi';
+import { ResidentNoticeTypes } from '../model/notice.types';
 
 const CATEGORY_LABEL_MAP = {
   MAINTENANCE: '정기점검',
@@ -23,6 +23,11 @@ export default function ResidentNoticeTable({ category, keyword }: Props) {
   const [notices, setNotices] = useState<ResidentNoticeTypes[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 11;
+
+  const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? dateString : date.toLocaleDateString();
+};
 
   useEffect(() => {
     const loadNotices = async () => {
@@ -114,6 +119,8 @@ export default function ResidentNoticeTable({ category, keyword }: Props) {
                           </div>
                         ) : col.key === 'category' ? (
                           CATEGORY_LABEL_MAP[notice.category]
+                        ) : col.key === 'createdAt' ? (
+                          formatDate(notice.createdAt)
                         ) : (
                           notice[col.key]
                         )}

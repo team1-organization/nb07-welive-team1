@@ -1,9 +1,9 @@
+import { deleteVoteOption, postVoteOption } from '@/entities/voting/api/voting.api';
+import Button from '@/shared/Button';
+import { useAuthStore } from '@/shared/store/auth.store';
+import Cookies from 'js-cookie';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import Button from '@/shared/Button';
-import { deleteVoteOption, postVoteOption } from '@/entities/voting/api/voting.api';
-import Cookies from 'js-cookie';
-import { useAuthStore } from '@/shared/store/auth.store';
 
 interface Option {
   id: string;
@@ -59,7 +59,8 @@ export default function VotingSelector({
       const expireDate = new Date(endAt);
       Cookies.set(cookieKey, selectedOptionId, { expires: expireDate });
       setHasVoted(true); // 투표 완료 상태
-      alert(`투표 완료: ${response.updatedOption.title}`);
+      const successTitle = response.data?.updatedOption?.title || '선택한 항목';
+      alert(`투표 완료: ${successTitle}`);
     } catch (error) {
       console.error('투표 실패:', error);
       alert('투표에 실패했습니다.');
