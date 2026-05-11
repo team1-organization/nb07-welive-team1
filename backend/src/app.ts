@@ -43,7 +43,16 @@ const allowedOrigins = [
 
 app.use(
     cors({
-        origin: allowedOrigins,
+        origin: (origin, callback) => {
+            const isAllowedFrontURL = origin?.includes('nb07-welive-team1') && origin.endsWith('.vercel.app');
+            const isAllowed = !origin || allowedOrigins.includes(origin) || isAllowedFrontURL;
+            if (isAllowed) {
+                callback(null, true);
+            } else {
+                console.log('CORS 오류 : ', origin);
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     }),
