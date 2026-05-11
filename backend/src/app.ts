@@ -36,7 +36,7 @@ if (process.env.NODE_ENV !== 'test') {
 }
 const allowedOrigins = [
     'http://localhost:3001', // 로컬 개발용
-    //배포된 주소(현재 없음)
+    'https://nb07-welive-team1-git-develop-codes-gys-projects.vercel.app', //배포된 주소
 ];
 
 app.use(
