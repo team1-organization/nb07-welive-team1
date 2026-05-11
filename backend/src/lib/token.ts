@@ -10,13 +10,21 @@ function generateTokens(userId: string) {
 function setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
     const ONE_HOUR = 60 * 60 * 1000;
     const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-    res.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
         httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    };
+
+    res.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
+        ...cookieOptions,
         maxAge: ONE_HOUR,
     });
 
     res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
-        httpOnly: true,
+        ...cookieOptions,
         maxAge: SEVEN_DAYS,
         path: '/api/auth/refresh',
     });
