@@ -23,7 +23,7 @@ export async function updateMyProfile(req: Request, res: Response) {
 
     const data = updateProfileBody.parse({
         ...req.body,
-        profileImage: file?.location,
+        profileImage: file?.key,
     });
 
     const updatedProfile = await userService.updateMyProfile(user.id, data);

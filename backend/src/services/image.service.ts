@@ -12,7 +12,7 @@ export async function imageUpload(userId: string, file: Express.Multer.File) {
     if (!user) throw new Error('존재하지 않는 사용자입니다.');
     const s3File = file as S3File;
     await userRepository.updateProfileImage(userId, s3File.key);
-    return s3File.location;
+    return `${process.env.CLOUD_FLARE_PUBLIC_URL}/${s3File.key}`;
 }
 
 export async function imageDelete(userId: string) {
@@ -22,7 +22,7 @@ export async function imageDelete(userId: string) {
     if (user.profileImage) {
         await s3.send(
             new DeleteObjectCommand({
-                Bucket: process.env.AWS_S3_BUCKET_NAME,
+                Bucket: process.env.CLOUD_FLARE_S3_BUCKET_NAME,
                 Key: user.profileImage,
             }),
         );

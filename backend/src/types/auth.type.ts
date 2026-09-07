@@ -147,7 +147,7 @@ export class User {
     private static generateFullUrl(key: string | null): string | null {
         if (!key) return null;
         if (key.startsWith('http')) return key;
-        return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+        return `${process.env.CLOUD_FLARE_PUBLIC_URL}/${key}`;
     }
 
     private static mapBoardIds(apartment: UserData['apartment']) {

@@ -5,20 +5,22 @@ import { S3Client } from '@aws-sdk/client-s3';
 import path from 'path';
 import { v4 as uuid4 } from 'uuid';
 
-// S3 클라이언트 설정
+// Cloudflare R2 클라이언트 설정 (S3 호환 API)
 export const s3 = new S3Client({
-    region: process.env.AWS_REGION,
+    region: 'auto',
+    endpoint: process.env.CLOUD_FLARE_S3_ENDPOINT,
+    forcePathStyle: true,
     credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+        accessKeyId: process.env.CLOUD_FLARE_ACCESS_KEY_ID as string,
+        secretAccessKey: process.env.CLOUD_FLARE_SECRET_ACCESS_KEY as string,
     },
 });
 
-// S3용 Multer 유틸리티
+// R2용 Multer 유틸리티
 export const s3Util = multer({
     storage: multerS3({
         s3: s3,
-        bucket: process.env.AWS_S3_BUCKET_NAME as string,
+        bucket: process.env.CLOUD_FLARE_S3_BUCKET_NAME as string,
         //acl: 'public-read',
         contentType: multerS3.AUTO_CONTENT_TYPE,
         key: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, key?: string) => void) {

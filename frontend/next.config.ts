@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol : 'https',
-        hostname : 'welive-team1-bucket.s3.ap-northeast-2.amazonaws.com',
+        hostname : 'pub-d8f5da4ce1654e04b110b52c7f415975.r2.dev',
         port : '',
         pathname : '/**'
       }
