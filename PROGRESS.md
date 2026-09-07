@@ -60,13 +60,22 @@ DB: Heroku Postgres 애드온 대신 **Neon DB 사용**.
 - ⚠️ **로컬 `backend/.env`에는 `CLOUD_FLARE_S3_BUCKET_NAME`, `CLOUD_FLARE_PUBLIC_URL`이 아직 없음** (Heroku Config Var에만 설정함). 로컬에서 이미지 업로드를 테스트하려면 로컬 `.env`에도 두 값을 추가해야 함 — `CLOUD_FLARE_S3_BUCKET_NAME="welive-team-bucket"`, `CLOUD_FLARE_PUBLIC_URL="https://pub-d8f5da4ce1654e04b110b52c7f415975.r2.dev"`.
 - 참고: `.env`의 `CLOUD_FLARE_ACCESS_TOKEN`(`cfat_...`)은 Cloudflare REST API용 토큰이라 S3 호환 인증에는 쓰이지 않음 — 이번 마이그레이션에선 미사용.
 
+## 커스텀 도메인 연결 (2026-09-07)
+
+- [x] `api-welive.haru-dev.me`를 `welive-backend` Heroku 앱에 연결. `heroku domains:add`는 이미 예전에 등록되어 있었음(`heroku domains -a welive-backend`로 확인) — DNS 타겟은 `rigid-muttaburrasaurus-hdiar9epw1mbbmo7vmgrgrlv.herokudns.com` (CNAME).
+- [x] `heroku certs:auto:enable`로 Heroku 자동 SSL 인증서(ACM) 활성화. Basic dyno 이상에서만 가능(Eco/Free는 불가 — 이 앱은 Basic이라 문제없음).
+- [x] Cloudflare DNS에서 `api-welive` CNAME을 `rigid-muttaburrasaurus-hdiar9epw1mbbmo7vmgrgrlv.herokudns.com`으로 수정 (사용자가 직접 설정, Cloudflare 토큰이 R2 전용이라 DNS 편집 권한 없어서 API로는 처리 못함).
+  - 기존엔 이 도메인이 Cloudflare 프록시(주황 구름) 상태로 예전 서버(EC2 추정)를 가리키고 있어서 **525(SSL handshake 실패)로 이미 죽어있던 상태**였음 — 이번에 고치면서 정상화됨.
+  - Cloudflare 프록시(주황 구름)를 켠 상태 그대로 둬도 Heroku 인증서 발급 후 정상 동작 확인됨 (DNS only로 바꿀 필요 없었음).
+- [x] 검증: `GET https://api-welive.haru-dev.me/api-docs/` → 200, `heroku certs:auto` → "Cert issued", `via: heroku-router` 헤더로 Cloudflare 프록시 통과 후 실제 Heroku까지 도달 확인, `Origin: https://app-welive.haru-dev.me`로 로그인 요청 시 CORS 헤더 정상 반영.
+
 ## 다음 단계 (승인 필요 — 아래 항목은 아직 진행 안 함)
 
 1. Socket.io 연결 등 나머지 백엔드 실사용 e2e 검증
-2. `api-welive.haru-dev.me` 커스텀 도메인을 `welive-backend` Heroku 앱으로 DNS 리포인팅 (`heroku domains:add`)
-3. `HEROKU_API_KEY`를 장기 토큰(`heroku authorizations:create`)으로 교체 (2026-10-07 이전)
-4. 기존 EC2 인스턴스 정리 여부 결정 (바로 중단 vs 일정 기간 병행), 안 쓰는 GitHub Secrets(`EC2_HOST`, `EC2_SSH_KEY`, `EC2_USERNAME`) 정리 여부 포함
-5. 기존 AWS S3 버킷(`welive-team1-bucket`)을 계속 유지할지, 정리(삭제/보관)할지 결정
+2. `HEROKU_API_KEY`를 장기 토큰(`heroku authorizations:create`)으로 교체 (2026-10-07 이전)
+3. 기존 EC2 인스턴스 정리 여부 결정 (바로 중단 vs 일정 기간 병행), 안 쓰는 GitHub Secrets(`EC2_HOST`, `EC2_SSH_KEY`, `EC2_USERNAME`) 정리 여부 포함
+4. 기존 AWS S3 버킷(`welive-team1-bucket`)을 계속 유지할지, 정리(삭제/보관)할지 결정
+5. 프론트 `app-welive.haru-dev.me` 커스텀 도메인도 Vercel에 정상 연결되어 있는지 확인 (백엔드처럼 예전 서버를 가리키고 있진 않은지)
 
 ## 협업 규칙
 
