@@ -34,7 +34,10 @@ if (process.env.NODE_ENV !== 'test') {
     app.use(morgan('dev'));
     app.use(morgan(':method :url '));
 }
-const allowedOrigins = ['http://localhost:3001']; // 로컬 개발용
+const allowedOrigins = [
+    'http://localhost:3001', // 로컬 개발용
+    'https://nb07-welive-team1.vercel.app', // Vercel 기본 배포 도메인
+];
 if (process.env.FRONTEND_URL) {
     allowedOrigins.push(process.env.FRONTEND_URL);
 }
