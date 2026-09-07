@@ -36,9 +36,18 @@ DB: Heroku Postgres 애드온 대신 **Neon DB 사용**.
   - ⚠️ 이 워크플로우가 쓰는 `VERCEL_TEAM_ID`/`VERCEL_TOKEN`/`VERCEL_PROJECT_NAME` Secret은 저장소에 등록되어 있지 않았음.
 - [x] **Vercel 배포 방식 확인**: GitHub API로 커밋 상태 확인한 결과, Vercel의 **GitHub 네이티브 앱 연동**(`apps/vercel`, "Vercel for GitHub")이 이 저장소에 설치되어 있고 push마다 자동으로 배포됨을 확인 (예: 최신 커밋 `9ea4603`도 `Vercel` status "Deployment has completed"로 자동 배포 완료). 워크플로우 파일과 무관하게 동작 — `FRONTEND_DEPLOY.yaml`은 죽은 코드였음이 확정되어 **삭제**.
 
+- [x] **로그인 플로우 실사용 e2e 테스트** (2026-09-07, 배포된 `welive-backend`에 직접 curl로 검증):
+  - `POST /api/auth/signup/super-admin` → 201 (테스트 계정 `e2etest_deploy` 생성)
+  - `POST /api/auth/login` → 200, `accessToken`/`refreshToken` 쿠키가 `HttpOnly; Secure; SameSite=None`로 정상 발급 (NODE_ENV=production 분기 정상 동작 확인)
+  - `POST /api/auth/refresh` → 200, 재발급 정상
+  - `GET /api/users/me` (accessToken 쿠키 인증) → 200, 본인 정보 정상 조회 (JWT 서명/검증, passport accessToken 전략 정상)
+  - `Origin: https://app-welive.haru-dev.me`로 요청 시 `Access-Control-Allow-Origin`이 해당 도메인으로 정상 반영 (CORS `FRONTEND_URL` 설정 검증됨)
+  - 테스트 후 `prisma.user.delete`로 테스트 계정 정리, 삭제 후 재로그인 시 401 확인
+  - Google OAuth는 코드상 비활성화 상태라 테스트 대상 아님 (로컬/비밀번호 로그인만 실사용 경로)
+
 ## 다음 단계 (승인 필요 — 아래 항목은 아직 진행 안 함)
 
-1. Socket.io 연결, S3 이미지 업로드/조회, 로그인(OAuth) 플로우 등 백엔드 실사용 e2e 검증
+1. Socket.io 연결, S3 이미지 업로드/조회 등 나머지 백엔드 실사용 e2e 검증
 2. `api-welive.haru-dev.me` 커스텀 도메인을 `welive-backend` Heroku 앱으로 DNS 리포인팅 (`heroku domains:add`)
 3. `HEROKU_API_KEY`를 장기 토큰(`heroku authorizations:create`)으로 교체 (2026-10-07 이전)
 4. 기존 EC2 인스턴스 정리 여부 결정 (바로 중단 vs 일정 기간 병행), 안 쓰는 GitHub Secrets(`EC2_HOST`, `EC2_SSH_KEY`, `EC2_USERNAME`) 정리 여부 포함
