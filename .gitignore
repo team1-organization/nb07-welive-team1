@@ -10,3 +10,4 @@ backend/build/
 .DS_Store
 node_modules/
 .devcontainer.json
+PROGRESS.md
