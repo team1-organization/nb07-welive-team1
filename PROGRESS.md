@@ -19,6 +19,10 @@ DB: Heroku Postgres 애드온 대신 **Neon DB 사용**.
   - Google OAuth 관련 값(`GOOGLE_CLIENT_ID` 등)은 `backend/src/lib/constants.ts`, `googleStrategy.ts`에서 전부 주석 처리되어 미사용 상태라 설정 제외
 - [x] `backend/src/app.ts` CORS 수정: 하드코딩된 `*.vercel.app` 목록 → `process.env.FRONTEND_URL` 기준으로 변경 (프론트는 계속 Vercel에 있고, 커스텀 도메인 `app-welive.haru-dev.me`로 접근한다는 전제). Swagger `배포 서버` URL도 `DEPLOY_URL`(미설정 상태였음) → `process.env.BACKEND_URL`로 변경. `tsc --noEmit` 통과 확인.
 - [x] `.github/workflows/DEPLOY.yaml` → **`.github/workflows/BACKEND_DEPLOY.yaml`로 이름 변경** (내용은 동일: EC2 SSH+PM2 배포 → Heroku Container Registry CLI push/release로 교체된 상태).
+- [x] **실제 배포 성공** (`develop` push 트리거, GitHub Actions run #49 성공). 과정에서 발견/수정한 이슈:
+  - `heroku container:push web release`는 단일 process type만 허용 → `--recursive` 옵션 필요, 이 모드에선 `Dockerfile.<type>` 명명 규칙을 따라야 해서 `backend/Dockerfile`을 `backend/Dockerfile.web`로 이름 변경 (`backend/Dockerfile.release`와 대칭)
+  - 최종 커맨드: `heroku container:push web release --recursive -a $HEROKU_BACKEND_APP_NAME`
+- [x] 배포 검증: release phase에서 `prisma migrate deploy` 정상 실행("No pending migrations to apply" — Neon DB가 이미 최신 스키마), web dyno가 Heroku 할당 포트로 정상 기동, `GET /api-docs/` → 200, `GET /api/auth`(존재하지 않는 세부 경로) → 정상적인 Express 404 JSON 응답 확인. Socket.io/S3/OAuth 플로우까지의 end-to-end 검증은 아직 안 함(로그인 등 실사용 플로우 테스트 필요).
 
 ## 방향 전환 및 되돌린 작업 (2026-09-07)
 
