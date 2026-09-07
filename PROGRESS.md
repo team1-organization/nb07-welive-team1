@@ -33,15 +33,15 @@ DB: Heroku Postgres 애드온 대신 **Neon DB 사용**.
 - [x] `frontend/next.config.ts`의 `output: 'standalone'` 되돌림 (원본 상태로 복원)
 - [x] GitHub Secret `HEROKU_FRONTEND_APP_NAME`, Variable `NEXT_PUBLIC_API_BASE_URL` 삭제
 - [x] **구조적 버그 발견 및 수정**: `frontend/.github/workflows/`는 저장소 루트가 아니라서 GitHub Actions가 애초에 인식하지 못하는 위치였음 (GitHub는 레포 **루트**의 `.github/workflows/`만 실행). 즉 기존 `vercel-deploy.yml`도, 임시로 만들었던 `heroku-deploy.yml`도 **한 번도 실제로 실행된 적이 없었음**. 이번에 정리하며 루트 `.github/workflows/FRONTEND_DEPLOY.yaml`로 이전 `vercel-deploy.yml` 내용을 그대로 복원.
-  - ⚠️ 단, 이 워크플로우가 쓰는 `VERCEL_TEAM_ID`/`VERCEL_TOKEN`/`VERCEL_PROJECT_NAME` Secret이 저장소에 **현재 등록되어 있지 않음** — 애초에 이 파일 자체가 죽은 코드였을 가능성이 높고, 실제 Vercel 배포는 Vercel의 GitHub 네이티브 연동(웹훅, 워크플로우 파일 불필요)으로 이루어지고 있을 것으로 추정됨. 실제로 Vercel 배포가 어떻게 트리거되고 있는지 확인 필요 (다음 단계 참고).
+  - ⚠️ 이 워크플로우가 쓰는 `VERCEL_TEAM_ID`/`VERCEL_TOKEN`/`VERCEL_PROJECT_NAME` Secret은 저장소에 등록되어 있지 않았음.
+- [x] **Vercel 배포 방식 확인**: GitHub API로 커밋 상태 확인한 결과, Vercel의 **GitHub 네이티브 앱 연동**(`apps/vercel`, "Vercel for GitHub")이 이 저장소에 설치되어 있고 push마다 자동으로 배포됨을 확인 (예: 최신 커밋 `9ea4603`도 `Vercel` status "Deployment has completed"로 자동 배포 완료). 워크플로우 파일과 무관하게 동작 — `FRONTEND_DEPLOY.yaml`은 죽은 코드였음이 확정되어 **삭제**.
 
 ## 다음 단계 (승인 필요 — 아래 항목은 아직 진행 안 함)
 
-1. 백엔드 실제 배포(push) 후 검증: `prisma migrate deploy` 정상 동작, Socket.io 연결, S3 이미지 업로드/조회, 로그인(OAuth) 플로우, CORS(FRONTEND_URL) 정상 동작
-2. Vercel 배포가 실제로 어떻게 트리거되는지 확인 — Vercel 대시보드의 GitHub 네이티브 연동이 이미 붙어있다면 `FRONTEND_DEPLOY.yaml`은 불필요(삭제 검토), 아니라면 `VERCEL_TEAM_ID`/`VERCEL_TOKEN`/`VERCEL_PROJECT_NAME` Secret 등록 필요
-3. `api-welive.haru-dev.me` 커스텀 도메인을 `welive-backend` Heroku 앱으로 DNS 리포인팅 (`heroku domains:add`)
-4. `HEROKU_API_KEY`를 장기 토큰(`heroku authorizations:create`)으로 교체 (2026-10-07 이전)
-5. 기존 EC2 인스턴스 정리 여부 결정 (바로 중단 vs 일정 기간 병행), 안 쓰는 GitHub Secrets(`EC2_HOST`, `EC2_SSH_KEY`, `EC2_USERNAME`) 정리 여부 포함
+1. Socket.io 연결, S3 이미지 업로드/조회, 로그인(OAuth) 플로우 등 백엔드 실사용 e2e 검증
+2. `api-welive.haru-dev.me` 커스텀 도메인을 `welive-backend` Heroku 앱으로 DNS 리포인팅 (`heroku domains:add`)
+3. `HEROKU_API_KEY`를 장기 토큰(`heroku authorizations:create`)으로 교체 (2026-10-07 이전)
+4. 기존 EC2 인스턴스 정리 여부 결정 (바로 중단 vs 일정 기간 병행), 안 쓰는 GitHub Secrets(`EC2_HOST`, `EC2_SSH_KEY`, `EC2_USERNAME`) 정리 여부 포함
 
 ## 협업 규칙
 
