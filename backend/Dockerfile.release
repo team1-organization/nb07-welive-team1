@@ -1,0 +1,15 @@
+# Heroku Container Registry의 "release" 프로세스 타입 전용 이미지
+# `heroku container:push web release`로 함께 push하면, container:release 시
+# 이 이미지가 release phase로 자동 실행된 뒤 web dyno가 재시작됨
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+RUN npx prisma generate
+
+CMD ["npx", "prisma", "migrate", "deploy"]

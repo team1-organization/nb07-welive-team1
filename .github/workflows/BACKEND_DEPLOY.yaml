@@ -1,0 +1,45 @@
+name: Heroku 배포 (백엔드)
+on:
+  push:
+    branches: ["main", "develop"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: 2. Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: 'backend/package-lock.json'
+
+      - name: 3. 빌드 확인
+        working-directory: backend
+        run: |
+          npm ci
+          npx prisma generate
+          npm run build
+
+      - name: 4. Heroku CLI 설치
+        run: curl https://cli-assets.heroku.com/install.sh | sh
+
+      - name: 5. Container Registry 로그인
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:login
+
+      - name: 6. 이미지 빌드 및 푸시 (web + release)
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        working-directory: backend
+        run: heroku container:push web release -a ${{ secrets.HEROKU_BACKEND_APP_NAME }}
+
+      - name: 7. 배포 반영 (release phase에서 prisma migrate deploy 자동 실행)
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: heroku container:release web release -a ${{ secrets.HEROKU_BACKEND_APP_NAME }}

@@ -34,18 +34,15 @@ if (process.env.NODE_ENV !== 'test') {
     app.use(morgan('dev'));
     app.use(morgan(':method :url '));
 }
-const allowedOrigins = [
-    'http://localhost:3001', // 로컬 개발용
-    'https://nb07-welive-team1-git-main-codes-gys-projects.vercel.app',
-    'https://nb07-welive-team1-git-develop-codes-gys-projects.vercel.app',
-    'https://nb07-welive-team1-git-feature-gydeploy-codes-gys-projects.vercel.app',
-];
+const allowedOrigins = ['http://localhost:3001']; // 로컬 개발용
+if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+}
 
 app.use(
     cors({
         origin: (origin, callback) => {
-            const isAllowedFrontURL = origin?.includes('nb07-welive-team1') && origin.endsWith('.vercel.app');
-            const isAllowed = !origin || allowedOrigins.includes(origin) || isAllowedFrontURL;
+            const isAllowed = !origin || allowedOrigins.includes(origin);
             if (isAllowed) {
                 callback(null, true);
             } else {
@@ -72,9 +69,9 @@ const servers = [
     },
 ];
 
-if (process.env.DEPLOY_URL) {
+if (process.env.BACKEND_URL) {
     servers.push({
-        url: process.env.DEPLOY_URL,
+        url: process.env.BACKEND_URL,
         description: '배포 서버',
     });
 }
