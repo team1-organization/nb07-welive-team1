@@ -45,12 +45,28 @@ DB: Heroku Postgres 애드온 대신 **Neon DB 사용**.
   - 테스트 후 `prisma.user.delete`로 테스트 계정 정리, 삭제 후 재로그인 시 401 확인
   - Google OAuth는 코드상 비활성화 상태라 테스트 대상 아님 (로컬/비밀번호 로그인만 실사용 경로)
 
+## 스토리지: AWS S3 → Cloudflare R2 전환 (2026-09-07)
+
+버킷명 `welive-team-bucket`, S3 호환 엔드포인트 `https://2c8f09ca10b8869f3565b464a418edc5.r2.cloudflarestorage.com`, 공개 개발 URL `https://pub-d8f5da4ce1654e04b110b52c7f415975.r2.dev`로 전환.
+
+- [x] 마이그레이션 전 확인: 운영 DB에 프로필 이미지가 저장된 유저가 0명이라 별도 데이터 이전(S3→R2 오브젝트 복사) 불필요함을 확인 후 진행.
+- [x] `backend/src/utils/s3.util.ts`: `S3Client`를 R2 엔드포인트로 재설정 (`region: 'auto'`, `endpoint: CLOUD_FLARE_S3_ENDPOINT`, `forcePathStyle: true`), 자격증명을 `CLOUD_FLARE_ACCESS_KEY_ID`/`CLOUD_FLARE_SECRET_ACCESS_KEY`로 변경.
+- [x] `backend/src/services/image.service.ts`: 업로드 응답 URL을 `multerS3`가 반환하는 `location`(R2 비공개 API 엔드포인트라 브라우저에서 못 여는 URL이 됐을 것) 대신 `${CLOUD_FLARE_PUBLIC_URL}/${key}`로 직접 구성하도록 수정. 삭제 시 참조하는 버킷명도 `CLOUD_FLARE_S3_BUCKET_NAME`으로 변경.
+- [x] `backend/src/controllers/user.controller.ts`: 프로필 수정 시 DB에 `file.location`(엔드포인트에 종속된 전체 URL) 대신 `file.key`만 저장하도록 통일 — 기존에 `image.service.ts`(key만 저장)와 `user.controller.ts`(전체 URL 저장)가 서로 다르게 저장하던 기존 불일치도 함께 정리됨.
+- [x] `backend/src/types/auth.type.ts`의 `generateFullUrl`: AWS S3 도메인 패턴 대신 `${CLOUD_FLARE_PUBLIC_URL}/${key}`로 재구성.
+- [x] `frontend/next.config.ts`: Next Image `remotePatterns`의 `welive-team1-bucket.s3...` 항목을 `pub-d8f5da4ce1654e04b110b52c7f415975.r2.dev`로 교체.
+- [x] Heroku Config Vars: `CLOUD_FLARE_ACCESS_KEY_ID`, `CLOUD_FLARE_SECRET_ACCESS_KEY`, `CLOUD_FLARE_S3_ENDPOINT`, `CLOUD_FLARE_S3_BUCKET_NAME`, `CLOUD_FLARE_PUBLIC_URL`, `CLOUD_FLARE_ACCOUNT_ID` 추가. 더 이상 쓰지 않는 `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`/`AWS_S3_BUCKET_NAME`/`AWS_REGION`은 제거.
+- [x] 배포 후 실사용 e2e 테스트: 테스트 계정으로 로그인 → `PATCH /api/users/me`에 이미지 첨부 업로드 → 응답 `avatar` 필드가 `https://pub-d8f5da4ce1654e04b110b52c7f415975.r2.dev/images/...` 형태로 정상 생성 → 해당 URL 직접 GET 시 200 + `image/png`로 실제 공개 접근 확인. 테스트 후 R2 오브젝트와 테스트 계정 모두 정리.
+- ⚠️ **로컬 `backend/.env`에는 `CLOUD_FLARE_S3_BUCKET_NAME`, `CLOUD_FLARE_PUBLIC_URL`이 아직 없음** (Heroku Config Var에만 설정함). 로컬에서 이미지 업로드를 테스트하려면 로컬 `.env`에도 두 값을 추가해야 함 — `CLOUD_FLARE_S3_BUCKET_NAME="welive-team-bucket"`, `CLOUD_FLARE_PUBLIC_URL="https://pub-d8f5da4ce1654e04b110b52c7f415975.r2.dev"`.
+- 참고: `.env`의 `CLOUD_FLARE_ACCESS_TOKEN`(`cfat_...`)은 Cloudflare REST API용 토큰이라 S3 호환 인증에는 쓰이지 않음 — 이번 마이그레이션에선 미사용.
+
 ## 다음 단계 (승인 필요 — 아래 항목은 아직 진행 안 함)
 
-1. Socket.io 연결, S3 이미지 업로드/조회 등 나머지 백엔드 실사용 e2e 검증
+1. Socket.io 연결 등 나머지 백엔드 실사용 e2e 검증
 2. `api-welive.haru-dev.me` 커스텀 도메인을 `welive-backend` Heroku 앱으로 DNS 리포인팅 (`heroku domains:add`)
 3. `HEROKU_API_KEY`를 장기 토큰(`heroku authorizations:create`)으로 교체 (2026-10-07 이전)
 4. 기존 EC2 인스턴스 정리 여부 결정 (바로 중단 vs 일정 기간 병행), 안 쓰는 GitHub Secrets(`EC2_HOST`, `EC2_SSH_KEY`, `EC2_USERNAME`) 정리 여부 포함
+5. 기존 AWS S3 버킷(`welive-team1-bucket`)을 계속 유지할지, 정리(삭제/보관)할지 결정
 
 ## 협업 규칙
 
